@@ -65,10 +65,10 @@ nav ul li a:hover {
 }
 
 .main {
-    position: absolute;
-    top: 55%;
-    left: 25%;
-    transform: translateY(-50%);
+    margin: 0 auto;
+    text-align: center;
+    padding-top: 200px;
+    padding-bottom: 100px;
 }
 
 .main span {
@@ -123,7 +123,7 @@ h3 {
 
 }
 
-.sobre{
+.sobre {
     background-color: #252525;
     width: 100%;
     padding: 100px 0px;
@@ -198,7 +198,6 @@ button:hover {
 .title h2 {
     color: white;
     font-size: 75px;
-    width: 1130px;
     margin: 30px auto;
     text-align: center;
 }
@@ -249,7 +248,7 @@ h5 {
     margin-bottom: 25px;
 }
 
-.link{
+.link {
     color: #f9004d;
     text-decoration: none;
 }
@@ -361,4 +360,56 @@ footer p {
     color: #f9004d;
     bottom: 35px;
     font-size: 14px;
+}
+
+@media (max-width: 1200px) {
+    .main-sobre {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .sobre-descricao {
+        width: 60%;
+        margin: 0 auto;
+    }
+
+    .sobre-descricao h2 {
+        margin: 40px 0;
+    }
+
+    .habilidades ul {
+        columns: 2;
+        -webkit-columns: 2;
+        -moz-columns: 2;
+    }
+
+    footer p {
+        width: 50%;
+    }
+
+}
+
+@media (max-width: 960px) {
+    .cabecalho-link{
+        display: none;
+    }
+}
+
+@media (max-width: 750px) {
+    .main{
+        padding-top: 150px;
+        padding-bottom: 150px;
+    }
+
+    .main span{
+        display: block;
+    }
+}
+
+@media (max-width: 660px) {
+    .main-sobre img{
+        width: 45%;
+    }
 }
