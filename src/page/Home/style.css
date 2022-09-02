@@ -1,0 +1,42 @@
+* {
+    padding: 0;
+    margin: 0;
+    font-family: 'Josefin Sans', sans-serif;
+    box-sizing: border-box;
+}
+
+#root{
+    height: 100vh;
+    background-color: #101010;
+}
+
+button {
+    background-color: #f9004d;
+    color: white;
+    text-transform: none;
+    border: 2px solid transparent;
+    font-weight: bold;
+    padding: 13px 20px;
+    border-radius: 30px;
+    transition: .4s;
+
+}
+
+button:hover {
+    background-color: transparent;
+    border: 2px solid #f9004d;
+    cursor: pointer;
+}
+
+@media (max-width: 660px) {
+
+    .title h2 {
+        font-size: 40px;
+    }
+
+    h1 {
+        font-size: 55px;
+        padding: 15px 0;
+    }
+
+}

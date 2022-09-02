@@ -1,0 +1,101 @@
+.projetos {
+    background-color: #252525;
+    width: 100%;
+    padding: 100px 0px;
+}
+
+.title h2 {
+    color: white;
+    font-size: 75px;
+    margin: 30px auto;
+    text-align: center;
+}
+
+.cards {
+    display: grid;
+    grid-template-columns: repeat(4, 25%);
+    width: 80%;
+    margin: 0 auto;
+    min-height: 400px;
+}
+
+@media screen and (max-width: 1350px) {
+    .cards {
+        grid-template-columns: repeat(3, 33.3%);
+    }
+}
+
+@media screen and (max-width: 970px) {
+    .cards {
+        grid-template-columns: repeat(2, 50%);
+    }
+}
+
+@media screen and (max-width: 650px) {
+    .cards {
+        grid-template-columns: repeat(1, 100%);
+    }
+}
+
+.card {
+    background: #101010;
+    border-radius: 20px;
+    margin: 15px;
+    text-align: center;
+}
+
+.card>* {
+    display: grid;
+}
+
+.card i {
+    font-size: 50px;
+    display: block;
+    text-align: center;
+    margin: 25px 0px;
+    color: #f9004d;
+}
+
+.projeto-title {
+    color: white;
+    font-size: 23px;
+    margin-bottom: 15px;
+}
+
+.paragrafo {
+    color: white;
+    font-size: 16px;
+    line-height: 25px;
+    margin-bottom: 25px;
+    padding: 5px 20px;
+}
+
+.paragrafo p {
+    margin-bottom: 25px;
+}
+
+.link {
+    color: #f9004d;
+    text-decoration: none;
+}
+
+.botao-link {
+    width: 60%;
+    padding: 10px;
+    margin: 0 auto;
+    background: red;
+    background-color: #f9004d;
+    color: white;
+    text-transform: none;
+    border: 2px solid transparent;
+    font-weight: bold;
+    border-radius: 30px;
+    transition: .4s;
+    text-decoration: none;
+}
+
+.botao-link:hover {
+    background-color: transparent;
+    border: 2px solid #f9004d;
+    cursor: pointer;
+}
