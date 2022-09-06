@@ -73,3 +73,9 @@
         width: 80%;
     }
 }
+
+@media (max-width: 400px) {
+    .sobre-descricao h2{
+        margin: 20px auto;
+    }
+}
