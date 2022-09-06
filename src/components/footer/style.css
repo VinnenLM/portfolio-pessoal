@@ -61,3 +61,27 @@ footer p {
         width: 50%;
     }
 }
+
+@media (max-width: 400px) {
+    .title h2 {
+        font-size: 30px !important;
+    }
+
+    footer p {
+        width: 80%;
+    }
+
+    .redes{
+        display: grid;
+        grid-template-columns: repeat(2, 50%);
+    }
+
+    .redes a {
+        margin: 10px;
+    }
+
+    footer{
+        height: 500px;
+    }
+
+}
