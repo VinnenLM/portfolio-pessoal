@@ -23,15 +23,15 @@
     }
 }
 
-@media screen and (max-width: 375px) {
-    .icones{
-        grid-template-columns: repeat(1, 100%);
-    }
-}
-
 .habilidades i {
     color: #f9004d;
     font-size: 4.5rem;
     margin: 0 auto;
     padding: 25px;
+}
+
+@media screen and (max-width: 375px) {
+    .habilidades i {
+        font-size: 3.5rem;
+    }
 }
