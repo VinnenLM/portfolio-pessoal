@@ -48,6 +48,13 @@
     min-height: 350px;
 }
 
+@media screen and (max-width: 320px) {
+    .card {
+        grid-template-rows: 20% 13% 52% 10%;
+        min-height: 430px;
+    }
+}
+
 .card a {
     display: flex;
     flex-direction: column;
