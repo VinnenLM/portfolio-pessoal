@@ -18,7 +18,7 @@ export default function Sobre() {
 
                     <p>Sou um Desenvolvedor Web Fullstack, atualmente trabalhando como estagiário em Desenvolvimento na
                         UTFPR - Cornélio Procópio.</p>
-                    <p>Utilizo e procuro saber mais sobre PHP, Laravel, HTML, CSS, Javascript, Git, PostgreSQL, Sass,
+                    <p>Utilizo e procuro saber mais sobre PHP, Laravel, ReactJs, HTML, CSS, Javascript, Git, PostgreSQL, Sass,
                         JQuery, Bootstrap, entre outras tecnologias.</p>
 
                 </div>

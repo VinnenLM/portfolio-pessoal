@@ -13,21 +13,22 @@
 
 .cards {
     display: grid;
-    grid-template-columns: repeat(4, 25%);
+    grid-template-columns: repeat(4, 24%);
     width: 80%;
+    grid-gap: 20px;
+    height: 100%;
     margin: 0 auto;
-    min-height: 400px;
 }
 
 @media screen and (max-width: 1350px) {
     .cards {
-        grid-template-columns: repeat(3, 33.3%);
+        grid-template-columns: repeat(3, 32%);
     }
 }
 
 @media screen and (max-width: 970px) {
     .cards {
-        grid-template-columns: repeat(2, 50%);
+        grid-template-columns: repeat(2, 48.5%);
     }
 }
 
@@ -38,14 +39,19 @@
 }
 
 .card {
+    display: grid;
+    grid-template-rows: 30% 10% 45% 10%;
+    height: 100%;
     background: #101010;
     border-radius: 20px;
-    margin: 15px;
     text-align: center;
+    min-height: 350px;
 }
 
-.card>* {
-    display: grid;
+.card a {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .card i {
@@ -81,7 +87,6 @@
 
 .botao-link {
     width: 60%;
-    padding: 10px;
     margin: 0 auto;
     background: red;
     background-color: #f9004d;
