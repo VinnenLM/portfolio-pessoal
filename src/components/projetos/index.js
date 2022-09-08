@@ -37,7 +37,7 @@ export default function Projetos() {
 
                 <Projeto titulo="SEMAT 2019" icone="fa-regular fa-calendar-check" descricao="Site para divulgação do evento da semana da matemática, criado utilizando ReactJs." link="https://semana-matematica-2019.netlify.app/" />
 
-                <Projeto titulo="21 Dias De Código" icone="fa-solid fa-rocket" descricao="Códigos desenvolvidos durante o desafio 21 Dias de Código da Rocketseat" link="https://github.com/VinnenLM/desafio-21-dias-rocketseat" />
+                <Projeto titulo="21 Dias De Código" icone="fa-solid fa-rocket" descricao="21 Dias de códigos desenvolvidos durante o desafio 21 Dias de Código da Rocketseat" link="https://desafio-rocketseat.herokuapp.com/" />
 
             </div>
         </div>
