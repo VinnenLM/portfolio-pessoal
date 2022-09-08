@@ -29,7 +29,7 @@ export default function Projetos() {
 
                 <Projeto titulo="Consultório Odonto" icone="fas fa-tooth" descricao="Projeto de gerenciador de consultório odontológico, criado utilizando Java e PostgreSQL." link="https://github.com/VinnenLM/consultorio-odonto" />
 
-                <Projeto titulo="Gerenciador de Estudos" icone="fas fa-clock" descricao="Projeto de cronômetro para gerenciar o tempo dos estudos, criado utilizando React com Typescript." link="https://contador-estudos.herokuapp.com" />
+                <Projeto titulo="Gerenciador de Estudos" icone="fas fa-clock" descricao="Projeto de cronômetro para gerenciar o tempo dos estudos, criado utilizando React com Typescript." link="https://contador-estudos.netlify.app/" />
 
                 <Projeto titulo="DSMovie" icone="fas fa-film" descricao="Projeto para listagem de séries e filmes, permitindo a avaliação dos mesmos, criado durante a Semana Sprint React da DevSuperior." link="https://dsmovie-vinicius-mendonca.netlify.app/" />
 
