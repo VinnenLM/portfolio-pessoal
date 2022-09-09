@@ -35,7 +35,9 @@ export default function Projetos() {
 
                 <Projeto titulo="DSVendas" icone="fas fa-clipboard" descricao="Projeto de dashboard para análise de vendas, criado durante a Semana Sprint React da DevSuperior." link="https://dsvendas-vinicius-mendonca.netlify.app/dashboard" />
 
-                <Projeto titulo="SEMAT 2019" icone="fa-regular fa-calendar-check" descricao="Site para divulgação do evento da semana da matemática, criado utilizando ReactJs." link="https://semana-matematica-2019.netlify.app/" />
+                <Projeto titulo="SEMAT 2019" icone="fa-regular fa-calendar-check" descricao="Site para divulgação da VIII semana da matemática da UTFPR." link="https://www.cp.utfpr.edu.br/semat/2019/" />
+                
+                <Projeto titulo="SEMAT 2022" icone="fa-solid fa-calendar-check" descricao="Site para divulgação da IX semana da matemática da UTFPR." link="https://www.cp.utfpr.edu.br/semat/2022/" />
 
                 <Projeto titulo="Desafio Rocketseat" icone="fa-solid fa-rocket" descricao="21 Dias de códigos desenvolvidos durante o desafio da Rocketseat." link="https://desafio-rocketseat.herokuapp.com/" />
 
