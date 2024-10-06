@@ -29,7 +29,7 @@ export default function Projetos() {
           titulo="Mind Booster"
           icone="fas fa-gamepad"
           descricao="Projeto de jogo estilo Flash Cards, criado utilizando ReactJs e Firebase."
-          link="https://github.com/VinnenLM/prog-web-1-reactjs"
+          link="https://mind-booster.netlify.app/"
         />
 
         <Projeto
