@@ -1,81 +1,103 @@
 .sobre {
-    background-color: #252525;
-    width: 100%;
-    padding: 100px 0px;
-
+  background-color: #252525;
+  width: 100%;
+  padding: 100px 0px;
 }
 
 .sobre img {
-    width: 430px;
-    height: auto;
-    border-radius: 50%;
+  width: 430px;
+  height: auto;
+  border-radius: 50%;
 }
 
 .sobre-descricao {
-    width: 550px;
+  width: 550px;
 }
 
 .main-sobre {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    width: 1130px;
-    margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  width: 1130px;
+  margin: 0 auto;
 }
 
 .sobre-descricao h2 {
-    color: white;
-    font-size: 75px;
-    text-transform: capitalize;
-    margin-bottom: 20px;
+  color: white;
+  font-size: 75px;
+  text-transform: capitalize;
+  margin-bottom: 20px;
 }
 
 .sobre-descricao h5 {
-    color: white;
-    letter-spacing: 2px;
-    font-size: 22px;
-    margin-bottom: 25px;
-    text-transform: capitalize;
+  color: white;
+  letter-spacing: 2px;
+  font-size: 22px;
+  margin-bottom: 25px;
+  text-transform: capitalize;
 }
 
 .sobre-descricao p {
-    color: white;
-    letter-spacing: 1px;
-    line-height: 28px;
-    font-size: 18px;
-    margin-bottom: 45px;
+  color: white;
+  letter-spacing: 1px;
+  line-height: 28px;
+  font-size: 18px;
+  margin-bottom: 45px;
+}
+
+.sobre-descricao ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+.sobre-descricao li {
+  margin: 10px 0;
+}
+
+.sobre-descricao li u {
+  text-decoration: none;
+  color: white;
+}
+
+.sobre-descricao img {
+  max-width: 100%;
+  height: auto;
+}
+
+.sobre-descricao {
+  margin-left: 20px;
 }
 
 @media (max-width: 1200px) {
-    .main-sobre {
-        display: flex;
-        width: 100%;
-        flex-direction: column;
-        text-align: center;
-    }
+  .main-sobre {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    text-align: center;
+  }
 
-    .sobre-descricao {
-        width: 60%;
-        margin: 0 auto;
-    }
+  .sobre-descricao {
+    width: 60%;
+    margin: 0 auto;
+  }
 
-    .sobre-descricao h2 {
-        margin: 40px 0;
-    }
+  .sobre-descricao h2 {
+    margin: 40px 0;
+  }
 }
 
 @media (max-width: 660px) {
-    .main-sobre img{
-        width: 45%;
-    }
+  .main-sobre img {
+    width: 45%;
+  }
 
-    .sobre-descricao {
-        width: 80%;
-    }
+  .sobre-descricao {
+    width: 80%;
+  }
 }
 
 @media (max-width: 400px) {
-    .sobre-descricao h2{
-        margin: 20px auto;
-    }
+  .sobre-descricao h2 {
+    margin: 20px auto;
+  }
 }
