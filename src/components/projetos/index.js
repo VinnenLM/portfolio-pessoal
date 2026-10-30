@@ -78,7 +78,7 @@ export default function Projetos() {
           titulo="Desafio Rocketseat"
           icone="fa-solid fa-rocket"
           descricao="21 Dias de códigos desenvolvidos durante o desafio da Rocketseat."
-          link="https://github.com/VinnenLM/desafio-21-dias-rocketseat"
+          link="https://vinnenlm.github.io/desafio-21-dias-rocketseat/"
         />
         <Projeto
           titulo="Compressor de Imagens"
