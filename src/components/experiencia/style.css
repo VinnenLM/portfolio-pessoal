@@ -1,0 +1,108 @@
+.experiencia {
+  width: 100%;
+  padding: 100px 0;
+  background-color: #181818;
+}
+
+.experiencia-lista,
+.formacao-grid {
+  width: 80%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.experiencia-lista {
+  display: grid;
+  grid-gap: 20px;
+  margin-bottom: 20px;
+}
+
+.formacao-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 20px;
+}
+
+.experiencia-card {
+  background: #101010;
+  border-radius: 20px;
+  padding: 30px;
+  color: white;
+}
+
+.experiencia-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+.experiencia-card h3 {
+  color: white;
+  font-size: 23px;
+  margin-bottom: 5px;
+}
+
+.experiencia-empresa {
+  color: #f9004d;
+  font-size: 16px;
+}
+
+.experiencia-periodo {
+  color: #bdbdbd;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.experiencia-card ul {
+  padding-left: 20px;
+}
+
+.experiencia-card li {
+  color: white;
+  font-size: 16px;
+  line-height: 25px;
+  margin: 8px 0;
+}
+
+.experiencia-card li::marker {
+  color: #f9004d;
+}
+
+.experiencia-subtitulo {
+  margin-bottom: 20px !important;
+}
+
+.experiencia-subtitulo i {
+  color: #f9004d;
+  margin-right: 8px;
+}
+
+.formacao-item {
+  margin-bottom: 18px;
+}
+
+.formacao-item strong {
+  font-size: 17px;
+}
+
+.formacao-item p {
+  color: #bdbdbd;
+  font-size: 15px;
+  margin: 4px 0;
+}
+
+@media screen and (max-width: 800px) {
+  .formacao-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .experiencia-topo {
+    flex-direction: column;
+  }
+
+  .experiencia-card {
+    padding: 25px 20px;
+  }
+}

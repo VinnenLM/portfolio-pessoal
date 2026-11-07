@@ -1,4 +1,5 @@
 import React from "react";
+import Experiencia from "../../components/experiencia";
 import Footer from "../../components/footer";
 import Habilidades from "../../components/habilidades";
 import Header from "../../components/header";
@@ -12,6 +13,7 @@ export default function Home() {
             <Header />
             <Sobre />
             <Habilidades />
+            <Experiencia />
             <Projetos />
             <Footer />
         </>

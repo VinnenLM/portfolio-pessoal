@@ -16,29 +16,36 @@ export default function Sobre() {
           </div>
 
           <p>
-            Sou Desenvolvedor de Software Fullstack, com foco em tecnologias
-            modernas para desenvolvimento web e backend. Minha experiência
-            inclui:
+            Sou Desenvolvedor de Software com mais de 5 anos de experiência,
+            com foco em backend e atuação fullstack. Trabalho com Node.js,
+            NestJS, TypeScript e Go no desenvolvimento de APIs REST,
+            microsserviços e processamento assíncrono de eventos com Kafka.
+            Atuo em integrações entre sistemas, deploys em Kubernetes e
+            investigação de problemas em produção. Minha experiência inclui:
           </p>
           <ul>
             <li>
               <u>
-                <b>Backend:</b> Node.js, NestJS, PHP, TypeScript.
+                <b>Backend e arquitetura:</b> Node.js, NestJS, TypeScript, Go,
+                PHP, APIs REST, microsserviços, Kafka e webhooks.
               </u>
             </li>
             <li>
               <u>
-                <b>Frontend:</b> React.js, JavaScript, HTML, CSS, Sass, JQuery.
+                <b>Dados e testes:</b> PostgreSQL, Oracle, MySQL, MongoDB,
+                Redis, TypeORM, GORM e Jest.
               </u>
             </li>
             <li>
               <u>
-                <b>Banco de Dados:</b> PostgreSQL, Oracle, MySQL.
+                <b>Infraestrutura:</b> Docker, Kubernetes, Rancher, Jenkins,
+                Git, Datadog e Grafana.
               </u>
             </li>
             <li>
               <u>
-                <b>DevOps e Infraestrutura:</b> Docker, Git.
+                <b>Frontend:</b> React.js, JavaScript, HTML, CSS, Sass e
+                jQuery.
               </u>
             </li>
           </ul>
