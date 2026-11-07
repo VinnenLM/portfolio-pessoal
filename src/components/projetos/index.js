@@ -86,6 +86,13 @@ export default function Projetos() {
           descricao="Aplicação web para compressão de imagens, permitindo reduzir o tamanho de arquivos sem perder qualidade."
           link="https://compressor-imagens.netlify.app/"
         />
+
+        <Projeto
+          titulo="SpawnWatch"
+          icone="fa-solid fa-map-location-dot"
+          descricao="Aplicação web para monitorar spawns de Pokémon GO com notificações no celular, criada utilizando React com TypeScript e Cloudflare Workers."
+          link="https://spawnwatch.vinicius-mendoncaa.workers.dev"
+        />
       </div>
     </div>
   );
