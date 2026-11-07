@@ -16,6 +16,7 @@ export default function Habilidades() {
         <i className="devicon-go-plain" title="Go"></i>
         <i className="devicon-php-plain" title="PHP"></i>
         <i className="devicon-laravel-plain" title="Laravel"></i>
+        <i className="devicon-java-plain" title="Java"></i>
         <i className="devicon-apachekafka-plain" title="Kafka"></i>
 
         {/* Dados e testes */}
@@ -42,6 +43,7 @@ export default function Habilidades() {
         <i className="devicon-html5-plain" title="HTML5"></i>
         <i className="devicon-css3-plain" title="CSS3"></i>
         <i className="devicon-sass-original" title="Sass"></i>
+        <i className="devicon-bootstrap-plain" title="Bootstrap"></i>
         <i className="devicon-jquery-plain" title="jQuery"></i>
       </div>
     </div>
