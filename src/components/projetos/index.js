@@ -93,6 +93,13 @@ export default function Projetos() {
           descricao="Aplicação web para monitorar spawns de Pokémon GO com notificações no celular, criada utilizando React com TypeScript e Cloudflare Workers."
           link="https://spawnwatch.vinicius-mendoncaa.workers.dev"
         />
+
+        <Projeto
+          titulo="Enzimando"
+          icone="fa-solid fa-beer-mug-empty"
+          descricao="Blog sobre cerveja e pesquisa na área cervejeira, criado com NestJS, React e PostgreSQL. Hospedado no Render, com banco no Neon, imagens no Cloudinary e envio de e-mails via Brevo."
+          link="https://enzimando.onrender.com"
+        />
       </div>
     </div>
   );
