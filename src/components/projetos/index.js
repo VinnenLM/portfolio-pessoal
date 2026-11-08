@@ -14,8 +14,8 @@ export default function Projetos() {
       <Projeto
           titulo="Blog Cabelos Coloridos"
           icone="fas fa-user"
-          descricao="Projeto para a página Cabelos Coloridos"
-          link="https://github.com/VinnenLM/blog-cabelos-coloridos"
+          descricao="Blog para a página Cabelos Coloridos, criado com NestJS, React e PostgreSQL. Hospedado no Render, com banco no Neon, imagens no Cloudinary e envio de e-mails via Brevo."
+          link="https://blog-cabelos-coloridos.onrender.com/"
         />
 
         <Projeto
