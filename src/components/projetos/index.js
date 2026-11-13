@@ -90,7 +90,7 @@ const projetos = [
     descricao:
       "Aplicação web para compressão de imagens, permitindo reduzir o tamanho de arquivos sem perder qualidade.",
     link: "https://compressor-imagens.netlify.app/",
-    icone: "fa-solid fa-compress",
+    logo: img("compressor.svg"),
     tags: ["HTML", "CSS", "JavaScript"],
     tema: { c1: "#3498db", c2: "#2ecc71", on: "#ffffff", logoBg: "#0d1620" },
   },
