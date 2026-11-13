@@ -5,7 +5,10 @@ export default function NavBar() {
     return (
         <nav className="topo">
             <div className="topo-inner">
-                <HashLink to="/#home" className="logo">Vinnen<span>LM</span></HashLink>
+                <HashLink to="/#home" className="logo">
+                    <img className="logo-marca" src={`${process.env.PUBLIC_URL}/logo.svg`} alt="" />
+                    <span>Vinnen<em>LM</em></span>
+                </HashLink>
 
                 <ul className="cabecalho-link">
                     <li><HashLink to="/#home">Home</HashLink></li>
