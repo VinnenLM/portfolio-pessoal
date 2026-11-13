@@ -22,9 +22,6 @@
 }
 
 .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
     font-family: var(--font-title);
     font-size: 1.55rem;
     font-weight: 700;
@@ -39,16 +36,6 @@
     color: var(--accent);
 }
 
-.logo-marca {
-    width: 38px;
-    height: 38px;
-    border-radius: 10px;
-    transition: transform .3s;
-}
-
-.logo:hover .logo-marca {
-    transform: rotate(-6deg) scale(1.06);
-}
 
 .cabecalho-link {
     display: flex;
