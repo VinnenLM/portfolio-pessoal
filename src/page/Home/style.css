@@ -1,42 +1,156 @@
+/* =========================================================
+   Tema do site
+   Para trocar a cor de destaque, altere só --accent e --accent-2:
+     Esmeralda: #34d399 / #a3e635
+     Âmbar:     #fbbf24 / #fb923c
+     Rosa:      #f472b6 / #a78bfa
+   ========================================================= */
+:root {
+    --bg: #0a0c10;
+    --bg-alt: #0e1117;
+    --surface: #141821;
+    --surface-2: #1a2030;
+    --border: #242b3a;
+    --text: #eef1f6;
+    --muted: #9aa4b6;
+    --accent: #7c9cff;
+    --accent-2: #5eead4;
+    --accent-ink: #0a0c10;
+    --radius: 20px;
+    --nav-h: 76px;
+    --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --font-title: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+}
+
 * {
     padding: 0;
     margin: 0;
-    font-family: 'Josefin Sans', sans-serif;
     box-sizing: border-box;
 }
 
-#root{
-    height: 100vh;
-    background-color: #101010;
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--nav-h) + 8px);
 }
 
-button {
-    background-color: #f9004d;
-    color: white;
-    text-transform: none;
-    border: 2px solid transparent;
-    font-weight: bold;
-    padding: 13px 20px;
-    border-radius: 30px;
-    transition: .4s;
-
+body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
 }
 
-button:hover {
-    background-color: transparent;
-    border: 2px solid #f9004d;
+#root {
+    min-height: 100vh;
+}
+
+::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.container {
+    width: min(1120px, 90%);
+    margin: 0 auto;
+}
+
+/* ---------- títulos de seção ---------- */
+.title {
+    text-align: center;
+    margin-bottom: 56px;
+}
+
+.title h2 {
+    font-family: var(--font-title);
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+    color: var(--text);
+}
+
+.title h2::after {
+    content: "";
+    display: block;
+    width: 56px;
+    height: 4px;
+    border-radius: 4px;
+    margin: 16px auto 0;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+}
+
+.title-esq {
+    text-align: left;
+    margin-bottom: 28px;
+}
+
+.title-esq h2::after {
+    margin-left: 0;
+}
+
+.destaque {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* ---------- botões ---------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 13px 26px;
+    border-radius: 999px;
+    border: 1px solid transparent;
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
     cursor: pointer;
+    transition: transform .25s, box-shadow .25s, border-color .25s, background .25s;
 }
 
-@media (max-width: 660px) {
+.btn:hover {
+    transform: translateY(-2px);
+}
 
-    .title h2 {
-        font-size: 40px;
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: var(--accent-ink);
+    box-shadow: 0 10px 30px -12px var(--accent);
+}
+
+.btn-ghost {
+    border-color: var(--border);
+    color: var(--text);
+    background: var(--surface);
+}
+
+.btn-ghost:hover {
+    border-color: var(--accent);
+}
+
+a:focus-visible,
+button:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+@media (max-width: 900px) {
+    :root {
+        --nav-h: 108px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
     }
 
-    h1 {
-        font-size: 55px;
-        padding: 15px 0;
+    * {
+        transition: none !important;
+        animation: none !important;
     }
-
 }

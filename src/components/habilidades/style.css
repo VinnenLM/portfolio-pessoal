@@ -1,37 +1,84 @@
 .habilidades {
     width: 100%;
-    padding: 100px 0;
-    background-color: #101010;
+    padding: 110px 0;
+    background: var(--bg);
+}
+
+.habilidades-grupos {
+    display: grid;
+    gap: 40px;
+}
+
+.habilidades-grupo h3 {
+    font-family: var(--font-title);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.habilidades-grupo h3::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--border);
 }
 
 .icones {
     display: grid;
-    grid-template-columns: repeat(5, 20%);
-    width: 80%;
-    margin: 0 auto;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 14px;
 }
 
-@media screen and (max-width: 800px) {
-    .icones{
-        grid-template-columns: repeat(3, 33%);
+.habilidade {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 10px 16px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    transition: transform .25s, border-color .25s, background .25s;
+}
+
+.habilidade:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    background: var(--surface-2);
+}
+
+.habilidade i {
+    font-size: 2.7rem;
+    color: var(--text);
+    line-height: 1;
+}
+
+/* Kafka e TypeORM coloridos são pretos e somem no fundo escuro */
+.habilidade i.devicon-apachekafka-plain.colored,
+.habilidade i.devicon-typeorm-plain.colored {
+    color: #ffffff;
+}
+
+.habilidade span {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--muted);
+    text-align: center;
+}
+
+@media screen and (max-width: 480px) {
+    .icones {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        gap: 10px;
     }
-}
 
-@media screen and (max-width: 580px) {
-    .icones{
-        grid-template-columns: repeat(2, 50%);
-    }
-}
-
-.habilidades i {
-    color: #f9004d;
-    font-size: 4.5rem;
-    margin: 0 auto;
-    padding: 25px;
-}
-
-@media screen and (max-width: 375px) {
-    .habilidades i {
-        font-size: 3.5rem;
+    .habilidade i {
+        font-size: 2.3rem;
     }
 }

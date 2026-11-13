@@ -1,13 +1,12 @@
 .experiencia {
   width: 100%;
-  padding: 100px 0;
-  background-color: #181818;
+  padding: 110px 0;
+  background: var(--bg-alt);
 }
 
 .experiencia-lista,
 .formacao-grid {
-  width: 80%;
-  max-width: 1000px;
+  width: min(1000px, 90%);
   margin: 0 auto;
 }
 
@@ -24,10 +23,28 @@
 }
 
 .experiencia-card {
-  background: #101010;
-  border-radius: 20px;
-  padding: 30px;
-  color: white;
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 30px 32px;
+  color: var(--text);
+  overflow: hidden;
+  transition: border-color .25s;
+}
+
+.experiencia-card:hover {
+  border-color: rgba(124, 156, 255, 0.5);
+}
+
+.experiencia-lista .experiencia-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-2));
 }
 
 .experiencia-topo {
@@ -35,24 +52,31 @@
   justify-content: space-between;
   align-items: flex-start;
   gap: 15px;
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 }
 
 .experiencia-card h3 {
-  color: white;
-  font-size: 23px;
-  margin-bottom: 5px;
+  font-family: var(--font-title);
+  color: var(--text);
+  font-size: 1.3rem;
+  letter-spacing: -0.01em;
+  margin-bottom: 4px;
 }
 
 .experiencia-empresa {
-  color: #f9004d;
-  font-size: 16px;
+  color: var(--accent);
+  font-size: 0.98rem;
+  font-weight: 500;
 }
 
 .experiencia-periodo {
-  color: #bdbdbd;
-  font-size: 15px;
+  color: var(--muted);
+  font-size: 0.85rem;
   white-space: nowrap;
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-alt);
 }
 
 .experiencia-card ul {
@@ -60,14 +84,14 @@
 }
 
 .experiencia-card li {
-  color: white;
-  font-size: 16px;
-  line-height: 25px;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.65;
   margin: 8px 0;
 }
 
 .experiencia-card li::marker {
-  color: #f9004d;
+  color: var(--accent);
 }
 
 .experiencia-subtitulo {
@@ -75,7 +99,7 @@
 }
 
 .experiencia-subtitulo i {
-  color: #f9004d;
+  color: var(--accent);
   margin-right: 8px;
 }
 
@@ -83,14 +107,19 @@
   margin-bottom: 18px;
 }
 
+.formacao-item:last-child {
+  margin-bottom: 0;
+}
+
 .formacao-item strong {
-  font-size: 17px;
+  font-size: 1.02rem;
+  color: var(--text);
 }
 
 .formacao-item p {
-  color: #bdbdbd;
-  font-size: 15px;
-  margin: 4px 0;
+  color: var(--muted);
+  font-size: 0.93rem;
+  margin: 4px 0 8px;
 }
 
 @media screen and (max-width: 800px) {
@@ -103,6 +132,6 @@
   }
 
   .experiencia-card {
-    padding: 25px 20px;
+    padding: 25px 22px;
   }
 }

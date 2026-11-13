@@ -1,51 +1,80 @@
 import React from "react";
 import "./style.css";
 
+const grupos = [
+  {
+    titulo: "Backend e arquitetura",
+    itens: [
+      ["devicon-nestjs-plain", "NestJS"],
+      ["devicon-nodejs-plain", "Node.js"],
+      ["devicon-typescript-plain", "TypeScript"],
+      ["devicon-go-plain", "Go"],
+      ["devicon-php-plain", "PHP"],
+      ["devicon-laravel-plain", "Laravel"],
+      ["devicon-java-plain", "Java"],
+      ["devicon-apachekafka-plain", "Kafka"],
+    ],
+  },
+  {
+    titulo: "Dados e testes",
+    itens: [
+      ["devicon-postgresql-plain", "PostgreSQL"],
+      ["devicon-oracle-plain", "Oracle"],
+      ["devicon-mysql-plain", "MySQL"],
+      ["devicon-mongodb-plain", "MongoDB"],
+      ["devicon-redis-plain", "Redis"],
+      ["devicon-typeorm-plain", "TypeORM"],
+      ["devicon-jest-plain", "Jest"],
+    ],
+  },
+  {
+    titulo: "Infraestrutura",
+    itens: [
+      ["devicon-docker-plain", "Docker"],
+      ["devicon-kubernetes-plain", "Kubernetes"],
+      ["devicon-rancher-plain", "Rancher"],
+      ["devicon-jenkins-plain", "Jenkins"],
+      ["devicon-git-plain", "Git"],
+      ["devicon-datadog-plain", "Datadog"],
+      ["devicon-grafana-plain", "Grafana"],
+    ],
+  },
+  {
+    titulo: "Frontend",
+    itens: [
+      ["devicon-react-plain", "React.js"],
+      ["devicon-javascript-plain", "JavaScript"],
+      ["devicon-html5-plain", "HTML5"],
+      ["devicon-css3-plain", "CSS3"],
+      ["devicon-sass-original", "Sass"],
+      ["devicon-bootstrap-plain", "Bootstrap"],
+      ["devicon-jquery-plain", "jQuery"],
+    ],
+  },
+];
+
 export default function Habilidades() {
   return (
-    <div className="habilidades" id="habilidades">
+    <section className="habilidades" id="habilidades">
       <div className="title">
         <h2>Habilidades</h2>
       </div>
 
-      <div className="icones">
-        {/* Backend e arquitetura */}
-        <i className="devicon-nestjs-plain" title="NestJS"></i>
-        <i className="devicon-nodejs-plain" title="Node.js"></i>
-        <i className="devicon-typescript-plain" title="TypeScript"></i>
-        <i className="devicon-go-plain" title="Go"></i>
-        <i className="devicon-php-plain" title="PHP"></i>
-        <i className="devicon-laravel-plain" title="Laravel"></i>
-        <i className="devicon-java-plain" title="Java"></i>
-        <i className="devicon-apachekafka-plain" title="Kafka"></i>
-
-        {/* Dados e testes */}
-        <i className="devicon-postgresql-plain" title="PostgreSQL"></i>
-        <i className="devicon-oracle-plain" title="Oracle"></i>
-        <i className="devicon-mysql-plain" title="MySQL"></i>
-        <i className="devicon-mongodb-plain" title="MongoDB"></i>
-        <i className="devicon-redis-plain" title="Redis"></i>
-        <i className="devicon-typeorm-plain" title="TypeORM"></i>
-        <i className="devicon-jest-plain" title="Jest"></i>
-
-        {/* Infraestrutura */}
-        <i className="devicon-docker-plain" title="Docker"></i>
-        <i className="devicon-kubernetes-plain" title="Kubernetes"></i>
-        <i className="devicon-rancher-plain" title="Rancher"></i>
-        <i className="devicon-jenkins-plain" title="Jenkins"></i>
-        <i className="devicon-git-plain" title="Git"></i>
-        <i className="devicon-datadog-plain" title="Datadog"></i>
-        <i className="devicon-grafana-plain" title="Grafana"></i>
-
-        {/* Frontend */}
-        <i className="devicon-react-plain" title="React.js"></i>
-        <i className="devicon-javascript-plain" title="JavaScript"></i>
-        <i className="devicon-html5-plain" title="HTML5"></i>
-        <i className="devicon-css3-plain" title="CSS3"></i>
-        <i className="devicon-sass-original" title="Sass"></i>
-        <i className="devicon-bootstrap-plain" title="Bootstrap"></i>
-        <i className="devicon-jquery-plain" title="jQuery"></i>
+      <div className="container habilidades-grupos">
+        {grupos.map((g) => (
+          <div className="habilidades-grupo" key={g.titulo}>
+            <h3>{g.titulo}</h3>
+            <div className="icones">
+              {g.itens.map(([classe, nome]) => (
+                <div className="habilidade" key={nome} title={nome}>
+                  <i className={`${classe} colored`}></i>
+                  <span>{nome}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
-    </div>
+    </section>
   );
 }
