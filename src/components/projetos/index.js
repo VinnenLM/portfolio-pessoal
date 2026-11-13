@@ -100,6 +100,27 @@ export default function Projetos() {
           descricao="Blog sobre cerveja e pesquisa na área cervejeira, criado com NestJS, React e PostgreSQL. Hospedado no Render, com banco no Neon, imagens no Cloudinary e envio de e-mails via Brevo."
           link="https://enzimando.onrender.com"
         />
+
+        <Projeto
+          titulo="b64codec"
+          icone="fa-solid fa-right-left"
+          descricao="Ferramenta para codificar e decodificar Base64, de texto (com suporte a UTF-8) e de imagens, com pré-visualização e download. Roda 100% no navegador, feita com HTML, CSS e JavaScript."
+          link="https://vinnenlm.github.io/b64codec/"
+        />
+
+        <Projeto
+          titulo="jsonfmt"
+          icone="fa-solid fa-code"
+          descricao="Formatador, minificador e validador de JSON, com indicação de linha e coluna do erro, indentação configurável e ordenação de chaves. Roda 100% no navegador, feito com HTML, CSS e JavaScript."
+          link="https://vinnenlm.github.io/jsonfmt/"
+        />
+
+        <Projeto
+          titulo="Mock-data"
+          icone="fa-solid fa-dice"
+          descricao="Gerador de dados fictícios brasileiros para testes: CPF, CNPJ, RG, Inscrição Estadual, telefone, endereço, conta bancária, cartão de crédito e mais, com validador. Roda 100% no navegador."
+          link="https://vinnenlm.github.io/mock-data/"
+        />
       </div>
     </div>
   );
