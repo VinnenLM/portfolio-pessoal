@@ -38,12 +38,16 @@ let game = null;
 let screen = "menu";
 let exiting = false; // saída pelo botão "Menu" (não é o botão voltar)
 
-// No celular, o mesmo toque que troca de tela ainda gera um "click" logo depois, que cairia
-// no botão que apareceu no lugar (ex.: "Menu" da pausa -> "Difícil" do menu). Bloqueia por um instante.
-let clickGuardUntil = 0;
-const guardClicks = (ms = 450) => (clickGuardUntil = performance.now() + ms);
+// No celular, o toque em "Menu" (no canvas) ainda gera um "click" logo depois, no mesmo ponto,
+// que cairia no botão que apareceu ali no menu (ex.: "Difícil"). Só esse clique é ignorado:
+// precisa ser quase imediato e no mesmo lugar. Um toque novo funciona na hora.
+let ghost = null; // { x, y, until }
+const guardGhostClick = (pos) => { if (pos) ghost = { x: pos[0], y: pos[1], until: performance.now() + 350 }; };
 document.addEventListener("click", (e) => {
-  if (performance.now() < clickGuardUntil) { e.stopPropagation(); e.preventDefault(); }
+  if (!ghost) return;
+  const g = ghost;
+  if (performance.now() > g.until) { ghost = null; return; }
+  if (Math.hypot(e.clientX - g.x, e.clientY - g.y) < 30) { ghost = null; e.stopPropagation(); e.preventDefault(); }
 }, true);
 
 // =====================================================================
@@ -67,7 +71,7 @@ function dialog({ title, accent = "#2ec4f1", build }) {
     close,
   };
   build(api);
-  bg.addEventListener("click", (e) => { if (e.target === bg) { guardClicks(); close(); } });
+  bg.addEventListener("click", (e) => { if (e.target === bg) close(); });
   $("#app").append(bg);
   return api;
 }
@@ -83,7 +87,6 @@ function toast(text) {
 // =====================================================================
 
 function show(name) {
-  if (name !== screen) guardClicks();
   screen = name;
   document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === name));
 }
@@ -97,7 +100,7 @@ function openGame(mode, tutorial = false) {
   game?.destroy();
   game = new Game(canvas, mode, {
     tutorial: tutorial || !store.tutorialDone,
-    onExit: () => { exiting = true; history.back(); },
+    onExit: () => { guardGhostClick(game?.lastUpClient); exiting = true; history.back(); },
   });
 }
 

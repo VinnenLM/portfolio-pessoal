@@ -1265,7 +1265,7 @@ export class Game {
     const cv = this.canvas;
     const onDown = (ev) => { ev.preventDefault(); Sound.unlock(); cv.setPointerCapture?.(ev.pointerId); this.down(...this.pointer(ev)); };
     const onMove = (ev) => { ev.preventDefault(); this.move(...this.pointer(ev)); };
-    const onUp = (ev) => { ev.preventDefault(); this.up(...this.pointer(ev)); };
+    const onUp = (ev) => { ev.preventDefault(); this.lastUpClient = [ev.clientX, ev.clientY]; this.up(...this.pointer(ev)); };
     const onCancel = () => { this.dragSlot = -1; this.dragTarget = null; this.dragActive = false; };
     const onResize = () => this.resize();
     cv.addEventListener("pointerdown", onDown);
