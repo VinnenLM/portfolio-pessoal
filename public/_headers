@@ -2,3 +2,7 @@
 /downloads/*.apk
   Content-Type: application/vnd.android.package-archive
   Content-Disposition: attachment
+
+# Deadfront muda a cada atualização: sempre buscar a versão mais nova
+/deadfront/*
+  Cache-Control: no-cache

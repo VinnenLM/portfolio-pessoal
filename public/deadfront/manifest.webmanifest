@@ -1,0 +1,10 @@
+{
+  "name": "Deadfront",
+  "short_name": "Deadfront",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b0d0b",
+  "theme_color": "#0b0d0b",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

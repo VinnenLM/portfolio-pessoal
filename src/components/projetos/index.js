@@ -41,6 +41,17 @@ const projetos = [
     tema: { c1: "#ffd23f", c2: "#2d2a78", on: "#1b1f4b", logoBg: "#1b1f4b" },
   },
   {
+    titulo: "Deadfront",
+    categoria: "app",
+    descricao:
+      "Jogo de defesa contra zumbis com visão de cima, feito em JavaScript puro (Canvas) e empacotado para Android com Capacitor. 4 mapas (mansão, aeroporto, quartel e hospital) com chefes, barricadas quebráveis nas entradas, loot, armadilhas, loja de armas, melhorias e skins.",
+    link: `${process.env.PUBLIC_URL}/deadfront/`,
+    jogar: true,
+    logo: img("deadfront.svg"),
+    tags: ["JavaScript", "Canvas", "Capacitor", "Android"],
+    tema: { c1: "#7bd150", c2: "#10150f", on: "#0b0d0b", logoBg: "#10150f" },
+  },
+  {
     titulo: "Enzimando",
     categoria: "app",
     descricao:
