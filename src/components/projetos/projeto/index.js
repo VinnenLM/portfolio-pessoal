@@ -17,6 +17,8 @@ export default function Projeto({
   tags = [],
   tema = {},
   download = false,
+  extra = null,
+  jogar = false,
 }) {
   const github = link.includes("github.com");
 
@@ -55,26 +57,42 @@ export default function Projeto({
           </ul>
         )}
 
-        <a
-          className="botao-link"
-          href={link}
-          {...(download ? { download: true } : { target: "_blank", rel: "noreferrer" })}
-        >
-          {download ? (
-            <>
-              <i className="fa-solid fa-download"></i> Baixar APK
-            </>
-          ) : github ? (
-            <>
-              <i className="fa-brands fa-github"></i> Ver código
-            </>
-          ) : (
-            <>
-              Abrir projeto{" "}
-              <i className="fa-solid fa-arrow-up-right-from-square"></i>
-            </>
+        <div className="card-botoes">
+          <a
+            className="botao-link"
+            href={link}
+            {...(download ? { download: true } : { target: "_blank", rel: "noreferrer" })}
+          >
+            {download ? (
+              <>
+                <i className="fa-solid fa-download"></i> Baixar APK
+              </>
+            ) : jogar ? (
+              <>
+                <i className="fa-solid fa-gamepad"></i> Jogar online
+              </>
+            ) : github ? (
+              <>
+                <i className="fa-brands fa-github"></i> Ver código
+              </>
+            ) : (
+              <>
+                Abrir projeto{" "}
+                <i className="fa-solid fa-arrow-up-right-from-square"></i>
+              </>
+            )}
+          </a>
+
+          {extra && (
+            <a
+              className="botao-link secundario"
+              href={extra.link}
+              {...(extra.download ? { download: true } : { target: "_blank", rel: "noreferrer" })}
+            >
+              <i className={extra.icone}></i> {extra.texto}
+            </a>
           )}
-        </a>
+        </div>
       </div>
     </article>
   );

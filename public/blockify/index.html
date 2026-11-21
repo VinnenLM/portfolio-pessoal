@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <title>Blockify — jogo de encaixar blocos</title>
+  <meta name="description" content="Blockify: encaixe, limpe, combine! 1000 fases, modo infinito e difícil, bônus e loja de skins. Jogue no navegador ou instale como app.">
+  <meta name="theme-color" content="#1b1f4b">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Blockify">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" href="icons/favicon-64.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+    <section id="menu" class="screen on"></section>
+    <section id="shop" class="screen"></section>
+    <section id="game" class="screen"><canvas aria-label="Tabuleiro do Blockify"></canvas></section>
+  </div>
+  <noscript>O Blockify precisa de JavaScript para funcionar.</noscript>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

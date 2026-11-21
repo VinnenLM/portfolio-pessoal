@@ -184,6 +184,24 @@
     transition: transform .25s, filter .25s;
 }
 
+.card-botoes {
+    margin-top: auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.card-botoes .botao-link {
+    margin-top: 0;
+}
+
+/* segundo botão do card (ex.: "Baixar APK" ao lado de "Jogar online") */
+.botao-link.secundario {
+    background: transparent;
+    color: var(--c1);
+    box-shadow: inset 0 0 0 2px var(--c1);
+}
+
 .botao-link:hover {
     transform: translateY(-2px);
     filter: brightness(1.1);
