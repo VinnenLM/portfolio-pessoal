@@ -9,6 +9,7 @@
 <title>Deadfront</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -36,12 +37,14 @@
   <div id="zoneR" class="zone"><div class="stick-base"><div class="stick-knob"></div></div></div>
 
   <div id="dock">
-    <button class="slot" data-act="weapon" id="slot-weapon"><span class="s-ico" id="w-ico">🔫</span><span class="s-main" id="w-name">Pistola</span><span class="s-sub" id="w-ammo">12/∞</span><span class="s-key">Q</span><i class="reload-bar"><b id="reload-fill"></b></i></button>
+    <button class="slot" data-act="weapon" id="slot-weapon"><span class="s-ico" id="w-ico"></span><span class="s-main" id="w-name">Pistola</span><span class="s-sub" id="w-ammo">12/∞</span><span class="s-key">Q</span><i class="reload-bar"><b id="reload-fill"></b></i></button>
     <button class="slot" data-act="build" id="slot-build"><span class="s-ico">🔨</span><span class="s-main" id="b-name">Madeira</span><span class="s-sub" id="b-cost">8 🔧</span><span class="s-key">E</span></button>
     <button class="slot small" data-act="material" id="slot-mat"><span class="s-ico" id="m-ico">🪵</span><span class="s-key">Z</span></button>
     <button class="slot" data-act="heal" id="slot-heal"><span class="s-ico">🩹</span><span class="s-main">Curar</span><span class="s-sub" id="h-count">x1</span><span class="s-key">F</span></button>
     <button class="slot" data-act="trap" id="slot-trap"><span class="s-ico" id="t-ico">✴️</span><span class="s-main" id="t-name">Espinhos</span><span class="s-sub" id="t-count">x2</span><span class="s-key">T</span></button>
     <button class="slot small" data-act="trapType" id="slot-ttype"><span class="s-ico">⟳</span><span class="s-key">X</span></button>
+    <button class="slot" data-act="tower" id="slot-tower"><span class="s-ico" id="tw-ico">🗼</span><span class="s-main" id="tw-name">Torre</span><span class="s-sub" id="tw-cost">loja</span><span class="s-key">G</span></button>
+    <button class="slot small" data-act="towerType" id="slot-twtype"><span class="s-ico">⟳</span><span class="s-key">V</span></button>
   </div>
   <button id="btn-skip" class="hidden" data-act="skip">Pular espera ▶</button>
 </div>
@@ -70,7 +73,7 @@
 <!-- LOJA -->
 <section id="shop" class="screen hidden">
   <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Loja</h2><div class="coins-corner static">🪙 <b class="coins-val">0</b></div></header>
-  <nav class="tabs"><button class="tab active" data-tab="weapons">Armas</button><button class="tab" data-tab="upgrades">Melhorias</button><button class="tab" data-tab="skins">Skins</button></nav>
+  <nav class="tabs"><button class="tab active" data-tab="weapons">Armas</button><button class="tab" data-tab="towers">Torres</button><button class="tab" data-tab="upgrades">Melhorias</button><button class="tab" data-tab="skins">Skins</button></nav>
   <div id="shop-list" class="grid"></div>
 </section>
 
@@ -82,12 +85,14 @@
     <p>Defenda o local por todas as ondas. Na última onda aparece um <b>chefe</b>. Zumbis entram pelas <b>portas</b> (marcadas em vermelho). Ganhe moedas ao fim de cada fase para gastar na loja.</p>
     <h3>Barricadas</h3>
     <p>Fique perto de uma porta e use <b>Construir</b> para tapá-la com Madeira, Ferro ou Aço (gasta sucata 🔧, que cai dos zumbis). Zumbis quebram as barricadas — repare ou melhore usando Construir de novo. Zumbis escolhem o caminho mais fraco, então reforce bem todas as entradas. Setas amarelas na borda da tela avisam qual porta está sob ataque.</p>
+    <h3>Torres</h3>
+    <p>Compre torres na loja (metralhadora, lança-chamas, bazuca) e coloque até 5 por fase, perto de você, gastando sucata. Elas atiram sozinhas nos zumbis ao alcance, mas os zumbis também as atacam. Pular a espera entre ondas dá sucata de bônus.</p>
     <h3>Loot</h3>
     <p>Caixas aparecem dentro da área segura com armas, munição, kits médicos, sucata e armadilhas. Passe por cima para pegar. Somem depois de um tempo.</p>
     <h3>Controles — celular</h3>
-    <p>Analógico esquerdo: mover. Analógico direito: mirar e atirar. Sem mexer nele, o jogo mira e atira sozinho no zumbi mais próximo (liga/desliga no menu de pausa). Botões na parte de baixo: trocar arma, construir, material, curar, armadilha.</p>
+    <p>Analógico esquerdo: mover. Analógico direito: mirar e atirar. Sem mexer nele, o jogo mira e atira sozinho no zumbi mais próximo (liga/desliga no menu de pausa). Botões na parte de baixo: trocar arma, construir, material, curar, armadilha e torre.</p>
     <h3>Controles — teclado e mouse</h3>
-    <p><b>WASD/Setas</b> mover · <b>Mouse</b> mirar · <b>Clique/Espaço</b> atirar · <b>R</b> recarregar · <b>Q</b> ou <b>1–5</b> trocar arma · <b>E</b> construir · <b>Z</b> material · <b>F</b> curar · <b>T</b> armadilha · <b>X</b> tipo de armadilha · <b>N</b> pular espera · <b>P/Esc</b> pausa.</p>
+    <p><b>WASD/Setas</b> mover · <b>Mouse</b> mirar · <b>Clique/Espaço</b> atirar · <b>R</b> recarregar · <b>Q</b> ou <b>1–5</b> trocar arma · <b>E</b> construir · <b>Z</b> material · <b>F</b> curar · <b>T</b> armadilha · <b>X</b> tipo de armadilha · <b>G</b> colocar torre · <b>V</b> trocar torre · <b>N</b> pular espera · <b>P/Esc</b> pausa.</p>
   </div>
 </section>
 
@@ -118,6 +123,7 @@
 
 <script src="js/data.js"></script>
 <script src="js/audio.js"></script>
+<script src="js/sprites.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/ui.js"></script>
 </body>

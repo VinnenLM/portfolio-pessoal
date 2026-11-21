@@ -142,7 +142,7 @@
     const flow = new Float64Array(MW * MH);
     const G = {
       lv, map, bars, state: 'play', time: 0, kills: 0, scrapGained: 0, shake: 0, hurtFlash: 0,
-      zombies: [], bullets: [], acid: [], loot: [], traps: [], parts: [], texts: [], fx: [],
+      zombies: [], bullets: [], acid: [], loot: [], traps: [], parts: [], texts: [], fx: [], towers: [], rockets: [],
       wave: 0, waveState: 'break', breakT: 6, spawnQ: [], spawnT: 0, bossAlive: false, boss: null,
       lootT: rand(5, 8), endT: 0, msgText: '', msgT: 0, msgColor: '#fff', paused: false, medkitsUsed: 0,
       flowT: 0, flowDirty: true, idc: 1
@@ -160,7 +160,7 @@
       maxHp: 100 + 15 * U('hp'), hp: 100 + 15 * U('hp'), speed: 150 * (1 + 0.06 * U('speed')),
       angle: 0, weapons: [], wi: 0, reloadT: 0, fireCd: 0, hurtT: 0, flash: 0,
       inv: { medkit: 1 + Math.floor(U('medkit') / 2), spike: 2, mine: 1, bear: 1 },
-      scrap: 40 + 30 * U('scrap'), mat: 0, trapI: 0, buildCd: 0, walk: 0
+      scrap: 40 + 30 * U('scrap'), mat: 0, trapI: 0, towerI: 0, buildCd: 0, walk: 0
     };
     P.weapons.push(mkWeapon('pistol'));
     if (startW !== 'pistol') { P.weapons.unshift(mkWeapon(startW, 1 + 0.25 * U('ammo'))); }
@@ -362,7 +362,7 @@
       const dmg = d.dmg * (1 + 0.12 * wLvl(w.id));
       for (let i = 0; i < d.pellets; i++) {
         const a = angle + rand(-d.spread, d.spread);
-        G.bullets.push({ x: P.x + Math.cos(angle) * 22, y: P.y + Math.sin(angle) * 22, vx: Math.cos(a) * d.speed, vy: Math.sin(a) * d.speed, dmg, life: d.range / d.speed, pierce: d.pierce, hit: new Set(), color: d.color });
+        G.bullets.push({ x: P.x + Math.cos(angle) * (d.muzzle || 22), y: P.y + Math.sin(angle) * (d.muzzle || 22), vx: Math.cos(a) * d.speed, vy: Math.sin(a) * d.speed, dmg, life: d.range / d.speed, pierce: d.pierce, hit: new Set(), color: d.color });
       }
       sfx(w.id === 'shotgun' ? 'shotgun' : w.id === 'sniper' ? 'sniper' : 'shoot');
       G.shake = Math.max(G.shake, w.id === 'shotgun' ? 3 : 1);
@@ -399,6 +399,96 @@
       }
     }
 
+    // ----- torres automáticas
+    const tUp = (id) => (save.tlvl && save.tlvl[id]) || 0;
+    const ownedTowers = () => DF.TOWER_ORDER.filter((id) => save.towers && save.towers[id]);
+    { const o0 = ownedTowers(); if (o0.length) P.towerI = DF.TOWER_ORDER.indexOf(o0[0]); }
+    function cycleTower() {
+      const o = ownedTowers(); if (!o.length) return;
+      const i = o.indexOf(DF.TOWER_ORDER[P.towerI]); P.towerI = DF.TOWER_ORDER.indexOf(o[(i + 1) % o.length]);
+    }
+    function actTower() {
+      const o = ownedTowers();
+      if (!o.length) { msg('Compre torres na loja!', '#ffb347'); return; }
+      let id = DF.TOWER_ORDER[P.towerI]; if (!o.includes(id)) { id = o[0]; P.towerI = DF.TOWER_ORDER.indexOf(id); }
+      const d = DF.TOWERS[id];
+      if (G.towers.length >= DF.TOWER_MAX) { msg('Limite de ' + DF.TOWER_MAX + ' torres', '#ffb347'); return; }
+      if (P.scrap < d.cost) { msg('Sucata insuficiente (' + d.cost + ')', '#ff6b6b'); return; }
+      const x = P.x + Math.cos(P.angle) * 38, y = P.y + Math.sin(P.angle) * 38;
+      const ti = tileAt(x, y);
+      let ok = ti >= 0 && tiles[ti] === T.FLOOR;
+      for (const ox of [-14, 0, 14]) for (const oy of [-14, 0, 14]) if (ok && solid(Math.floor((x + ox) / TILE), Math.floor((y + oy) / TILE), true)) ok = false;
+      if (!ok) { msg('Não dá para colocar aqui', '#ffb347'); return; }
+      for (const t of G.towers) if (Math.hypot(t.x - x, t.y - y) < 40) { msg('Muito perto de outra torre', '#ffb347'); return; }
+      P.scrap -= d.cost;
+      const hp = Math.round(d.hp * (1 + 0.1 * tUp(id)));
+      G.towers.push({ type: id, x, y, hp, max: hp, angle: P.angle, cd: 0.4, flash: 0, recoil: 0, show: 2, firing: false });
+      sfx('build'); text(x, y - 22, d.name, '#e8c07a');
+    }
+    function hurtTower(t, dmg) {
+      t.hp -= dmg; t.show = 2.5; if (G.time - (t.sfxT || 0) > 0.3) { t.sfxT = G.time; sfx('wood'); }
+      if (t.hp <= 0) {
+        const i = G.towers.indexOf(t); if (i >= 0) G.towers.splice(i, 1);
+        for (let k = 0; k < 18; k++) { const a = rand(0, 6.283), sp = rand(60, 240); G.parts.push({ x: t.x, y: t.y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.4, 0.9), max: 0.9, size: rand(2, 5), color: pick(['#6d7479', '#c9a15a', '#555']) }); }
+        sfx('break'); msg('Torre destruída!', '#ff6b6b');
+      }
+    }
+    function nearTower(z) {
+      for (const t of G.towers) if (Math.hypot(t.x - z.x, t.y - z.y) < z.r + 17) return t;
+      return null;
+    }
+    function explode(x, y, R, dmg) {
+      for (const z of G.zombies.slice()) {
+        const d = Math.hypot(z.x - x, z.y - y);
+        if (d < R + z.r) hurtZ(z, dmg * (1 - (d / (R + z.r)) * 0.55), (z.x - x) / (d || 1), (z.y - y) / (d || 1), 220);
+      }
+      for (let k = 0; k < 28; k++) { const a = rand(0, 6.283), sp = rand(60, 330); G.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.25, 0.6), max: 0.6, size: rand(2, 5), color: pick(['#ffb347', '#ff6b2b', '#ffe27a', '#555']) }); }
+      G.shake = Math.max(G.shake, 6); sfx('boom');
+    }
+    function updateTowers(dt) {
+      for (const t of G.towers.slice()) {
+        const d = DF.TOWERS[t.type], lv = tUp(t.type);
+        t.cd -= dt; t.flash = Math.max(0, t.flash - dt); t.show = Math.max(0, t.show - dt); t.recoil = Math.max(0, (t.recoil || 0) - dt * 60); t.firing = false;
+        let best = null, bd = d.range * d.range;
+        for (const z of G.zombies) {
+          if (z.born > 0.3) continue;
+          const dd = (z.x - t.x) ** 2 + (z.y - t.y) ** 2;
+          if (dd < bd && los(t.x, t.y, z.x, z.y, false)) { bd = dd; best = z; }
+        }
+        if (!best) continue;
+        const want = Math.atan2(best.y - t.y, best.x - t.x);
+        const diff = Math.atan2(Math.sin(want - t.angle), Math.cos(want - t.angle));
+        t.angle += clamp(diff, -dt * 7, dt * 7);
+        if (Math.abs(diff) > 0.3 || t.cd > 0) continue;
+        const mult = 1 + 0.15 * lv; t.cd = d.rate * (1 - 0.05 * lv);
+        if (t.type === 'mg') {
+          const a = t.angle + rand(-0.06, 0.06);
+          G.bullets.push({ x: t.x + Math.cos(t.angle) * 24, y: t.y + Math.sin(t.angle) * 24, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, dmg: d.dmg * mult, life: d.range / 900, pierce: 1, hit: new Set(), color: '#ffd27a' });
+          t.flash = 0.05; t.recoil = 3; sfx('shoot');
+        } else if (t.type === 'flame') {
+          t.firing = true; t.flash = 0.1; sfx('flame');
+          for (const z of G.zombies.slice()) {
+            const dx = z.x - t.x, dy = z.y - t.y, dist = Math.hypot(dx, dy);
+            if (dist > d.range + z.r) continue;
+            const da = Math.atan2(Math.sin(Math.atan2(dy, dx) - t.angle), Math.cos(Math.atan2(dy, dx) - t.angle));
+            if (Math.abs(da) < 0.42) { z.burnT = 2.4; z.burnDmg = 4 * mult; hurtZ(z, d.dmg * mult, 0, 0, 0, true); }
+          }
+          for (let k = 0; k < 4; k++) { const a = t.angle + rand(-0.28, 0.28), sp = rand(170, 300); G.parts.push({ x: t.x + Math.cos(t.angle) * 22, y: t.y + Math.sin(t.angle) * 22, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.25, 0.45), max: 0.45, size: rand(3, 7), color: pick(['#ff9f1c', '#ffd23f', '#ff6b2b']) }); }
+        } else {
+          G.rockets.push({ x: t.x + Math.cos(t.angle) * 30, y: t.y + Math.sin(t.angle) * 30, vx: Math.cos(t.angle) * 400, vy: Math.sin(t.angle) * 400, life: d.range / 400 + 0.3, dmg: d.dmg * mult, splash: d.splash });
+          t.flash = 0.1; t.recoil = 8; sfx('rocket');
+        }
+      }
+      for (let ri = G.rockets.length - 1; ri >= 0; ri--) {
+        const r = G.rockets[ri]; r.x += r.vx * dt; r.y += r.vy * dt; r.life -= dt;
+        G.parts.push({ x: r.x, y: r.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0.4, max: 0.4, size: 3, color: '#b9b9b9' });
+        let boom = r.life <= 0; const ti = tileAt(r.x, r.y);
+        if (ti < 0 || isBlockType(ti)) boom = true;
+        else for (const z of G.zombies) if ((z.x - r.x) ** 2 + (z.y - r.y) ** 2 < (z.r + 5) ** 2) { boom = true; break; }
+        if (boom) { explode(r.x, r.y, r.splash, r.dmg); G.rockets.splice(ri, 1); }
+      }
+    }
+
     // ----- zumbis
     function spawnZombie(typeId, atPos) {
       const d = DF.ZOMBIES[typeId];
@@ -413,7 +503,7 @@
       const z = {
         id: G.idc++, type: typeId, def: d, x, y, r: d.r, hp, max: hp, speed: d.speed * rand(0.92, 1.1),
         atkT: rand(0, 0.5), barT: 0, flash: 0, rootT: 0, slowT: 0, born: 0.35, losT: rand(0, 0.2), canSee: false,
-        boss: d.boss || null, mode: 'idle', abT: 3.5, n: 0, face: 0, walk: rand(0, 6), spitT: rand(1, 2.2), kb: { x: 0, y: 0 }
+        boss: d.boss || null, v: rint(0, 3), burnT: 0, burnTick: 0, burnDmg: 4, mode: 'idle', abT: 3.5, n: 0, face: 0, walk: rand(0, 6), spitT: rand(1, 2.2), kb: { x: 0, y: 0 }
       };
       G.zombies.push(z);
       if (d.boss) { G.bossAlive = true; G.boss = z; msg('⚠ ' + d.name + ' chegou!', '#ff5a5a'); sfx('boss'); }
@@ -442,11 +532,10 @@
       if (z.boss) { G.bossAlive = false; G.boss = null; G.shake = 14; msg('Chefe derrotado!', '#7be07a'); }
       if (Math.random() < 0.05 && !z.boss) spawnLoot(z.x, z.y);
     }
-    function hurtZ(z, dmg, nx, ny, kb) {
+    function hurtZ(z, dmg, nx, ny, kb, quiet) {
       z.hp -= dmg; z.barT = 2.4; z.flash = 0.1;
       if (kb && !z.boss) { z.kb.x += nx * kb; z.kb.y += ny * kb; }
-      text(z.x + rand(-6, 6), z.y - z.r - 6, String(Math.round(dmg)), z.boss ? '#ffd27a' : '#fff');
-      blood(z.x, z.y, 2, z.type === 'spitter' ? '#3a8a6a' : '#7a0f12', 100);
+      if (!quiet) { text(z.x + rand(-6, 6), z.y - z.r - 6, String(Math.round(dmg)), z.boss ? '#ffd27a' : '#fff'); blood(z.x, z.y, 2, z.type === 'spitter' ? '#3a8a6a' : '#7a0f12', 100); }
       if (z.hp <= 0) killZombie(z);
     }
     function hurtPlayer(dmg) {
@@ -461,15 +550,15 @@
     function bossUpdate(z, dt) {
       const ang = Math.atan2(P.y - z.y, P.x - z.x);
       if (z.mode === 'idle') {
-        z.abT -= dt;
+        z.abT -= dt * (z.enraged ? 1.4 : 1);
         if (z.abT <= 0) {
           let kind;
-          if (z.boss === 'smasher') kind = 'stomp';
+          if (z.boss === 'smasher') kind = z.n++ % 3 === 2 ? 'summon' : 'stomp';
           else if (z.boss === 'charger') kind = 'charge';
           else if (z.boss === 'summoner') kind = z.n++ % 2 ? 'summon' : 'spray';
           else kind = ['stomp', 'charge', 'summon', 'spray'][z.n++ % 4];
           z.mode = 'wind'; z.kind = kind; z.aim = ang;
-          z.abT = kind === 'stomp' ? 0.9 : kind === 'charge' ? 0.85 : 0.6;
+          z.abT = kind === 'stomp' ? 0.75 : kind === 'charge' ? 0.8 : 0.6; z.windMax = z.abT;
         }
       } else if (z.mode === 'wind') {
         z.abT -= dt; if (z.kind === 'charge') z.aim = ang; z.face = ang;
@@ -482,16 +571,18 @@
               if (tx < 0 || ty < 0 || tx >= MW || ty >= MH) continue; const i = ty * MW + tx;
               if (bars[i] && Math.hypot((tx + 0.5) * TILE - z.x, (ty + 0.5) * TILE - z.y) < R + TILE / 2) damageBar(i, 140);
             }
+            for (const t of G.towers.slice()) if (Math.hypot(t.x - z.x, t.y - z.y) < R + 17) hurtTower(t, 70);
             for (let k = 0; k < 24; k++) { const a = (k / 24) * 6.283; G.parts.push({ x: z.x, y: z.y, vx: Math.cos(a) * 260, vy: Math.sin(a) * 260, life: 0.5, max: 0.5, size: 3, color: '#b9a98a' }); }
-            z.mode = 'idle'; z.abT = z.boss === 'mega' ? 3.2 : 5.5;
+            z.mode = 'idle'; z.abT = z.boss === 'mega' ? 2.4 : 3.4;
           } else if (z.kind === 'charge') {
             z.mode = 'act'; z.abT = 1.0; z.dvx = Math.cos(z.aim) * 560; z.dvy = Math.sin(z.aim) * 560; z.didHit = false; sfx('roar');
           } else if (z.kind === 'summon') {
-            for (let k = 0; k < 3; k++) spawnZombie(k === 0 ? 'spitter' : 'runner', { x: z.x + rand(-30, 30), y: z.y + rand(-30, 30) });
-            z.mode = 'idle'; z.abT = z.boss === 'mega' ? 3.2 : 7;
+            const mt = z.boss === 'smasher' ? ['walker', 'walker', 'runner'] : ['spitter', 'runner', 'runner'];
+            for (let k = 0; k < 3; k++) spawnZombie(mt[k], { x: z.x + rand(-30, 30), y: z.y + rand(-30, 30) });
+            z.mode = 'idle'; z.abT = z.boss === 'mega' ? 2.4 : 4.5;
           } else if (z.kind === 'spray') {
             for (let k = -3; k <= 3; k++) acidShot(z.x, z.y, ang + k * 0.2, 12);
-            sfx('spit'); z.mode = 'idle'; z.abT = z.boss === 'mega' ? 3.2 : 3.5;
+            sfx('spit'); z.mode = 'idle'; z.abT = z.boss === 'mega' ? 2.4 : 3;
           }
         }
       } else if (z.mode === 'act') {
@@ -499,15 +590,20 @@
         const hit = moveEnt(z, z.dvx * dt, z.dvy * dt, false);
         if (hit >= 0) { damageBar(hit, 260); z.mode = 'idle'; z.abT = 3; G.shake = 10; }
         if (!z.didHit && Math.hypot(P.x - z.x, P.y - z.y) < z.r + P.r + 4) { hurtPlayer(z.def.dmg + 8); z.didHit = true; }
-        if (z.abT <= 0) { z.mode = 'idle'; z.abT = z.boss === 'mega' ? 3.2 : 4.2; }
+        if (z.abT <= 0) { z.mode = 'idle'; z.abT = z.boss === 'mega' ? 2.4 : 3.2; }
       }
     }
     function updateZombie(z, dt) {
       z.born = Math.max(0, z.born - dt); z.flash = Math.max(0, z.flash - dt); z.barT = Math.max(0, z.barT - dt);
       z.atkT -= dt; z.slowT = Math.max(0, z.slowT - dt);
+      if (z.burnT > 0) {
+        z.burnT -= dt; z.burnTick -= dt;
+        if (z.burnTick <= 0) { z.burnTick = 0.4; hurtZ(z, z.burnDmg, 0, 0, 0, true); if (z.hp <= 0) return; }
+      }
       if (z.kb.x || z.kb.y) { moveEnt(z, z.kb.x * dt, z.kb.y * dt, false); z.kb.x *= 0.85; z.kb.y *= 0.85; if (Math.abs(z.kb.x) + Math.abs(z.kb.y) < 5) { z.kb.x = z.kb.y = 0; } }
       if (z.rootT > 0) { z.rootT -= dt; return; }
       if (z.boss) {
+        if (!z.enraged && z.hp < z.max * 0.5) { z.enraged = true; z.speed *= 1.25; msg(z.def.name + ' está enfurecido!', '#ff5a5a'); sfx('roar'); }
         bossUpdate(z, dt);
         if (z.mode !== 'idle') return;
       }
@@ -516,6 +612,12 @@
       if (dP < z.r + P.r + 8) {
         z.face = Math.atan2(P.y - z.y, P.x - z.x);
         if (z.atkT <= 0) { z.atkT = z.def.cd; hurtPlayer(z.def.dmg); sfx('bite'); }
+        return;
+      }
+      const tw = nearTower(z);
+      if (tw) {
+        z.face = Math.atan2(tw.y - z.y, tw.x - z.x);
+        if (z.atkT <= 0) { z.atkT = z.def.cd; hurtTower(tw, z.def.dmg); }
         return;
       }
       // cuspidor
@@ -626,7 +728,13 @@
         else if (a === 'material') cycleMat();
         else if (a === 'weapon') switchWeapon((P.wi + 1) % P.weapons.length);
         else if (a === 'reload') startReload();
-        else if (a === 'skip' && G.waveState === 'break') G.breakT = 0;
+        else if (a === 'skip' && G.waveState === 'break') {
+          const bonus = Math.round(G.breakT * 2.5);
+          if (bonus > 0) { P.scrap += bonus; G.scrapGained += bonus; msg('Espera pulada: +' + bonus + ' sucata', '#e8c07a'); }
+          G.breakT = 0;
+        }
+        else if (a === 'tower') actTower();
+        else if (a === 'towerType') cycleTower();
         else if (a.startsWith('w:')) switchWeapon(parseInt(a.slice(2), 10));
       }
       if (G.state === 'play') {
@@ -674,6 +782,7 @@
           moveEnt(a, -ux * ov * (mb / tm) * 2, -uy * ov * (mb / tm) * 2, false); moveEnt(b, ux * ov * (ma / tm) * 2, uy * ov * (ma / tm) * 2, false);
         }
       }
+      if (G.state === 'play') updateTowers(dt);
       // balas
       for (let bi = G.bullets.length - 1; bi >= 0; bi--) {
         const b = G.bullets[bi]; let dead = false;
@@ -760,6 +869,7 @@
         scrap: P.scrap, medkit: P.inv.medkit, mat: DF.MATERIALS[matId], matId, trap: DF.TRAPS[trapId], trapId, trapCount: P.inv[trapId],
         wave: G.wave, waves: lv.waves, waveState: G.waveState, breakT: Math.max(0, G.breakT), left: G.spawnQ.length + G.zombies.length,
         boss: G.boss ? { name: G.boss.def.name, hp: G.boss.hp, max: G.boss.max } : null,
+        wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.TOWER_ORDER[P.towerI]) ? DF.TOWER_ORDER[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: DF.TOWERS[id].cost, count: G.towers.length, max: DF.TOWER_MAX }; })(),
         msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
       };
     };
@@ -808,6 +918,11 @@
         else { ctx.strokeStyle = '#b5bcc2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 13, 0.4, 2.7); ctx.arc(0, 0, 13, 3.5, 5.9); ctx.stroke(); ctx.fillStyle = '#6b7075'; ctx.fillRect(-4, -4, 8, 8); }
         ctx.restore();
       }
+      // torres
+      for (const t of G.towers) {
+        ctx.save(); ctx.translate(t.x, t.y); DF.sprites.tower(ctx, t, G.time); ctx.restore();
+        if (t.show > 0 || t.hp < t.max) drawBar(t.x - 18, t.y - 30, 36, 5, t.hp / t.max, '#7ab8ff', t.show > 0 ? Math.min(1, t.show / 0.5) : 0.6);
+      }
       // loot
       for (const L of G.loot) {
         if (L.ttl < 6 && Math.floor(G.time * 6) % 2) continue;
@@ -841,12 +956,13 @@
           drawBar(px + 4, py - 8, TILE - 8, 5, b.hp / b.max, '#e8c07a', a);
         }
       }
+      for (const r of G.rockets) { ctx.save(); ctx.translate(r.x, r.y); DF.sprites.rocket(ctx, r); ctx.restore(); }
       // ácido
       for (const a of G.acid) { ctx.fillStyle = '#6fe8a0'; ctx.beginPath(); ctx.arc(a.x, a.y, 5, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgba(111,232,160,0.3)'; ctx.beginPath(); ctx.arc(a.x, a.y, 9, 0, 6.283); ctx.fill(); }
       // telegráficos dos chefes
       for (const z of G.zombies) {
         if (!z.boss || z.mode !== 'wind') continue;
-        if (z.kind === 'stomp') { const k = 1 - z.abT / 0.9; ctx.fillStyle = 'rgba(255,60,40,0.18)'; ctx.beginPath(); ctx.arc(z.x, z.y, 140, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(255,60,40,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(z.x, z.y, 140 * k, 0, 6.283); ctx.stroke(); }
+        if (z.kind === 'stomp') { const k = 1 - z.abT / (z.windMax || 0.75); ctx.fillStyle = 'rgba(255,60,40,0.18)'; ctx.beginPath(); ctx.arc(z.x, z.y, 140, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(255,60,40,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(z.x, z.y, 140 * k, 0, 6.283); ctx.stroke(); }
         else if (z.kind === 'charge') { ctx.strokeStyle = 'rgba(255,60,40,0.55)'; ctx.lineWidth = z.r * 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(z.x, z.y); ctx.lineTo(z.x + Math.cos(z.aim) * 520, z.y + Math.sin(z.aim) * 520); ctx.stroke(); ctx.lineCap = 'butt'; }
       }
       // zumbis (ordenados por y)
@@ -902,53 +1018,19 @@
     function drawZombie(z) {
       const alpha = z.born > 0 ? 1 - z.born / 0.35 * 0.7 : 1;
       ctx.save(); ctx.globalAlpha = alpha; ctx.translate(z.x, z.y);
-      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(2, 4, z.r, z.r * 0.8, 0, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(2, 4, z.r * 1.05, z.r * 0.85, 0, 0, 6.283); ctx.fill();
       ctx.rotate(z.face);
-      const col = z.flash > 0 ? '#ffffff' : z.def.color;
-      const swing = Math.sin(z.walk) * 4;
-      // braços
-      ctx.fillStyle = z.flash > 0 ? '#fff' : shade(col, -25);
-      const armLen = z.r * 0.95;
-      ctx.beginPath(); ctx.arc(armLen, -z.r * 0.7 + swing * 0.3, z.r * 0.34, 0, 6.283); ctx.fill();
-      ctx.beginPath(); ctx.arc(armLen, z.r * 0.7 - swing * 0.3, z.r * 0.34, 0, 6.283); ctx.fill();
-      // corpo
-      ctx.fillStyle = col; ctx.beginPath(); ctx.arc(0, 0, z.r, 0, 6.283); ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.45)'; ctx.lineWidth = 2; ctx.stroke();
-      if (z.type === 'brute' || z.boss) { ctx.fillStyle = shade(col, -35); for (let i = -1; i <= 1; i += 2) { ctx.beginPath(); ctx.arc(-z.r * 0.2, i * z.r * 0.85, z.r * 0.38, 0, 6.283); ctx.fill(); } }
-      if (z.boss) { ctx.fillStyle = z.boss === 'summoner' ? '#9ff0cf' : '#ddd'; for (let i = 0; i < 6; i++) { const a = Math.PI / 2 + (i - 2.5) * 0.45 + Math.PI / 2; ctx.beginPath(); ctx.moveTo(Math.cos(a) * z.r * 0.7, Math.sin(a) * z.r * 0.7); ctx.lineTo(Math.cos(a + 0.12) * z.r * 1.25, Math.sin(a + 0.12) * z.r * 1.25); ctx.lineTo(Math.cos(a - 0.12) * z.r * 1.25, Math.sin(a - 0.12) * z.r * 1.25); ctx.fill(); } }
-      // cabeça
-      ctx.fillStyle = z.flash > 0 ? '#fff' : shade(col, 15); ctx.beginPath(); ctx.arc(z.r * 0.25, 0, z.r * 0.6, 0, 6.283); ctx.fill();
-      ctx.fillStyle = z.type === 'spitter' ? '#b6ffd8' : '#ff2a2a'; ctx.fillRect(z.r * 0.55, -z.r * 0.28, 3, 3); ctx.fillRect(z.r * 0.55, z.r * 0.18, 3, 3);
+      DF.sprites.zombie(ctx, z, G.time);
       ctx.restore();
       if (z.rootT > 0) { ctx.strokeStyle = '#b5bcc2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(z.x, z.y, z.r + 4, 0, 6.283); ctx.stroke(); }
     }
-    function shade(hex, amt) {
-      const n = parseInt(hex.slice(1), 16); const r = clamp((n >> 16) + amt, 0, 255), g = clamp(((n >> 8) & 255) + amt, 0, 255), b = clamp((n & 255) + amt, 0, 255);
-      return 'rgb(' + r + ',' + g + ',' + b + ')';
-    }
+    const hurtSkin = Object.assign({}, skin, { body: '#ffffff' });
     function drawPlayer() {
       ctx.save(); ctx.translate(P.x, P.y);
-      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(2, 4, P.r, P.r * 0.8, 0, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(2, 4, P.r + 2, P.r * 0.9, 0, 0, 6.283); ctx.fill();
       ctx.rotate(P.angle);
       const blink = P.hurtT > 0 && Math.floor(G.time * 20) % 2;
-      const w = DF.WEAPONS[curW().id];
-      // arma
-      ctx.fillStyle = '#222'; ctx.fillRect(8, -3, w.id === 'sniper' ? 30 : w.id === 'pistol' ? 16 : 24, 6);
-      ctx.fillStyle = w.color; ctx.fillRect(10, -2, (w.id === 'sniper' ? 30 : w.id === 'pistol' ? 16 : 24) - 4, 3);
-      if (P.flash > 0) { ctx.fillStyle = '#ffe9a0'; ctx.beginPath(); ctx.arc(34, 0, 7, 0, 6.283); ctx.fill(); }
-      // braços
-      ctx.fillStyle = skin.head; ctx.beginPath(); ctx.arc(14, -5, 4, 0, 6.283); ctx.fill(); ctx.beginPath(); ctx.arc(20, 5, 4, 0, 6.283); ctx.fill();
-      // corpo
-      ctx.fillStyle = blink ? '#fff' : skin.body; ctx.beginPath(); ctx.ellipse(-1, 0, P.r * 0.8, P.r, 0, 0, 6.283); ctx.fill();
-      ctx.strokeStyle = 'rgba(0,0,0,0.5)'; ctx.lineWidth = 2; ctx.stroke();
-      // cabeça
-      ctx.fillStyle = skin.head; ctx.beginPath(); ctx.arc(2, 0, 8, 0, 6.283); ctx.fill(); ctx.stroke();
-      const ac = skin.accColor || '#333';
-      if (skin.acc === 'cap') { ctx.fillStyle = ac; ctx.beginPath(); ctx.arc(1, 0, 8.2, Math.PI * 0.55, Math.PI * 1.45); ctx.fill(); ctx.fillRect(7, -5, 6, 10); }
-      else if (skin.acc === 'band') { ctx.fillStyle = ac; ctx.fillRect(-4, -8, 5, 16); }
-      else if (skin.acc === 'helmet') { ctx.fillStyle = ac; ctx.beginPath(); ctx.arc(1, 0, 9, 0, 6.283); ctx.fill(); ctx.fillStyle = skin.head; ctx.beginPath(); ctx.arc(5, 0, 5, 0, 6.283); ctx.fill(); }
-      else if (skin.acc === 'visor') { ctx.fillStyle = ac; ctx.fillRect(4, -7, 5, 14); }
-      else if (skin.acc === 'crown') { ctx.fillStyle = ac; ctx.beginPath(); ctx.arc(0, 0, 9, 0, 6.283); ctx.fill(); ctx.fillStyle = skin.head; ctx.beginPath(); ctx.arc(2, 0, 6, 0, 6.283); ctx.fill(); }
+      DF.sprites.player(ctx, blink ? hurtSkin : skin, curW().id, P.walk, { flash: P.flash > 0 });
       ctx.restore();
     }
     // desenho para pré-visualização de skin (usado pela loja)
@@ -979,19 +1061,10 @@
   }
 
   DF.Engine = { create };
-  DF.drawSkinPreview = function (cv, skin) {
+  DF.drawSkinPreview = function (cv, skin, wid) {
     const c = cv.getContext('2d'); c.clearRect(0, 0, cv.width, cv.height);
-    c.save(); c.translate(cv.width / 2, cv.height / 2); c.scale(2.2, 2.2);
-    c.fillStyle = '#222'; c.fillRect(8, -3, 24, 6);
-    c.fillStyle = skin.head; c.beginPath(); c.arc(14, -5, 4, 0, 6.283); c.fill(); c.beginPath(); c.arc(20, 5, 4, 0, 6.283); c.fill();
-    c.fillStyle = skin.body; c.beginPath(); c.ellipse(-1, 0, 10.4, 13, 0, 0, 6.283); c.fill(); c.strokeStyle = 'rgba(0,0,0,0.5)'; c.lineWidth = 2; c.stroke();
-    c.fillStyle = skin.head; c.beginPath(); c.arc(2, 0, 8, 0, 6.283); c.fill(); c.stroke();
-    const ac = skin.accColor || '#333';
-    if (skin.acc === 'cap') { c.fillStyle = ac; c.beginPath(); c.arc(1, 0, 8.2, Math.PI * 0.55, Math.PI * 1.45); c.fill(); c.fillRect(7, -5, 6, 10); }
-    else if (skin.acc === 'band') { c.fillStyle = ac; c.fillRect(-4, -8, 5, 16); }
-    else if (skin.acc === 'helmet') { c.fillStyle = ac; c.beginPath(); c.arc(1, 0, 9, 0, 6.283); c.fill(); c.fillStyle = skin.head; c.beginPath(); c.arc(5, 0, 5, 0, 6.283); c.fill(); }
-    else if (skin.acc === 'visor') { c.fillStyle = ac; c.fillRect(4, -7, 5, 14); }
-    else if (skin.acc === 'crown') { c.fillStyle = ac; c.beginPath(); c.arc(0, 0, 9, 0, 6.283); c.fill(); c.fillStyle = skin.head; c.beginPath(); c.arc(2, 0, 6, 0, 6.283); c.fill(); }
+    c.save(); c.translate(cv.width / 2 - 14, cv.height / 2); c.scale(2.3, 2.3);
+    DF.sprites.player(c, skin, wid || 'rifle', 0);
     c.restore();
   };
 })();

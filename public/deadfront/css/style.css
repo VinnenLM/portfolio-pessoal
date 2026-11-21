@@ -105,3 +105,17 @@ body.touch .s-key { display: none; }
   #hud-center { width: 38vw; }
   .bar { width: 120px; }
 }
+
+.wico { height: 20px; width: auto; display: block; }
+.slot .s-ico { display: flex; align-items: center; justify-content: center; height: 24px; }
+.slot .s-ico .wico { height: 18px; max-width: 46px; }
+.slot .s-ico .tico { height: 22px; }
+.card h4 .wico { display: inline-block; height: 18px; vertical-align: middle; margin-right: 6px; }
+.card .wbig { height: 38px; align-self: flex-start; }
+.card .tbig { height: 52px; align-self: flex-start; }
+@media (max-width: 520px) {
+  .slot { width: 46px; height: 54px; } .slot.small { width: 26px; }
+  .s-main { font-size: 9px; } .s-sub { font-size: 9px; }
+  #dock { gap: 3px; }
+}
+@media (max-height: 420px) { .slot { width: 52px; height: 52px; } .slot.small { width: 30px; } #dock { gap: 4px; } }

@@ -6,7 +6,7 @@
 
   // ---------- save ----------
   function defaultSave() {
-    return { coins: 0, unlocked: 1, stars: {}, weapons: { pistol: true }, wlvl: {}, up: {}, steel: false, startWeapon: 'pistol', skins: { default: true }, skin: 'default', sound: true, auto: true };
+    return { coins: 0, unlocked: 1, stars: {}, weapons: { pistol: true }, wlvl: {}, towers: {}, tlvl: {}, up: {}, steel: false, startWeapon: 'pistol', skins: { default: true }, skin: 'default', sound: true, auto: true };
   }
   let save = defaultSave();
   try { const raw = localStorage.getItem(SAVE_KEY); if (raw) save = Object.assign(defaultSave(), JSON.parse(raw)); } catch (e) { /* sem storage */ }
@@ -24,7 +24,7 @@
     input.mx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
     input.my = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
   }
-  const KEYMAP = { e: 'build', z: 'material', f: 'heal', t: 'trap', x: 'trapType', q: 'weapon', r: 'reload', n: 'skip', enter: 'skip' };
+  const KEYMAP = { e: 'build', z: 'material', f: 'heal', t: 'trap', x: 'trapType', q: 'weapon', r: 'reload', n: 'skip', enter: 'skip', g: 'tower', v: 'towerType' };
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
     if (!inGame) return;
@@ -78,6 +78,9 @@
     b.addEventListener('pointerdown', fire);
   });
 
+  // áudio precisa de um gesto do usuário para iniciar
+  ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => window.addEventListener(ev, () => { if (DF.audioInit) DF.audioInit(); }, { passive: true }));
+
   // ---------- telas ----------
   const screens = ['menu', 'levels', 'shop', 'help', 'pause', 'result'];
   function show(name) {
@@ -97,7 +100,7 @@
   $('m-play').onclick = () => { click(); renderLevels(); show('levels'); };
   $('m-shop').onclick = () => { click(); renderShop(); show('shop'); };
   $('m-help').onclick = () => { click(); show('help'); };
-  const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; persist(); refreshCoins(); click(); };
+  const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; if (DF.applyMute) DF.applyMute(); persist(); refreshCoins(); click(); };
   $('m-sound').onclick = toggleSound; $('p-sound').onclick = toggleSound;
   $('p-auto').onclick = () => { save.auto = !save.auto; input.auto = save.auto; persist(); refreshCoins(); };
 
@@ -127,7 +130,7 @@
     if (shopTab === 'weapons') {
       DF.WEAPON_ORDER.forEach((id) => {
         const w = DF.WEAPONS[id]; const owned = !!save.weapons[id]; const lvl = save.wlvl[id] || 0;
-        const c = card('<h4>' + w.icon + ' ' + w.name + '</h4><p>Dano ' + Math.round(w.dmg * (1 + 0.12 * lvl)) + (w.pellets > 1 ? ' x' + w.pellets : '') + ' · Pente ' + Math.round(w.mag * (1 + 0.1 * lvl)) + ' · Cadência ' + (1 / w.rate).toFixed(1) + '/s' + (w.pierce > 1 ? ' · Perfura' : '') + '</p><div class="lvl-bar"><b style="width:' + (lvl / DF.WEAPON_UP_MAX * 100) + '%"></b></div><p>Melhoria: nível ' + lvl + '/' + DF.WEAPON_UP_MAX + '</p>');
+        const c = card('<h4>' + w.name + '</h4><div class="wbig">' + DF.weaponSVG(id) + '</div><p>Dano ' + Math.round(w.dmg * (1 + 0.12 * lvl)) + (w.pellets > 1 ? ' x' + w.pellets : '') + ' · Pente ' + Math.round(w.mag * (1 + 0.1 * lvl)) + ' · Cadência ' + (1 / w.rate).toFixed(1) + '/s' + (w.pierce > 1 ? ' · Perfura' : '') + '</p><div class="lvl-bar"><b style="width:' + (lvl / DF.WEAPON_UP_MAX * 100) + '%"></b></div><p>Melhoria: nível ' + lvl + '/' + DF.WEAPON_UP_MAX + '</p>');
         if (!owned) btn(c, 'Comprar <span class="price">🪙 ' + w.price + '</span>', () => { if (buy(w.price)) { save.weapons[id] = true; persist(); } }, save.coins < w.price, 'primary');
         else {
           if (lvl < DF.WEAPON_UP_MAX) { const cost = DF.weaponUpCost(id, lvl); btn(c, 'Melhorar <span class="price">🪙 ' + cost + '</span>', () => { if (buy(cost)) { save.wlvl[id] = lvl + 1; persist(); } }, save.coins < cost); }
@@ -135,6 +138,15 @@
           const sel = save.startWeapon === id;
           btn(c, sel ? '✔ Arma inicial' : 'Usar como inicial', () => { save.startWeapon = id; persist(); }, sel, sel ? '' : 'primary');
         }
+      });
+    } else if (shopTab === 'towers') {
+      DF.TOWER_ORDER.forEach((id) => {
+        const t = DF.TOWERS[id]; const owned = !!save.towers[id]; const lvl = save.tlvl[id] || 0;
+        const mult = 1 + 0.15 * lvl;
+        const c = card('<h4>' + t.name + '</h4><div class="tbig">' + DF.towerSVG(id) + '</div><p>' + t.desc + '</p><p>Dano ' + Math.round(t.dmg * mult) + (id === 'flame' ? '/tick + fogo' : id === 'bazooka' ? ' em área' : '') + ' · Alcance ' + t.range + ' · Vida ' + Math.round(t.hp * (1 + 0.1 * lvl)) + ' · Custa ' + t.cost + ' 🔧 na fase</p><div class="lvl-bar"><b style="width:' + (lvl / DF.TOWER_UP_MAX * 100) + '%"></b></div><p>Melhoria: nível ' + lvl + '/' + DF.TOWER_UP_MAX + '</p>');
+        if (!owned) btn(c, 'Comprar <span class="price">🪙 ' + t.price + '</span>', () => { if (buy(t.price)) { save.towers[id] = true; persist(); } }, save.coins < t.price, 'primary');
+        else if (lvl < DF.TOWER_UP_MAX) { const cost = DF.towerUpCost(id, lvl); btn(c, 'Melhorar <span class="price">🪙 ' + cost + '</span>', () => { if (buy(cost)) { save.tlvl[id] = lvl + 1; persist(); } }, save.coins < cost, 'primary'); }
+        else { const p = document.createElement('p'); p.textContent = 'Nível máximo'; c.appendChild(p); }
       });
     } else if (shopTab === 'upgrades') {
       DF.UPGRADES.forEach((u) => {
@@ -164,7 +176,7 @@
     hpFill: $('hp-fill'), hpText: $('hp-text'), wave: $('wave-info'), scrap: $('scrap-val'), toast: $('toast'), count: $('countdown'),
     bossBar: $('boss-bar'), bossName: $('boss-name'), bossFill: $('boss-fill'), skip: $('btn-skip'),
     wIco: $('w-ico'), wName: $('w-name'), wAmmo: $('w-ammo'), reload: $('reload-fill'), bName: $('b-name'), bCost: $('b-cost'), mIco: $('m-ico'),
-    hCount: $('h-count'), tIco: $('t-ico'), tName: $('t-name'), tCount: $('t-count'), slotBuild: $('slot-build'), slotHeal: $('slot-heal'), slotTrap: $('slot-trap'), slotMat: $('slot-mat')
+    hCount: $('h-count'), tIco: $('t-ico'), tName: $('t-name'), tCount: $('t-count'), slotBuild: $('slot-build'), slotHeal: $('slot-heal'), slotTrap: $('slot-trap'), slotMat: $('slot-mat'), slotTower: $('slot-tower'), twIco: $('tw-ico'), twName: $('tw-name'), twCost: $('tw-cost')
   };
   function updateHud(G) {
     const now = performance.now(); if (now - lastHud < 90) return; lastHud = now;
@@ -176,13 +188,15 @@
     if (h.waveState === 'break' && h.state === 'play') { els.count.classList.remove('hidden'); els.count.textContent = (h.wave === 0 ? 'Primeira onda' : 'Próxima onda') + ' em ' + Math.ceil(h.breakT) + 's'; els.skip.classList.remove('hidden'); }
     else { els.count.classList.add('hidden'); els.skip.classList.add('hidden'); }
     if (h.boss) { els.bossBar.classList.remove('hidden'); els.bossName.textContent = h.boss.name; els.bossFill.style.width = (h.boss.hp / h.boss.max * 100) + '%'; } else els.bossBar.classList.add('hidden');
-    els.wIco.textContent = h.wicon; els.wName.textContent = h.weapon; els.wAmmo.textContent = h.mag + '/' + (h.reserve === Infinity ? '∞' : h.reserve);
+    els.wIco.innerHTML = DF.weaponSVG(h.wid); els.wName.textContent = h.weapon; els.wAmmo.textContent = h.mag + '/' + (h.reserve === Infinity ? '∞' : h.reserve);
     const rb = els.reload.parentElement; if (h.reload >= 0) { rb.style.display = 'block'; els.reload.style.width = (h.reload * 100) + '%'; } else rb.style.display = 'none';
     els.bName.textContent = h.mat.name; els.bCost.textContent = h.mat.cost + ' 🔧'; els.mIco.textContent = h.mat.icon;
     els.slotBuild.classList.toggle('glow', h.nearDoor); els.slotBuild.classList.toggle('disabled', h.scrap < h.mat.cost);
     els.hCount.textContent = 'x' + h.medkit; els.slotHeal.classList.toggle('disabled', h.medkit <= 0);
     els.tIco.textContent = h.trap.icon; els.tName.textContent = h.trap.name.length > 9 ? 'Urso' : h.trap.name; els.tCount.textContent = 'x' + h.trapCount; els.slotTrap.classList.toggle('disabled', h.trapCount <= 0);
-    els.slotMat.style.display = '';
+    if (h.towerInfo) { els.twIco.innerHTML = DF.towerSVG(h.towerInfo.id); els.twName.textContent = h.towerInfo.name.length > 9 ? h.towerInfo.name.slice(0, 8) + '.' : h.towerInfo.name; els.twCost.textContent = h.towerInfo.cost + '🔧 ' + h.towerInfo.count + '/' + h.towerInfo.max; els.slotTower.classList.toggle('disabled', h.scrap < h.towerInfo.cost || h.towerInfo.count >= h.towerInfo.max); }
+    else { els.twIco.textContent = '🗼'; els.twName.textContent = 'Torre'; els.twCost.textContent = 'na loja'; els.slotTower.classList.add('disabled'); }
+    if (DF.musicMode) DF.musicMode(h.boss ? 'boss' : 'game');
   }
   function startGame(level) {
     if (DF.audioInit) DF.audioInit();
@@ -191,7 +205,7 @@
     inGame = true; paused = false; lastHud = 0;
     engine = DF.Engine.create({ level, canvas: cv, save, onHud: updateHud, onEnd: onEnd });
   }
-  function stopGame() { if (engine) engine.stop(); engine = null; inGame = false; $('hud').classList.add('hidden'); }
+  function stopGame() { if (engine) engine.stop(); engine = null; inGame = false; if (DF.musicMode) DF.musicMode('menu'); $('hud').classList.add('hidden'); }
   function togglePause() {
     if (!engine || engine.G.state !== 'play') return;
     paused = !paused; engine.pause(paused); $('pause').classList.toggle('hidden', !paused); if (paused) refreshCoins();

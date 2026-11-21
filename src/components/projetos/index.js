@@ -49,7 +49,7 @@ const projetos = [
     jogar: true,
     logo: img("deadfront.svg"),
     tags: ["JavaScript", "Canvas", "Capacitor", "Android"],
-    tema: { c1: "#7bd150", c2: "#10150f", on: "#0b0d0b", logoBg: "#10150f" },
+    tema: { c1: "#d4141c", c2: "#1a0809", on: "#0b0d0b", logoBg: "#0b0d0b" },
   },
   {
     titulo: "Enzimando",
