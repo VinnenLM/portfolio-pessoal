@@ -873,6 +873,7 @@
         }
       } else if (o.type === 'boss') {
         if (!mission.bossSpawned) { if (dist < o.r * TILE) { mission.bossSpawned = true; spawnZombie(lv.boss, { x: o.x * TILE, y: o.y * TILE }); } }
+        else if (G.bossDead) { mission.idx++; msg('Chefe derrotado! Pegue o loot e corra para o helicóptero!', '#7be07a'); }
       }
     }
 
@@ -941,7 +942,7 @@
       }
       // ondas
       if (G.state === 'play') {
-        if (G.bossDead && (G.bossLootT <= 0 || !G.loot.some((l) => l.boss))) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); }
+        if (!mission && G.bossDead && (G.bossLootT <= 0 || !G.loot.some((l) => l.boss))) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); }
         else if (mission) { updateMission(dt); }
         else if (G.waveState === 'break') {
           G.breakT -= dt; if (G.breakT <= 0) startWave();
@@ -1064,7 +1065,7 @@
         boss: G.boss ? { name: G.boss.def.name, hp: G.boss.hp, max: G.boss.max } : null,
         wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.TOWER_ORDER[P.towerI]) ? DF.TOWER_ORDER[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: DF.TOWERS[id].cost, count: G.towers.length, max: DF.TOWER_MAX }; })(),
         gren: { id: DF.GRENADE_ORDER[P.grenI], name: DF.GRENADES[DF.GRENADE_ORDER[P.grenI]].name, count: P.gren[DF.GRENADE_ORDER[P.grenI]], all: P.gren },
-        outside: G.outside, bossTimer: G.bossDead && G.state === 'play' ? Math.ceil(Math.max(0, G.bossLootT)) : 0, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
+        outside: G.outside, bossTimer: !mission && G.bossDead && G.state === 'play' ? Math.ceil(Math.max(0, G.bossLootT)) : 0, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
         msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
       };
     };
