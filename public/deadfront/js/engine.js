@@ -413,7 +413,7 @@
           const da = Math.atan2(Math.sin(Math.atan2(dy, dx) - angle), Math.cos(Math.atan2(dy, dx) - angle));
           if (Math.abs(da) < 0.4 && los(P.x, P.y, z.x, z.y, false)) { z.burnT = 2.4; z.burnDmg = 4 * (1 + 0.12 * wLvl(w.id)); hurtZ(z, dmg, 0, 0, 0, true); }
         }
-        for (let k = 0; k < 4; k++) { const a = angle + rand(-0.26, 0.26), sp = rand(190, 320); G.parts.push({ x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.25, 0.45), max: 0.45, size: rand(3, 7), color: pick(['#ff9f1c', '#ffd23f', '#ff6b2b']) }); }
+        for (let k = 0; k < 7; k++) { const a = angle + rand(-0.3, 0.3), sp = rand(380, 520), lf = d.range / sp * rand(0.55, 1); G.parts.push({ x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: lf, max: lf, size: rand(3, 7), color: pick(['#ff9f1c', '#ffd23f', '#ff6b2b']) }); }
         sfx('flame'); if (w.mag <= 0) startReload(); return;
       }
       if (d.kind === 'rocket') {
@@ -827,7 +827,7 @@
         }
         G.loot.push(Object.assign({ x: px, y: py, ttl: 60, bob: rand(0, 6), boss: true }, it));
       });
-      G.bossLootT = 20; sfx('drop');
+      G.bossLootT = 25; sfx('drop');
     }
 
     // ----- missão (mapa grande)
@@ -873,7 +873,6 @@
         }
       } else if (o.type === 'boss') {
         if (!mission.bossSpawned) { if (dist < o.r * TILE) { mission.bossSpawned = true; spawnZombie(lv.boss, { x: o.x * TILE, y: o.y * TILE }); } }
-        else if (G.bossDead && (G.bossLootT <= 0 || !G.loot.some((l) => l.boss))) { mission.idx++; msg('Corra para o helicóptero!', '#7be07a'); }
       }
     }
 
@@ -927,7 +926,7 @@
         P.buildCd = Math.max(0, P.buildCd - dt); P.grenCd = Math.max(0, P.grenCd - dt); P.fireCd = Math.max(0, P.fireCd - dt); P.hurtT = Math.max(0, P.hurtT - dt); P.flash = Math.max(0, P.flash - dt);
         if (P.reloadT > 0) {
           P.reloadT -= dt;
-          if (P.reloadT <= 0) { P.reloadT = 0; const w = curW(); const need = w.magSize - w.mag; const take = Math.min(need, w.reserve); w.mag += take; if (w.reserve !== Infinity) w.reserve -= take; }
+          if (P.reloadT <= 0) { P.reloadT = 0; sfx('reloaded'); const w = curW(); const need = w.magSize - w.mag; const take = Math.min(need, w.reserve); w.mag += take; if (w.reserve !== Infinity) w.reserve -= take; }
         }
         let mx = input.mx, my = input.my; const ml = Math.hypot(mx, my); if (ml > 1) { mx /= ml; my /= ml; }
         if (ml > 0.05) { moveEnt(P, mx * P.speed * dt, my * P.speed * dt, true); P.walk += dt * 9; }
@@ -942,7 +941,8 @@
       }
       // ondas
       if (G.state === 'play') {
-        if (mission) { updateMission(dt); }
+        if (G.bossDead && (G.bossLootT <= 0 || !G.loot.some((l) => l.boss))) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); }
+        else if (mission) { updateMission(dt); }
         else if (G.waveState === 'break') {
           G.breakT -= dt; if (G.breakT <= 0) startWave();
         } else {
@@ -1064,7 +1064,7 @@
         boss: G.boss ? { name: G.boss.def.name, hp: G.boss.hp, max: G.boss.max } : null,
         wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.TOWER_ORDER[P.towerI]) ? DF.TOWER_ORDER[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: DF.TOWERS[id].cost, count: G.towers.length, max: DF.TOWER_MAX }; })(),
         gren: { id: DF.GRENADE_ORDER[P.grenI], name: DF.GRENADES[DF.GRENADE_ORDER[P.grenI]].name, count: P.gren[DF.GRENADE_ORDER[P.grenI]], all: P.gren },
-        outside: G.outside, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
+        outside: G.outside, bossTimer: G.bossDead && G.state === 'play' ? Math.ceil(Math.max(0, G.bossLootT)) : 0, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
         msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
       };
     };
@@ -1174,6 +1174,7 @@
       const zs = G.zombies.slice().sort((a, b) => a.y - b.y);
       for (const z of zs) drawZombie(z);
       drawPlayer();
+      if (P.reloadT > 0 && P.reloadMax > 0) { const k = 1 - P.reloadT / P.reloadMax; ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(P.x - 19, P.y - P.r - 17, 38, 7); ctx.fillStyle = '#5ac8ff'; ctx.fillRect(P.x - 18, P.y - P.r - 16, 36 * k, 5); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('RECARREGANDO', P.x, P.y - P.r - 22); }
       // balas
       for (const b of G.bullets) { ctx.strokeStyle = b.color || '#ffe9a0'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 0.022, b.y - b.vy * 0.022); ctx.stroke(); }
       // partículas

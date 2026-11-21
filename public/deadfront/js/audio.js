@@ -116,6 +116,7 @@
     shoot() { noise(0.08, 0.5, 5200); tone(260, 0.08, 'square', 0.2, 90); },
     shotgun() { noise(0.25, 1.0, 3500); tone(140, 0.2, 'sawtooth', 0.3, 50); },
     sniper() { noise(0.3, 1.0, 6000); tone(180, 0.35, 'sawtooth', 0.32, 40); },
+    reloaded() { tone(420, 0.05, 'square', 0.22); tone(840, 0.07, 'square', 0.22, 0, 0.06); },
     reload() { tone(900, 0.04, 'square', 0.2); tone(600, 0.05, 'square', 0.2, 0, 0.18); },
     switch() { tone(700, 0.05, 'square', 0.16); },
     hurt() { tone(170, 0.28, 'sawtooth', 0.45, 55); noise(0.14, 0.45, 1200); },

@@ -138,7 +138,7 @@
     { id: 'red',     name: 'Vermelho Sangue', price: 160, body: '#a82a2a', head: '#e0b48c', hair: '#1c1c1c', acc: 'band',  accColor: '#111' },
     { id: 'swat',    name: 'SWAT',         price: 300, body: '#23272e', head: '#c99d78', hair: '#222', acc: 'helmet',  accColor: '#3b4350' },
     { id: 'neon',    name: 'Neon',         price: 380, body: '#16c7a6', head: '#f0c9a4', hair: '#7a2a6a', acc: 'visor',   accColor: '#ff3df0' },
-    { id: 'clown',   name: 'Palhaço',      price: 450, body: '#f2c200', head: '#f0d0b0', hair: '#e8341c', acc: 'clown', accColor: '#e53935', boots: '#d4141c', dots: '#d4141c' }
+    { id: 'clown',   name: 'Palhaço',      price: 450, body: '#1fa5b8', head: '#ffffff', hair: '#ffffff', acc: 'clown', accColor: '#e53935', boots: '#d4141c' }
   ];
 
   // ---------- Melhorias (loja) ----------

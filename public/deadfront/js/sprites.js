@@ -93,10 +93,11 @@
       rect(c, 3.5, -7.6, 6, 15.2, ac, OUT, 2); rect(c, 4.6, -5.6, 2, 11.2, '#ffe0fb');
       ell(c, -1, 0, 3, 8, shade(skin.hair || '#7a2a6a', 15));
     } else if (skin.acc === 'clown') {
-      const cols = ['#e8341c', '#ff9f1c', '#3ddc84', '#4d7cfe', '#b15cff'];
-      for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; ell(c, 1 + Math.cos(a) * 7.4, Math.sin(a) * 7.4, 4.6, 4.6, cols[i % 5], OUT); }
-      ell(c, 1, 0, 6.2, 6.2, '#e8341c', OUT);
-      ell(c, 10.2, 0, 3.2, 3.2, ac, OUT); ell(c, 9.4, -0.8, 1, 1, 'rgba(255,255,255,0.7)');
+      // gola colorida (vermelho, amarelo, azul, verde-água) + cabeça branca e nariz vermelho
+      const cols = ['#e8341c', '#ffd23f', '#2f6fe0', '#18b6a4'];
+      for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; ell(c, -0.5 + Math.cos(a) * 8.6, Math.sin(a) * 9, 4.4, 4.4, cols[i % 4], OUT); }
+      ell(c, 0.5, 0, 8.2, 8.6, '#ffffff', OUT); ell(c, -2, -2, 3, 3, 'rgba(0,0,0,0.06)');
+      ell(c, 7.4, 0, 3.4, 3.4, ac, OUT); ell(c, 6.6, -0.9, 1, 1, 'rgba(255,255,255,0.8)');
     } else if (skin.acc === 'crown') {
       ell(c, 0, 0, 9.4, 9.8, ac, OUT);
       for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ell(c, Math.cos(a) * 8.6, Math.sin(a) * 8.6, 2.2, 2.2, '#ffd25a', OUT); }

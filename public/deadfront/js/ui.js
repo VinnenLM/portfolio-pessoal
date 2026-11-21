@@ -101,6 +101,25 @@
   function click() { if (DF.audioInit) DF.audioInit(); if (DF.sfx) DF.sfx('click'); }
   $('m-play').onclick = () => { click(); renderLevels(); show('levels'); };
   $('m-shop').onclick = () => { click(); renderShop(); show('shop'); };
+  $('m-unlock').onclick = () => {
+    click(); DF.LEVELS.forEach((lv) => { save.stars[lv.id] = Math.max(save.stars[lv.id] || 0, 3); });
+    save.unlocked = DF.LEVELS.length; save.steel = true; save.coins = Math.max(save.coins, 0) + 5000;
+    for (const id in DF.WEAPONS) { save.weapons[id] = true; save.wlvl[id] = DF.WEAPON_UP_MAX; }
+    for (const id in DF.TOWERS) { save.towers[id] = true; save.tlvl[id] = DF.TOWER_UP_MAX; }
+    DF.SKINS.forEach((s) => { save.skins[s.id] = true; });
+    DF.UPGRADES.forEach((u) => { save.up[u.id] = u.max; });
+    persist(); refreshCoins(); $('m-unlock').textContent = 'TUDO LIBERADO ✓';
+  };
+  $('m-export').onclick = () => {
+    click(); const code = btoa(unescape(encodeURIComponent(JSON.stringify(save))));
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(code).then(() => alert('Código do save copiado! Guarde em algum lugar.'), () => prompt('Copie o código do save:', code));
+    else prompt('Copie o código do save:', code);
+  };
+  $('m-import').onclick = () => {
+    click(); const code = prompt('Cole o código do save:'); if (!code) return;
+    try { const o = JSON.parse(decodeURIComponent(escape(atob(code.trim())))); Object.assign(save, defaultSave(), o); persist(); refreshCoins(); alert('Save carregado!'); } catch (e) { alert('Código inválido.'); }
+  };
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ignora */ }
   $('m-help').onclick = () => { click(); show('help'); };
   const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; if (DF.applyMute) DF.applyMute(); persist(); refreshCoins(); click(); };
   $('m-sound').onclick = toggleSound; $('p-sound').onclick = toggleSound;
@@ -187,7 +206,8 @@
     els.wave.textContent = h.mission ? 'Missão · Restam ' + h.left : h.wave === 0 ? 'Prepare-se!' : 'Onda ' + h.wave + '/' + h.waves + ' · Restam ' + h.left;
     els.scrap.textContent = h.scrap;
     els.toast.textContent = h.msg; els.toast.style.color = h.msgColor;
-    if (h.waveState === 'break' && h.state === 'play') { els.count.classList.remove('hidden'); els.count.textContent = (h.wave === 0 ? 'Primeira onda' : 'Próxima onda') + ' em ' + Math.ceil(h.breakT) + 's'; els.skip.classList.remove('hidden'); }
+    if (h.bossTimer > 0) { els.count.classList.remove('hidden'); els.count.textContent = 'Missão termina em ' + h.bossTimer + 's — pegue o loot!'; els.skip.classList.add('hidden'); }
+    else if (h.waveState === 'break' && h.state === 'play') { els.count.classList.remove('hidden'); els.count.textContent = (h.wave === 0 ? 'Primeira onda' : 'Próxima onda') + ' em ' + Math.ceil(h.breakT) + 's'; els.skip.classList.remove('hidden'); }
     else { els.count.classList.add('hidden'); els.skip.classList.add('hidden'); }
     if (h.boss) { els.bossBar.classList.remove('hidden'); els.bossName.textContent = h.boss.name; els.bossFill.style.width = (h.boss.hp / h.boss.max * 100) + '%'; } else els.bossBar.classList.add('hidden');
     els.wIco.innerHTML = DF.weaponSVG(h.wid); els.wName.textContent = h.weapon; els.wAmmo.textContent = h.mag + '/' + (h.reserve === Infinity ? '∞' : h.reserve);

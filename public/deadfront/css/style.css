@@ -127,3 +127,4 @@ body.touch .s-key { display: none; }
 #obj-info { font-size: 12px; background: rgba(0,0,0,.5); padding: 3px 8px; border-radius: 8px; color: #7fe3ff; max-width: 44vw; }
 #dock { flex-wrap: wrap; justify-content: center; width: max-content; max-width: 98vw; }
 .slot .s-ico svg { height: 22px; width: auto; }
+.screen#menu { justify-content: flex-start; gap: 12px; } .screen#menu > :first-child { margin-top: auto; } .screen#menu > :last-child { margin-bottom: auto; }
