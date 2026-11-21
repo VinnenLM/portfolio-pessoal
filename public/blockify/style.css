@@ -133,6 +133,26 @@ html, body {
 .pill.panel { background: var(--panel); color: #fff; }
 .install-tip { color: var(--dim); font-size: 13px; text-align: center; margin-top: 16px; max-width: 320px; line-height: 1.4; }
 
+/* moeda desenhada (no lugar do emoji 🪙) */
+.coin-i {
+  display: inline-block;
+  width: 0.95em;
+  height: 0.95em;
+  border-radius: 50%;
+  vertical-align: -0.14em;
+  background: radial-gradient(circle at 35% 30%, #fff6c2 0 16%, #ffd23f 17% 58%, #f0a500 59% 100%);
+  box-shadow: inset 0 0 0 0.09em #c98a00, 0 0.04em 0.08em rgba(0, 0, 0, 0.35);
+  position: relative;
+}
+.coin-i::after {
+  content: "";
+  position: absolute;
+  inset: 0.24em;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 0.07em rgba(201, 138, 0, 0.75);
+}
+.coins .coin-i { margin-right: 0.15em; }
+
 /* ---------- loja ---------- */
 #shop { flex-direction: column; padding: 14px 14px 0; }
 .shop-head { display: flex; align-items: center; gap: 10px; }

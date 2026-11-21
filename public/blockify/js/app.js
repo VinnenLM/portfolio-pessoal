@@ -20,9 +20,19 @@ const el = (tag, props = {}, ...kids) => {
     else if (k === "html") e.innerHTML = v;
     else e.setAttribute(k, v);
   }
-  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : document.createTextNode(k));
+  for (const k of kids.flat()) if (k != null) e.append(k instanceof Node ? k : withCoins(String(k)));
   return e;
 };
+
+/** Troca o emoji 🪙 por uma moeda desenhada (o emoji não existe no Windows 10 e em celulares antigos). */
+function withCoins(text) {
+  const frag = document.createDocumentFragment();
+  text.split("🪙").forEach((part, i) => {
+    if (i > 0) frag.append(Object.assign(document.createElement("span"), { className: "coin-i", ariaLabel: "moedas" }));
+    if (part) frag.append(document.createTextNode(part));
+  });
+  return frag;
+}
 
 let game = null;
 let screen = "menu";

@@ -1,6 +1,6 @@
 // Gerado por tools/build_web_sw.py — não edite à mão.
 // Guarda o jogo para funcionar offline; versão muda quando qualquer arquivo muda.
-const CACHE = "blockify-96c5488d5c";
+const CACHE = "blockify-6000b55485";
 const ASSETS = [
   "./",
   "manifest.webmanifest",

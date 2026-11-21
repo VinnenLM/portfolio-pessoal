@@ -404,8 +404,19 @@ export class Game {
 
   font(size, italic = false) { return `${italic ? "italic " : ""}bold ${size}px ${EMOJI_FONT}`; }
 
+  /** Moeda desenhada (o emoji 🪙 não existe em sistemas mais antigos). */
+  drawCoin(cx, cy, r) {
+    const c = this.ctx;
+    const g = c.createRadialGradient(cx - r * 0.3, cy - r * 0.4, 0, cx, cy, r);
+    g.addColorStop(0, "#fff6c2"); g.addColorStop(0.35, "#ffd23f"); g.addColorStop(1, "#f0a500");
+    c.fillStyle = g; c.beginPath(); c.arc(cx, cy, r, 0, Math.PI * 2); c.fill();
+    c.strokeStyle = "#c98a00"; c.lineWidth = r * 0.18; c.beginPath(); c.arc(cx, cy, r * 0.92, 0, Math.PI * 2); c.stroke();
+    c.lineWidth = r * 0.12; c.beginPath(); c.arc(cx, cy, r * 0.55, 0, Math.PI * 2); c.stroke();
+  }
+
   text(s, x, y, size, color, align = "center", alpha = 1) {
     const c = this.ctx;
+    if (s.includes("🪙")) return this.textWithCoins(s, x, y, size, color, align, alpha);
     c.save();
     c.globalAlpha *= alpha;
     c.font = this.font(size);
@@ -413,6 +424,24 @@ export class Game {
     c.textAlign = align;
     c.textBaseline = "alphabetic";
     c.fillText(s, x, y);
+    c.restore();
+  }
+
+  textWithCoins(s, x, y, size, color, align, alpha) {
+    const c = this.ctx, parts = s.split("🪙"), coinW = size * 1.05;
+    c.save();
+    c.globalAlpha *= alpha;
+    c.font = this.font(size);
+    c.textBaseline = "alphabetic";
+    c.textAlign = "left";
+    const total = parts.reduce((w, p) => w + c.measureText(p).width, 0) + coinW * (parts.length - 1);
+    let px = align === "center" ? x - total / 2 : align === "right" ? x - total : x;
+    parts.forEach((p, i) => {
+      if (i > 0) { this.drawCoin(px + coinW / 2, y - size * 0.36, size * 0.42); px += coinW; }
+      c.fillStyle = color;
+      c.fillText(p, px, y);
+      px += c.measureText(p).width;
+    });
     c.restore();
   }
 
