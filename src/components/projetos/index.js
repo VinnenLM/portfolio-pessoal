@@ -19,8 +19,20 @@ const FILTROS = [
     logoBg = fundo atrás da logo
   Para usar uma logo, coloque o arquivo em public/projetos e informe em "logo".
   Sem logo, o card usa o ícone Font Awesome de "icone".
+  Com "download: true", o botão vira "Baixar" e baixa o arquivo do link (ex.: APK em public/downloads).
 */
 const projetos = [
+  {
+    titulo: "Blockify",
+    categoria: "app",
+    descricao:
+      "Jogo Android de encaixar blocos, feito em Kotlin sem bibliotecas externas: 1000 fases, modo infinito e difícil, bônus, blocos especiais, loja de skins com efeitos de quebra, tutorial e música própria.",
+    link: `${process.env.PUBLIC_URL}/downloads/Blockify.apk`,
+    download: true,
+    logo: img("blockify.svg"),
+    tags: ["Kotlin", "Android", "Canvas"],
+    tema: { c1: "#ffd23f", c2: "#2d2a78", on: "#1b1f4b", logoBg: "#1b1f4b" },
+  },
   {
     titulo: "Enzimando",
     categoria: "app",

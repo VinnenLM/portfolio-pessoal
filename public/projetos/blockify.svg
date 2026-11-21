@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1b1f4b"/>
+      <stop offset="1" stop-color="#2d2a78"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" fill="url(#bg)"/>
+  <!-- grade 3x3 de blocos "doce", com o meio vazio -->
+  <g>
+    <rect x="9" y="9" width="14" height="14" rx="3" fill="#b3374a"/><rect x="10" y="9.6" width="12" height="11.3" rx="2.4" fill="#ff4d5e"/><rect x="11.8" y="10.9" width="4.5" height="1.3" rx=".7" fill="#ffadb5"/>
+    <rect x="25" y="9" width="14" height="14" rx="3" fill="#b36f14"/><rect x="26" y="9.6" width="12" height="11.3" rx="2.4" fill="#ff9f1c"/><rect x="27.8" y="10.9" width="4.5" height="1.3" rx=".7" fill="#ffd09a"/>
+    <rect x="41" y="9" width="14" height="14" rx="3" fill="#b3932c"/><rect x="42" y="9.6" width="12" height="11.3" rx="2.4" fill="#ffd23f"/><rect x="43.8" y="10.9" width="4.5" height="1.3" rx=".7" fill="#ffeaa2"/>
+    <rect x="9" y="25" width="14" height="14" rx="3" fill="#7c40b3"/><rect x="10" y="25.6" width="12" height="11.3" rx="2.4" fill="#b15cff"/><rect x="11.8" y="26.9" width="4.5" height="1.3" rx=".7" fill="#dcb3ff"/>
+    <rect x="26" y="26" width="12" height="12" rx="2.4" fill="#242a5e"/>
+    <rect x="41" y="25" width="14" height="14" rx="3" fill="#b34e7f"/><rect x="42" y="25.6" width="12" height="11.3" rx="2.4" fill="#ff6fb5"/><rect x="43.8" y="26.9" width="4.5" height="1.3" rx=".7" fill="#ffbddc"/>
+    <rect x="9" y="41" width="14" height="14" rx="3" fill="#2089a9"/><rect x="10" y="41.6" width="12" height="11.3" rx="2.4" fill="#2ec4f1"/><rect x="11.8" y="42.9" width="4.5" height="1.3" rx=".7" fill="#9ee3f8"/>
+    <rect x="25" y="41" width="14" height="14" rx="3" fill="#3657b2"/><rect x="26" y="41.6" width="12" height="11.3" rx="2.4" fill="#4d7cfe"/><rect x="27.8" y="42.9" width="4.5" height="1.3" rx=".7" fill="#adc3ff"/>
+    <rect x="41" y="41" width="14" height="14" rx="3" fill="#2b9a5c"/><rect x="42" y="41.6" width="12" height="11.3" rx="2.4" fill="#3ddc84"/><rect x="43.8" y="42.9" width="4.5" height="1.3" rx=".7" fill="#a4efc5"/>
+  </g>
+</svg>

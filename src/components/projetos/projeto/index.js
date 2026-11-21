@@ -16,6 +16,7 @@ export default function Projeto({
   icone,
   tags = [],
   tema = {},
+  download = false,
 }) {
   const github = link.includes("github.com");
 
@@ -54,8 +55,16 @@ export default function Projeto({
           </ul>
         )}
 
-        <a className="botao-link" href={link} target="_blank" rel="noreferrer">
-          {github ? (
+        <a
+          className="botao-link"
+          href={link}
+          {...(download ? { download: true } : { target: "_blank", rel: "noreferrer" })}
+        >
+          {download ? (
+            <>
+              <i className="fa-solid fa-download"></i> Baixar APK
+            </>
+          ) : github ? (
             <>
               <i className="fa-brands fa-github"></i> Ver código
             </>
