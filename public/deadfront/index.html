@@ -21,9 +21,11 @@
     <div id="hud-left">
       <div class="bar hp"><div id="hp-fill"></div><span id="hp-text">100</span></div>
       <div id="wave-info">Onda 1/5</div>
+      <div id="obj-info" class="hidden"></div>
     </div>
     <div id="hud-center">
       <div id="boss-bar" class="hidden"><div id="boss-name">Chefe</div><div class="bar boss"><div id="boss-fill"></div></div></div>
+      <div id="warn" class="hidden">⚠ Volte para a área segura!</div>
       <div id="toast"></div>
       <div id="countdown" class="hidden"></div>
     </div>
@@ -39,10 +41,12 @@
   <div id="dock">
     <button class="slot" data-act="weapon" id="slot-weapon"><span class="s-ico" id="w-ico"></span><span class="s-main" id="w-name">Pistola</span><span class="s-sub" id="w-ammo">12/∞</span><span class="s-key">Q</span><i class="reload-bar"><b id="reload-fill"></b></i></button>
     <button class="slot" data-act="build" id="slot-build"><span class="s-ico">🔨</span><span class="s-main" id="b-name">Madeira</span><span class="s-sub" id="b-cost">8 🔧</span><span class="s-key">E</span></button>
-    <button class="slot small" data-act="material" id="slot-mat"><span class="s-ico" id="m-ico">🪵</span><span class="s-key">Z</span></button>
+    <button class="slot small" data-act="material" id="slot-mat"><span class="s-ico" id="m-ico"></span><span class="s-key">Z</span></button>
     <button class="slot" data-act="heal" id="slot-heal"><span class="s-ico">🩹</span><span class="s-main">Curar</span><span class="s-sub" id="h-count">x1</span><span class="s-key">F</span></button>
-    <button class="slot" data-act="trap" id="slot-trap"><span class="s-ico" id="t-ico">✴️</span><span class="s-main" id="t-name">Espinhos</span><span class="s-sub" id="t-count">x2</span><span class="s-key">T</span></button>
+    <button class="slot" data-act="trap" id="slot-trap"><span class="s-ico" id="t-ico"></span><span class="s-main" id="t-name">Espinhos</span><span class="s-sub" id="t-count">x2</span><span class="s-key">T</span></button>
     <button class="slot small" data-act="trapType" id="slot-ttype"><span class="s-ico">⟳</span><span class="s-key">X</span></button>
+    <button class="slot" data-act="gren" id="slot-gren"><span class="s-ico" id="g-ico"></span><span class="s-main" id="g-name">Granada</span><span class="s-sub" id="g-count">x0</span><span class="s-key">B</span></button>
+    <button class="slot small" data-act="grenType" id="slot-gtype"><span class="s-ico">⟳</span><span class="s-key">C</span></button>
     <button class="slot" data-act="tower" id="slot-tower"><span class="s-ico" id="tw-ico">🗼</span><span class="s-main" id="tw-name">Torre</span><span class="s-sub" id="tw-cost">loja</span><span class="s-key">G</span></button>
     <button class="slot small" data-act="towerType" id="slot-twtype"><span class="s-ico">⟳</span><span class="s-key">V</span></button>
   </div>
@@ -61,18 +65,18 @@
     <button class="btn" id="m-help">COMO JOGAR</button>
     <button class="btn ghost" id="m-sound">SOM: ON</button>
   </div>
-  <div class="coins-corner">🪙 <b id="menu-coins">0</b></div>
+  <div class="coins-corner"><i class="coin-ico"></i> <b id="menu-coins">0</b></div>
 </section>
 
 <!-- FASES -->
 <section id="levels" class="screen hidden">
-  <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Escolha o local</h2><div class="coins-corner static">🪙 <b class="coins-val">0</b></div></header>
+  <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Escolha o local</h2><div class="coins-corner static"><i class="coin-ico"></i> <b class="coins-val">0</b></div></header>
   <div id="level-grid" class="grid"></div>
 </section>
 
 <!-- LOJA -->
 <section id="shop" class="screen hidden">
-  <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Loja</h2><div class="coins-corner static">🪙 <b class="coins-val">0</b></div></header>
+  <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Loja</h2><div class="coins-corner static"><i class="coin-ico"></i> <b class="coins-val">0</b></div></header>
   <nav class="tabs"><button class="tab active" data-tab="weapons">Armas</button><button class="tab" data-tab="towers">Torres</button><button class="tab" data-tab="upgrades">Melhorias</button><button class="tab" data-tab="skins">Skins</button></nav>
   <div id="shop-list" class="grid"></div>
 </section>

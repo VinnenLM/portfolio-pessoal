@@ -42,6 +42,16 @@
       case 'sniper':
         rect(c, 2, -4, 14, 8, '#8a5a32', OUT, 2); rect(c, 15, -4, 14, 8, '#4a5156', OUT, 1);
         rect(c, 28, -1.8, 28, 3.6, '#8b9298', OUT, 1); rect(c, 17, -7.5, 18, 4.5, '#1f2326', OUT, 2); rect(c, 33, -7, 2.5, 3.5, '#7fb4d6'); break;
+      case 'revolver':
+        rect(c, 10, -3, 12, 6, '#d0d4d8', OUT, 1.5); ell(c, 15, 0, 4.6, 4.4, '#9aa2a8', OUT); rect(c, 22, -1.8, 12, 3.6, '#8b9298', OUT, 1); break;
+      case 'ak':
+        rect(c, 2, -3.5, 11, 7, '#8a5a32', OUT, 2); rect(c, 12, -4, 16, 8, '#3b3f44', OUT, 1); rect(c, 27, -3.5, 15, 7, '#8a5a32', OUT, 1.5); rect(c, 42, -1.4, 7, 2.8, '#9aa2a8'); rect(c, 16, -5.6, 8, 2, '#4a5156'); break;
+      case 'minigun':
+        rect(c, 6, -6, 10, 12, '#4a5156', OUT, 2); rect(c, 16, -5, 30, 2.6, '#b0b8be', OUT, 1); rect(c, 16, -1.3, 30, 2.6, '#b0b8be', OUT, 1); rect(c, 16, 2.4, 30, 2.6, '#b0b8be', OUT, 1); rect(c, 34, -6, 3, 12, '#6d7479', OUT, 1); rect(c, 0, -5, 7, 10, '#7a8a55', OUT, 2); break;
+      case 'flamer':
+        ell(c, 6, 0, 7, 8.4, '#c0392b', OUT); ell(c, 5, -1, 3.4, 4.4, '#e2594a'); rect(c, 12, -3.2, 18, 6.4, '#2b2e32', OUT, 1.5); rect(c, 30, -4, 10, 8, '#6d7479', OUT, 1.5); ell(c, 41, 0, 1.6, 1.6, '#4cc2ff'); break;
+      case 'rpg':
+        rect(c, 0, -6, 7, 12, '#2b2e32', OUT, 2); rect(c, 6, -5, 42, 10, '#7a8a55', OUT, 3); ell(c, 49, 0, 4.6, 4.2, '#c0392b', OUT); rect(c, 22, -7, 10, 3.5, '#4a5156', OUT, 1); break;
       default: // pistola
         rect(c, 12, -3, 14, 6, '#c9ced2', OUT, 1.5); rect(c, 26, -1.8, 5, 3.6, '#8b9298'); rect(c, 13, -4, 3, 1.5, '#555');
     }
@@ -53,22 +63,23 @@
     opt = opt || {};
     const sw = Math.sin(walk || 0);
     // botas
-    ell(c, -1 + sw * 5, -6, 6, 3.6, '#1c1d1f', OUT); ell(c, -1 - sw * 5, 6, 6, 3.6, '#1c1d1f', OUT);
+    const bt = skin.boots || '#1c1d1f', bw = skin.boots ? 8 : 6;
+    ell(c, -1 + sw * 5, -6, bw, 4, bt, OUT); ell(c, -1 - sw * 5, 6, bw, 4, bt, OUT);
     // mochila
     rect(c, -17, -8.5, 10, 17, shade(skin.body, -50), OUT, 3); rect(c, -15, -5, 5, 10, shade(skin.body, -30));
     // tronco
     ell(c, 0, 0, 9.5, 14.5, skin.body, OUT);
     ell(c, 1.5, -1, 5.5, 9, shade(skin.body, 22));
+    if (skin.dots) { ell(c, -3, -6, 2.4, 2.4, skin.dots); ell(c, 3, 3, 2.6, 2.6, skin.dots); ell(c, -4, 6, 2.2, 2.2, skin.dots); ell(c, 5, -5, 2, 2, skin.dots); }
     // ombros
     ell(c, 2, -12.5, 4.6, 4.2, shade(skin.body, -18), OUT); ell(c, 2, 12.5, 4.6, 4.2, shade(skin.body, -18), OUT);
     // braços até a arma
     limb(c, 3, -12, 17, -3.5, 5.2, skin.body); limb(c, 3, 12, 24, 3.2, 5.2, skin.body);
     gun(c, wid);
     ell(c, 18, -3.5, 3.4, 3.4, skin.head, OUT); ell(c, 25, 3.2, 3.4, 3.4, skin.head, OUT);
-    // cabeça
-    ell(c, 1, 0, 8, 8.4, skin.head, OUT);
-    ell(c, 1, -8, 1.8, 2.4, skin.head, OUT); ell(c, 1, 8, 1.8, 2.4, skin.head, OUT);
-    c.fillStyle = skin.hair || '#3a2a1c'; c.beginPath(); c.arc(0.4, 0, 8.3, Math.PI * 0.5, Math.PI * 1.5); c.fill();
+    // cabeça (vista de cima: quase só cabelo)
+    ell(c, 1, 0, 8.2, 8.6, skin.hair || '#3a2a1c', OUT);
+    ell(c, -0.5, -1.6, 4, 3.2, shade(skin.hair || '#3a2a1c', 26));
     const ac = skin.accColor || '#333';
     if (skin.acc === 'cap') {
       ell(c, 0.5, 0, 8.6, 9, ac, OUT); ell(c, 10, 0, 4.6, 6.6, shade(ac, -20), OUT); ell(c, -1, 0, 3, 4, shade(ac, 18));
@@ -81,6 +92,11 @@
     } else if (skin.acc === 'visor') {
       rect(c, 3.5, -7.6, 6, 15.2, ac, OUT, 2); rect(c, 4.6, -5.6, 2, 11.2, '#ffe0fb');
       ell(c, -1, 0, 3, 8, shade(skin.hair || '#7a2a6a', 15));
+    } else if (skin.acc === 'clown') {
+      const cols = ['#e8341c', '#ff9f1c', '#3ddc84', '#4d7cfe', '#b15cff'];
+      for (let i = 0; i < 10; i++) { const a = i / 10 * TAU; ell(c, 1 + Math.cos(a) * 7.4, Math.sin(a) * 7.4, 4.6, 4.6, cols[i % 5], OUT); }
+      ell(c, 1, 0, 6.2, 6.2, '#e8341c', OUT);
+      ell(c, 10.2, 0, 3.2, 3.2, ac, OUT); ell(c, 9.4, -0.8, 1, 1, 'rgba(255,255,255,0.7)');
     } else if (skin.acc === 'crown') {
       ell(c, 0, 0, 9.4, 9.8, ac, OUT);
       for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; ell(c, Math.cos(a) * 8.6, Math.sin(a) * 8.6, 2.2, 2.2, '#ffd25a', OUT); }
@@ -108,7 +124,9 @@
     const v = z.v || 0;
     const base = (t === 'brute' || boss) ? 21 : t === 'runner' ? 12 : 14;
     const s = z.r / base;
-    c.save(); c.scale(s, s);
+    const A = z.atkAnim > 0 ? Math.sin((1 - z.atkAnim / 0.4) * Math.PI) : 0; // 0..1..0 durante o golpe
+    const R = A * 9, X = 1 - 1.6 * A;
+    c.save(); c.scale(s, s); c.translate(A * 3, 0);
     const skin = SKINS_Z[t] || '#8f7566';
     const shirt = t === 'runner' ? '#8a2e2e' : t === 'spitter' ? '#4b6b4f' : SHIRTS[v % SHIRTS.length];
     if (t === 'brute' || boss) {
@@ -131,8 +149,8 @@
       ell(c, 2, -17, 7, 6, '#5d5a58', OUT); ell(c, 2, 17, 7, 6, '#5d5a58', OUT);
       c.fillStyle = '#cfcac0'; for (const sy of [-1, 1]) for (let k = 0; k < 3; k++) { c.beginPath(); c.moveTo(-1 + k * 4, sy * 21); c.lineTo(1 + k * 4, sy * 27); c.lineTo(3 + k * 4, sy * 21); c.fill(); }
       // braços e punhos enormes
-      limb(c, 4, -16, 26 + swing * 2, -8, 9, skin); limb(c, 4, 16, 26 - swing * 2, 8, 9, skin);
-      ell(c, 28 + swing * 2, -8, 6.6, 6.2, shade(skin, -10), OUT); ell(c, 28 - swing * 2, 8, 6.6, 6.2, shade(skin, -10), OUT);
+      limb(c, 4, -16, 26 + swing * 2 + R * 1.3, -8 * X, 9, skin); limb(c, 4, 16, 26 - swing * 2 + R * 1.3, 8 * X, 9, skin);
+      ell(c, 28 + swing * 2 + R * 1.3, -8 * X, 6.6 + A * 1.5, 6.2 + A * 1.5, shade(skin, -10), OUT); ell(c, 28 - swing * 2 + R * 1.3, 8 * X, 6.6 + A * 1.5, 6.2 + A * 1.5, shade(skin, -10), OUT);
       // cabeça
       ell(c, 4, 0, 9, 9.4, shade(skin, 10), OUT);
       c.fillStyle = '#2b2118'; c.beginPath(); c.arc(2.4, 0, 9.2, Math.PI * 0.5, Math.PI * 1.5); c.fill();
@@ -150,8 +168,8 @@
       ell(c, -1, 0, 12.5, 15, shirt, OUT);
       const pulse = 0.75 + 0.25 * Math.sin(time * 6 + v);
       for (const [px, py, pr] of [[-4, -5, 4.5], [-2, 5, 5.2], [2, 0, 3.4]]) { ell(c, px, py, pr, pr, 'rgba(120,255,170,' + pulse + ')', 'rgba(20,80,50,0.8)'); ell(c, px - 1, py - 1, pr * 0.35, pr * 0.35, 'rgba(255,255,255,0.7)'); }
-      limb(c, 3, -11, 15 + swing * 2, -6, 4.6, skin); limb(c, 3, 11, 15 - swing * 2, 6, 4.6, skin);
-      clawHand(c, 17 + swing * 2, -6, 1, skin); clawHand(c, 17 - swing * 2, 6, 1, skin);
+      limb(c, 3, -11, 15 + swing * 2 + R, -6 * X, 4.6, skin); limb(c, 3, 11, 15 - swing * 2 + R, 6 * X, 4.6, skin);
+      clawHand(c, 17 + swing * 2 + R, -6 * X, 1, skin); clawHand(c, 17 - swing * 2 + R, 6 * X, 1, skin);
       ell(c, 4, 0, 7.4, 7.8, skin, OUT); c.fillStyle = '#26352a'; c.beginPath(); c.arc(2.6, 0, 7.6, Math.PI * 0.5, Math.PI * 1.5); c.fill();
       ell(c, 9.5, 0, 3.2, 4.4, '#0a3a22'); ell(c, 10, 0, 1.8, 2.6, '#7dffb0');
       ell(c, 6.5, -4, 1.5, 1.5, '#d8ffe8'); ell(c, 6.5, 4, 1.5, 1.5, '#d8ffe8');
@@ -159,8 +177,8 @@
       ell(c, -2 + swing * 6, -5, 5.6, 3.2, '#2a2420', OUT); ell(c, -2 - swing * 6, 5, 5.6, 3.2, '#2a2420', OUT);
       ell(c, 0, 0, 7.6, 11, shirt, OUT); ell(c, -2, 0, 5, 8, shade(shirt, -22));
       blood(c, 2, 3, 2.6);
-      limb(c, 3, -9, 19 + swing * 3, -4, 3.6, skin); limb(c, 3, 9, 19 - swing * 3, 4, 3.6, skin);
-      clawHand(c, 21 + swing * 3, -4, 0.9, skin); clawHand(c, 21 - swing * 3, 4, 0.9, skin);
+      limb(c, 3, -9, 19 + swing * 3 + R, -4 * X, 3.6, skin); limb(c, 3, 9, 19 - swing * 3 + R, 4 * X, 3.6, skin);
+      clawHand(c, 21 + swing * 3 + R, -4 * X, 0.9, skin); clawHand(c, 21 - swing * 3 + R, 4 * X, 0.9, skin);
       ell(c, 5, 0, 6.4, 6.8, skin, OUT); c.fillStyle = '#35301f'; c.beginPath(); c.arc(3.6, 0, 6.6, Math.PI * 0.5, Math.PI * 1.5); c.fill();
       ell(c, 9.6, 0, 2.6, 3.6, '#3a0c0e'); ell(c, 7.4, -3.2, 1.4, 1.4, '#ffee66'); ell(c, 7.4, 3.2, 1.4, 1.4, '#ffee66');
     } else { // walker
@@ -168,9 +186,9 @@
       ell(c, 0, 0, 9, 13, shirt, OUT); ell(c, -1, 0, 6, 9, shade(shirt, -20));
       // rasgos na roupa mostrando a carne
       ell(c, 3, -4 + v, 3.2, 2.4, skin); blood(c, 1, 4, 3); blood(c, -3, -6, 2);
-      limb(c, 3, -11, 17 + swing * 3, -5.5, 4.2, skin); limb(c, 3, 11, 17 - swing * 3, 5.5, 4.2, skin);
+      limb(c, 3, -11, 17 + swing * 3 + R, -5.5 * X, 4.2, skin); limb(c, 3, 11, 17 - swing * 3 + R, 5.5 * X, 4.2, skin);
       c.strokeStyle = shirt; c.lineWidth = 5.4; c.lineCap = 'round'; c.beginPath(); c.moveTo(3, -11); c.lineTo(8, -8.5); c.moveTo(3, 11); c.lineTo(8, 8.5); c.stroke(); c.lineCap = 'butt';
-      clawHand(c, 19 + swing * 3, -5.5, 1, skin); clawHand(c, 19 - swing * 3, 5.5, 1, skin);
+      clawHand(c, 19 + swing * 3 + R, -5.5 * X, 1, skin); clawHand(c, 19 - swing * 3 + R, 5.5 * X, 1, skin);
       ell(c, 4, 0, 7.4, 7.8, skin, OUT);
       c.fillStyle = ['#2b2118', '#4a4a4a', '#5a4020', '#1c1c1c'][v % 4]; c.beginPath(); c.arc(2.6, 0, 7.6, Math.PI * 0.45, Math.PI * 1.55); c.fill();
       ell(c, 9, 0, 2.8, 3.8, '#3a0c0e'); ell(c, 11.4, 1.6, 1.1, 1.5, 'rgba(160,20,24,0.9)');
