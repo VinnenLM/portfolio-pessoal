@@ -44,6 +44,7 @@ export class Game {
     this.overlay = null; this.pendingOverlay = null; this.pendingOverlayT = 0; this.overlayButtonRects = [];
     this.tutStep = -1; this.tutNextT = 0; this.tutT = 0; this.skipRect = null; this.tutButtonRect = null;
     this.lastBreakSound = 0;
+    this.overlayPress = -1;
     this.token = 0; // invalida timers de partidas antigas
     this.running = true;
     this.last = 0;
@@ -1201,8 +1202,8 @@ export class Game {
   down(x, y) {
     const ov = this.overlay;
     if (ov) {
-      const idx = this.overlayButtonRects.findIndex((r) => inside(r, x, y));
-      if (idx >= 0 && idx < ov.buttons.length) { Sound.play(Sfx.CLICK); ov.buttons[idx][1](); }
+      // os botões da pausa/fim agem ao soltar o dedo (ver up), como botões normais
+      this.overlayPress = this.overlayButtonRects.findIndex((r) => inside(r, x, y));
       return;
     }
     if (this.isTutorial()) {
@@ -1238,7 +1239,14 @@ export class Game {
     this.updateDragTarget();
   }
 
-  up() {
+  up(x, y) {
+    const ov = this.overlay, pressed = this.overlayPress;
+    this.overlayPress = -1;
+    if (ov && pressed >= 0) {
+      const idx = this.overlayButtonRects.findIndex((r) => inside(r, x, y));
+      if (idx === pressed && idx < ov.buttons.length) { Sound.play(Sfx.CLICK); ov.buttons[idx][1](); }
+      return;
+    }
     if (this.dragSlot < 0) return;
     const t = this.dragTarget, slot = this.dragSlot, wasDrag = this.dragActive;
     this.dragSlot = -1; this.dragTarget = null; this.dragActive = false;
@@ -1257,7 +1265,7 @@ export class Game {
     const cv = this.canvas;
     const onDown = (ev) => { ev.preventDefault(); Sound.unlock(); cv.setPointerCapture?.(ev.pointerId); this.down(...this.pointer(ev)); };
     const onMove = (ev) => { ev.preventDefault(); this.move(...this.pointer(ev)); };
-    const onUp = (ev) => { ev.preventDefault(); this.up(); };
+    const onUp = (ev) => { ev.preventDefault(); this.up(...this.pointer(ev)); };
     const onCancel = () => { this.dragSlot = -1; this.dragTarget = null; this.dragActive = false; };
     const onResize = () => this.resize();
     cv.addEventListener("pointerdown", onDown);

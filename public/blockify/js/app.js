@@ -38,6 +38,14 @@ let game = null;
 let screen = "menu";
 let exiting = false; // saída pelo botão "Menu" (não é o botão voltar)
 
+// No celular, o mesmo toque que troca de tela ainda gera um "click" logo depois, que cairia
+// no botão que apareceu no lugar (ex.: "Menu" da pausa -> "Difícil" do menu). Bloqueia por um instante.
+let clickGuardUntil = 0;
+const guardClicks = (ms = 450) => (clickGuardUntil = performance.now() + ms);
+document.addEventListener("click", (e) => {
+  if (performance.now() < clickGuardUntil) { e.stopPropagation(); e.preventDefault(); }
+}, true);
+
 // =====================================================================
 // janelas no estilo do jogo
 // =====================================================================
@@ -59,7 +67,7 @@ function dialog({ title, accent = "#2ec4f1", build }) {
     close,
   };
   build(api);
-  bg.addEventListener("pointerdown", (e) => { if (e.target === bg) close(); });
+  bg.addEventListener("click", (e) => { if (e.target === bg) { guardClicks(); close(); } });
   $("#app").append(bg);
   return api;
 }
@@ -75,6 +83,7 @@ function toast(text) {
 // =====================================================================
 
 function show(name) {
+  if (name !== screen) guardClicks();
   screen = name;
   document.querySelectorAll(".screen").forEach((s) => s.classList.toggle("on", s.id === name));
 }
