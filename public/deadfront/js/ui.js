@@ -136,7 +136,7 @@
       if (endless && lv.mission) return;
       const locked = i >= save.unlocked || (lv.unlock !== undefined && save.unlocked < lv.unlock); const st = save.stars[lv.id] || 0;
       const c = document.createElement('div'); c.className = 'card' + (locked ? ' locked' : '');
-      c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (endless ? 'Sobreviva o máximo que puder · Recorde: <b>' + fmtT((save.records || {})[lv.id] || 0) + '</b>' : lv.mission ? 'Missão: atravesse o aeroporto até o helicóptero · chefe no final' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
+      c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (endless ? 'Sobreviva o máximo que puder · Recorde: <b>' + fmtT((save.records || {})[lv.id] || 0) + '</b>' : lv.mission ? 'Missão: objetivos + chefe' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
       const b = document.createElement('button'); b.className = 'btn primary small'; b.textContent = locked ? '🔒 Bloqueada' : 'JOGAR'; b.disabled = locked;
       b.onclick = () => { click(); startGame(i, endless); };
       c.appendChild(b); g.appendChild(c);

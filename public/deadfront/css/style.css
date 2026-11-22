@@ -130,3 +130,4 @@ body.touch .s-key { display: none; }
 .screen#menu { justify-content: safe center; gap: 12px; }
 
 .gear { position: absolute; top: max(10px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); width: 44px; height: 44px; font-size: 24px; }
+#level-grid { grid-auto-rows: 1fr; } #level-grid .card .stars { margin-top: auto; }

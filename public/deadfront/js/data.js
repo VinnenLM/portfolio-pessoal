@@ -97,7 +97,7 @@
   // Missão: mapa grande, sem ondas. O jogador vai de objetivo em objetivo e enfrenta o chefe no fim.
   DF.LEVELS.push({
     id: 'airport-run', name: 'Aeroporto: Fuga', mission: true, open: true, unlock: 3,
-    blurb: 'Missão: atravesse o aeroporto inteiro, do terminal à pista, derrote o chefe e embarque no helicóptero.',
+    blurb: 'Atravesse o aeroporto até o helicóptero. Chefe no final.',
     w: 80, h: 50, waves: 1, hpScale: 1.5, countScale: 1, boss: 'boss_charger', start: [8, 26],
     theme: { floor: '#7d8288', floor2: '#70757b', wall: '#22262b', wallTop: '#3b4148', out: '#4a4d50', out2: '#44474a', dark: 0.5 },
     rooms: [
