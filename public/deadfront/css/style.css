@@ -159,3 +159,13 @@ body.touch .s-key { display: none; }
 #tut-n { font-size: 12px; opacity: .6; }
 .tut-btns { display: flex; gap: 8px; justify-content: flex-end; align-items: center; }
 .tut-btns .btn { width: auto; min-width: 0; padding: 8px 16px; margin: 0; }
+
+.perk-panel { max-width: 760px; width: 94vw; }
+.perk-sub { opacity: .7; margin: 0 0 12px; font-size: 14px; }
+#perk-cards { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.perk-card { flex: 1 1 190px; max-width: 230px; background: rgba(255,255,255,.06); border: 2px solid #ffd27a; border-radius: 14px; padding: 14px 12px; color: #eee; cursor: pointer; text-align: center; font: inherit; }
+.perk-card:hover, .perk-card:active { background: rgba(255,210,122,.16); }
+.perk-card .pi { font-size: 34px; display: block; margin-bottom: 4px; }
+.perk-card b { display: block; color: #ffd27a; font-size: 17px; margin-bottom: 4px; }
+.perk-card small { display: block; opacity: .85; line-height: 1.35; }
+.perk-card em { display: block; margin-top: 6px; font-style: normal; font-size: 12px; opacity: .6; }

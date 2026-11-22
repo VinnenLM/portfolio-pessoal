@@ -83,7 +83,7 @@
   ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => window.addEventListener(ev, () => { if (DF.audioInit) DF.audioInit(); }, { passive: true }));
 
   // ---------- telas ----------
-  const screens = ['menu', 'options', 'levels', 'shop', 'help', 'pause', 'result'];
+  const screens = ['menu', 'options', 'levels', 'shop', 'help', 'pause', 'result', 'perk'];
   function show(name) {
     for (const s of screens) $(s).classList.toggle('hidden', s !== name);
     refreshCoins();
@@ -278,12 +278,39 @@
     stopGame(); curLevel = level; hideAll(); $('hud').classList.remove('hidden');
     for (const k in keys) keys[k] = false; input.mx = input.my = 0; input.actions.length = 0; input.stick.active = false; input.keyFire = false; input.mouseDown = false;
     inGame = true; paused = false; lastHud = 0;
-    engine = DF.Engine.create({ level, endless: curEndless, canvas: cv, save, onHud: updateHud, onEnd: onEnd });
+    engine = DF.Engine.create({ level, endless: curEndless, canvas: cv, save, onHud: updateHud, onEnd: onEnd, onPerk: showPerk });
     tutI = -1; const tw = $('tut'); if (tw) tw.style.display = 'none';
     if (!save.tut) setTimeout(() => { if (engine && inGame) openTut(); }, 500);
   }
-  function stopGame() { if (engine) engine.stop(); engine = null; inGame = false; if (DF.musicMode) DF.musicMode('menu'); $('hud').classList.add('hidden'); }
+  function stopGame() { perkOpen = false; { const pe = $('perk'); if (pe) pe.classList.add('hidden'); } if (engine) engine.stop(); engine = null; inGame = false; if (DF.musicMode) DF.musicMode('menu'); $('hud').classList.add('hidden'); }
+  let perkOpen = false, perkCb = null;
+  function showPerk(choices, cb) {
+    setTimeout(() => {
+      if (!engine) return;
+      perkOpen = true; perkCb = cb; paused = true; engine.pause(true);
+      const box = $('perk-cards'); box.innerHTML = '';
+      choices.forEach((p, i) => {
+        const lv = (engine.G.perks && engine.G.perks[p.id]) || 0;
+        const b = document.createElement('button'); b.className = 'perk-card';
+        b.innerHTML = '<span class="pi">' + p.icon + '</span><b>' + p.name + '</b><small>' + p.desc + '</small><em>Nível ' + lv + ' → ' + (lv + 1) + ' · tecla ' + (i + 1) + '</em>';
+        b.onclick = () => pickPerk(p.id); box.appendChild(b);
+        b.dataset.id = p.id;
+      });
+      $('perk').classList.remove('hidden');
+    }, 0);
+  }
+  function pickPerk(id) {
+    if (!perkOpen) return; perkOpen = false; $('perk').classList.add('hidden');
+    if (perkCb) perkCb(id); perkCb = null;
+    if (engine) { paused = false; engine.pause(false); }
+  }
+  window.addEventListener('keydown', (e) => {
+    if (!perkOpen) return; const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 3) { const el = $('perk-cards').children[n - 1]; if (el) pickPerk(el.dataset.id); }
+    e.stopPropagation(); e.preventDefault();
+  }, true);
   function togglePause() {
+    if (perkOpen) return;
     if (!engine || engine.G.state !== 'play') return;
     paused = !paused; engine.pause(paused); $('pause').classList.toggle('hidden', !paused); if (paused) refreshCoins();
   }

@@ -215,6 +215,23 @@
   DF.TOWER_UP_MAX = 5; // +15% de dano e +5% de cadência por nível
   DF.towerUpCost = (id, lvl) => Math.round(DF.TOWERS[id].price * 0.45 + 50) * (lvl + 1);
 
+
+  // ---------- Habilidades do modo infinito (escolha a cada 3 ondas e após cada chefe) ----------
+  DF.PERKS = [
+    { id: 'dmg',    name: 'Mais dano',         desc: '+15% de dano com todas as armas',          icon: '💥', max: 6 },
+    { id: 'rate',   name: 'Cadência',          desc: 'Atira 10% mais rápido',                    icon: '⚡', max: 5 },
+    { id: 'reload', name: 'Recarga veloz',     desc: '-15% no tempo de recarga',                 icon: '🔄', max: 4 },
+    { id: 'ammo',   name: 'Mais munição',      desc: '+40% de munição reserva das armas agora', icon: '🎒', max: 5 },
+    { id: 'speed',  name: 'Pernas rápidas',    desc: '+8% de velocidade',                        icon: '👟', max: 5 },
+    { id: 'hp',     name: 'Vida extra',        desc: '+25 de vida máxima e cura 25',             icon: '❤️', max: 6 },
+    { id: 'regen',  name: 'Regeneração',       desc: 'Recupera 1 de vida por segundo (por nível)', icon: '✚', max: 3 },
+    { id: 'slot',   name: 'Slot de torre',     desc: '+1 torre ao mesmo tempo',                  icon: '🗼', max: 4 },
+    { id: 'tdmg',   name: 'Torres reforçadas', desc: '+25% de dano das torres',                  icon: '🔫', max: 4 },
+    { id: 'medkit', name: 'Kit médico',        desc: '+2 kits agora e curam +10 a mais',         icon: '🩹', max: 4 },
+    { id: 'gren',   name: 'Arsenal de granadas', desc: '+3 granadas comuns e +1 de fogo',        icon: '💣', max: 4 },
+    { id: 'scrap',  name: 'Catador',           desc: '+100 de sucata agora e +25% de sucata por zumbi', icon: '🔧', max: 4 },
+    { id: 'wall',   name: 'Barricadas duras',  desc: '+30% de vida das barricadas',              icon: '🧱', max: 4 }
+  ];
   // ---------- Ícones SVG ----------
   const S = '<svg class="wico" viewBox="0 0 72 32" xmlns="http://www.w3.org/2000/svg" stroke="#0b0d0b" stroke-width="1.2" stroke-linejoin="round">';
   const WSVG = {

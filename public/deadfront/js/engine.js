@@ -266,7 +266,7 @@
       wave: 0, waveState: 'break', breakT: 6, spawnQ: [], spawnT: 0, bossAlive: false, boss: null,
       lootT: rand(5, 8), endT: 0, msgText: '', msgT: 0, msgColor: '#fff', paused: false, medkitsUsed: 0,
       flowT: 0, flowDirty: true, idc: 1,
-      fires: [], grenFly: [], zaps: [], boxes: [], decals: [], furyT: 0, skillCd: 0, regenT: 0, holy: null, whiteFlash: 0, bonusCoins: 0, bossLootT: 0, bossDead: false, outside: false
+      fires: [], grenFly: [], zaps: [], boxes: [], decals: [], furyT: 0, skillCd: 0, regenT: 0, holy: null, perks: {}, perkPending: false, perkWave: 0, whiteFlash: 0, bonusCoins: 0, bossLootT: 0, bossDead: false, outside: false
     };
     const startW = save.startWeapon && save.weapons && save.weapons[save.startWeapon] ? save.startWeapon : 'pistol';
     const wLvl = (id) => (save.wlvl && save.wlvl[id]) || 0;
@@ -464,7 +464,8 @@
     function text(x, y, t, color) { G.texts.push({ x, y, t, color: color || '#fff', life: 0.9 }); if (G.texts.length > 60) G.texts.shift(); }
 
     // ----- barricadas
-    function barMax(mat) { return Math.round(DF.MATERIALS[mat].hp * (1 + 0.2 * U('barrier'))); }
+    const pk = (id) => (G.perks && G.perks[id]) || 0;
+    function barMax(mat) { return Math.round(DF.MATERIALS[mat].hp * (1 + 0.2 * U('barrier') + 0.3 * pk('wall'))); }
     function damageBar(i, dmg, src) {
       const b = bars[i]; if (!b) return;
       b.hp -= dmg; b.hit = 0.2; b.atk = 1.2; b.show = 2.5;
@@ -547,17 +548,35 @@
 
     // ----- armas / jogador
     const curW = () => P.weapons[P.wi];
+    function applyPerk(id) {
+      G.perks[id] = (G.perks[id] || 0) + 1;
+      if (id === 'hp') { P.maxHp += 25; P.hp = Math.min(P.maxHp, P.hp + 25); }
+      else if (id === 'speed') P.speed *= 1.08;
+      else if (id === 'ammo') { for (const w2 of P.weapons) { if (w2.id === 'pistol' || w2.reserve === Infinity) continue; w2.reserve += Math.round(DF.WEAPONS[w2.id].reserve * 0.4); } }
+      else if (id === 'medkit') P.inv.medkit += 2;
+      else if (id === 'gren') { P.gren.frag += 3; P.gren.fire += 1; }
+      else if (id === 'scrap') { P.scrap += 100; G.scrapGained += 100; }
+      const pd = (DF.PERKS || []).find((q) => q.id === id);
+      msg((pd ? pd.name : 'Habilidade') + ' (nv ' + G.perks[id] + ')', '#ffd27a'); sfx('pickup');
+    }
+    function offerPerk() {
+      if (!opts.onPerk) return;
+      const pool = (DF.PERKS || []).filter((q) => (G.perks[q.id] || 0) < q.max);
+      if (!pool.length) return;
+      const ch = []; while (ch.length < 3 && pool.length) ch.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]);
+      G.perkPending = true; opts.onPerk(ch, (id) => { G.perkPending = false; applyPerk(id); });
+    }
     function startReload() {
       const w = curW(); const d = DF.WEAPONS[w.id];
       if (P.reloadT > 0 || w.mag >= w.magSize || w.reserve <= 0) return;
-      P.reloadT = d.reload * (1 - 0.1 * U('reload')); P.reloadMax = P.reloadT; sfx('reload');
+      P.reloadT = d.reload * (1 - 0.1 * U('reload')) * Math.pow(0.85, pk('reload')); P.reloadMax = P.reloadT; sfx('reload');
     }
     function fire(angle) {
       const w = curW(); const d = DF.WEAPONS[w.id];
       if (P.fireCd > 0 || P.reloadT > 0) return;
       if (w.mag <= 0) { startReload(); return; }
-      if (G.furyT <= 0) w.mag--; P.fireCd = d.rate * (G.furyT > 0 ? 0.5 : 1); P.flash = 0.06;
-      const dmg = d.dmg * (1 + 0.12 * wLvl(w.id)) * (cls === 'fighter' ? 1.2 : 1) * (G.furyT > 0 ? 1.8 : 1);
+      if (G.furyT <= 0) w.mag--; P.fireCd = d.rate * (G.furyT > 0 ? 0.5 : 1) * Math.pow(0.9, pk('rate')); P.flash = 0.06;
+      const dmg = d.dmg * (1 + 0.12 * wLvl(w.id)) * (cls === 'fighter' ? 1.2 : 1) * (G.furyT > 0 ? 1.8 : 1) * (1 + 0.15 * pk('dmg'));
       if (d.kind === 'flame') {
         const ox = P.x + Math.cos(angle) * 22, oy = P.y + Math.sin(angle) * 22;
         for (const z of G.zombies.slice()) {
@@ -590,7 +609,7 @@
       if (P.inv.medkit <= 0) { msg('Sem kits médicos', '#ff6b6b'); return; }
       if (P.hp >= P.maxHp) { msg('Vida cheia', '#aaa'); return; }
       P.inv.medkit--; G.medkitsUsed++;
-      const amt = Math.round((40 + 8 * U('medkit')) * (cls === 'medic' ? 1.5 : 1)); P.hp = Math.min(P.maxHp, P.hp + amt);
+      const amt = Math.round((40 + 8 * U('medkit') + 10 * pk('medkit')) * (cls === 'medic' ? 1.5 : 1)); P.hp = Math.min(P.maxHp, P.hp + amt);
       text(P.x, P.y - 24, '+' + amt, '#6ee07a'); sfx('heal');
     }
     function actTrap() {
@@ -615,7 +634,8 @@
     // ----- torres automáticas
     const tUp = (id) => (save.tlvl && save.tlvl[id]) || 0;
     const ownedTowers = () => DF.ALL_TOWERS.filter((id) => DF.TOWERS[id].eng ? cls === 'engineer' : !!(save.towers && save.towers[id]) || false);
-    const towerMax = DF.TOWER_MAX + (cls === 'engineer' ? 2 : 0);
+    const towerBase = DF.TOWER_MAX + (cls === 'engineer' ? 2 : 0);
+    const towerMaxNow = () => towerBase + pk('slot');
     const tcost = (id) => Math.round(DF.TOWERS[id].cost * (cls === 'engineer' ? 0.75 : 1));
     { const o0 = ownedTowers(); if (o0.length) P.towerI = DF.ALL_TOWERS.indexOf(o0[0]); }
     function cycleTower() {
@@ -627,7 +647,7 @@
       if (!o.length) { msg('Compre torres na loja!', '#ffb347'); return; }
       let id = DF.ALL_TOWERS[P.towerI]; if (!o.includes(id)) { id = o[0]; P.towerI = DF.ALL_TOWERS.indexOf(id); }
       const d = DF.TOWERS[id];
-      if (G.towers.length >= towerMax) { msg('Limite de ' + towerMax + ' torres', '#ffb347'); return; }
+      if (G.towers.length >= towerMaxNow()) { msg('Limite de ' + towerMaxNow() + ' torres', '#ffb347'); return; }
       if (P.scrap < tcost(id)) { msg('Sucata insuficiente (' + tcost(id) + ')', '#ff6b6b'); return; }
       const x = P.x + Math.cos(P.angle) * 38, y = P.y + Math.sin(P.angle) * 38;
       const ti = tileAt(x, y);
@@ -730,6 +750,7 @@
     }
     function updateClass(dt) {
       G.skillCd = Math.max(0, G.skillCd - dt); G.furyT = Math.max(0, G.furyT - dt);
+      if (pk('regen') && P.hp < P.maxHp && G.state === 'play') P.hp = Math.min(P.maxHp, P.hp + pk('regen') * dt);
       if (cls === 'grenadier') { G.regenT += dt; if (G.regenT > (P.gren.frag <= 0 ? 8 : 14)) { G.regenT = 0; if (P.gren.frag < 8) { P.gren.frag++; msg('+1 Granada', '#ffd27a'); } } }
       for (let i = G.boxes.length - 1; i >= 0; i--) {
         const b = G.boxes[i]; b.t -= dt; const d = Math.hypot(P.x - b.x, P.y - b.y);
@@ -762,7 +783,7 @@
         const diff = Math.atan2(Math.sin(want - t.angle), Math.cos(want - t.angle));
         t.angle += clamp(diff, -dt * 7, dt * 7);
         if (Math.abs(diff) > 0.3 || t.cd > 0) continue;
-        const mult = (1 + 0.15 * lv) * (cls === 'engineer' ? 1.2 : 1); t.cd = d.rate * (1 - 0.05 * lv); t.ammo = Math.max(0, t.ammo - 1);
+        const mult = (1 + 0.15 * lv) * (cls === 'engineer' ? 1.2 : 1) * (1 + 0.25 * pk('tdmg')); t.cd = d.rate * (1 - 0.05 * lv); t.ammo = Math.max(0, t.ammo - 1);
         if (t.type === 'mg') {
           const a = t.angle + rand(-0.06, 0.06);
           G.bullets.push({ x: t.x + Math.cos(t.angle) * 24, y: t.y + Math.sin(t.angle) * 24, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, dmg: d.dmg * mult, life: d.range / 900, pierce: 1, hit: new Set(), color: '#ffd27a' });
@@ -842,7 +863,7 @@
     }
     function killZombie(z) {
       const i = G.zombies.indexOf(z); if (i >= 0) G.zombies.splice(i, 1);
-      G.kills++; const sc = z.def.scrap + rint(0, 1); P.scrap += sc; G.scrapGained += sc;
+      G.kills++; const sc = Math.round((z.def.scrap + rint(0, 1)) * (1 + 0.25 * pk('scrap'))); P.scrap += sc; G.scrapGained += sc;
       text(z.x, z.y - z.r - 14, '+' + sc, '#e8c07a'); blood(z.x, z.y, z.boss ? 40 : 12, z.type === 'spitter' ? '#3a8a6a' : '#6f1114', z.boss ? 260 : 150);
       sfx(z.boss ? 'bossdie' : 'die');
       if (z.boss) { G.bossAlive = false; G.boss = null; G.bossDead = true; G.shake = 14; msg('Chefe derrotado! Pegue os itens!', '#7be07a'); dropBossLoot(z.x, z.y); }
@@ -1252,7 +1273,7 @@
           }
           if (!G.spawnQ.length && G.zombies.length === 0) {
             if (!endless && G.wave >= lv.waves) { if (!G.bossDead || G.bossLootT <= 0 || !G.loot.some((l) => l.boss)) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); } }
-            else { G.waveState = 'break'; G.breakT = endless ? 8 : 12; const bonus = 12 + 4 * G.wave; P.scrap += bonus; G.scrapGained += bonus; msg('Onda ' + G.wave + ' concluída! +' + bonus + ' sucata', '#7be07a'); sfx('wavedone'); }
+            else { G.waveState = 'break'; G.breakT = endless ? 8 : 12; const bonus = 12 + 4 * G.wave; P.scrap += bonus; G.scrapGained += bonus; msg('Onda ' + G.wave + ' concluída! +' + bonus + ' sucata', '#7be07a'); sfx('wavedone'); if (endless && (G.wave % 3 === 0 || G.wave % 5 === 0)) offerPerk(); }
           }
         }
         // loot
@@ -1364,7 +1385,7 @@
         scrap: P.scrap, medkit: P.inv.medkit, mat: DF.MATERIALS[matId], matId, trap: DF.TRAPS[trapId], trapId, trapCount: P.inv[trapId],
         wave: G.wave, waves: lv.waves, waveState: G.waveState, breakT: Math.max(0, G.breakT), left: G.spawnQ.length + G.zombies.length,
         boss: G.boss ? { name: G.boss.def.name, hp: G.boss.hp, max: G.boss.max } : null,
-        wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.ALL_TOWERS[P.towerI]) ? DF.ALL_TOWERS[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: tcost(id), count: G.towers.length, max: towerMax }; })(),
+        wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.ALL_TOWERS[P.towerI]) ? DF.ALL_TOWERS[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: tcost(id), count: G.towers.length, max: towerMaxNow() }; })(),
         gren: { id: DF.GRENADE_ORDER[P.grenI], name: DF.GRENADES[DF.GRENADE_ORDER[P.grenI]].name, count: P.gren[DF.GRENADE_ORDER[P.grenI]], all: P.gren },
         cls: { id: cls, name: CLS.name, skill: CLS.skill, cd: G.skillCd, cdMax: CLS.cd, cost: CLS.cost, fury: G.furyT }, outside: G.outside, bossTimer: !mission && !endless && G.bossDead && G.state === 'play' ? Math.ceil(Math.max(0, G.bossLootT)) : 0, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
         msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door || (endless && !!ammoBox && Math.hypot(P.x - ammoBox.x, P.y - ammoBox.y) < 70), endless, time: Math.floor(G.time), record: endless ? ((save.records || {})[lv.id] || 0) : 0, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
@@ -1684,6 +1705,7 @@
       stop() { running = false; cancelAnimationFrame(raf); window.removeEventListener('resize', resize); },
       pause(v) { G.paused = v === undefined ? !G.paused : v; return G.paused; },
       step(dt) { update(dt); },
+      applyPerk,
       render, resize
     };
     return api;
