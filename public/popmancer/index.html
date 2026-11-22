@@ -41,6 +41,7 @@
     #ctl button.fire{width:76px;height:76px}
     #app{--ctl:0px}
     body.playing #zone{display:block}
+    body:not(.playing) #ctl{display:none}
   }
   @media (pointer:coarse) and (orientation:landscape){
     #app{--ctl:0px}
@@ -357,11 +358,11 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
-let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
+let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], gearBtn = { x: 0, y: 0, w: 0, h: 0 }, amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
 const P = { x: 0, y: 0, w: 22, h: 34, vy: 0, face: 1, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, anim: 0,
             sq: 0, lean: 0, walking: false, dead: null };
 let coinTaps = [];
@@ -381,12 +382,13 @@ function load() {
     S.skin = S.ownedSkins.includes(o.skin) ? o.skin : 'hero';
     S.rope = S.ownedRopes.includes(o.rope) ? o.rope : 'padrao';
     artStyle = o.style === 'pixel' ? 'pixel' : 'classic'; fitCanvas(true);
+    S.musicOn = o.music !== false; S.sfxOn = o.sfx !== false;
   } catch (e) {}
 }
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({ level: S.savedLevel, best: S.best, coins: S.coins, unlocked: S.unlocked,
-      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle }));
+      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn }));
   } catch (e) {}
 }
 const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
@@ -402,7 +404,7 @@ function chill(s) { if (s.slowT > 0) { s.slowT = 120; return; } s.slowT = 120; s
 
 // ---------- Áudio (tudo gerado por código, sem arquivos) ----------
 let ac = null, master = null, sfxBus = null, musBus = null, noiseBuf = null;
-const MUS_VOL = 0.5;
+const MUS_VOL = 0.5, musVol = () => (S.musicOn ? MUS_VOL : 0);
 
 function initAudio() {
   if (ac) return ac;
@@ -413,7 +415,7 @@ function initAudio() {
     master = ac.createGain(); master.gain.value = S.muted ? 0 : 1;
     const comp = ac.createDynamicsCompressor(); comp.threshold.value = -16; comp.ratio.value = 4;
     master.connect(comp); comp.connect(ac.destination);
-    sfxBus = ac.createGain(); sfxBus.gain.value = 0.9; sfxBus.connect(master);
+    sfxBus = ac.createGain(); sfxBus.gain.value = S.sfxOn ? 0.9 : 0; sfxBus.connect(master);
     musBus = ac.createGain(); musBus.gain.value = 0; musBus.connect(master);
     // reverb simples (impulso de ruído com decaimento)
     const conv = ac.createConvolver(), len = Math.floor(ac.sampleRate * 2.4), ib = ac.createBuffer(2, len, ac.sampleRate);
@@ -425,6 +427,8 @@ function initAudio() {
   } catch (e) { ac = null; }
   return ac;
 }
+function setMusicOn(v) { S.musicOn = v; if (ac && musBus && Music.current) musBus.gain.setTargetAtTime(musVol(), ac.currentTime, .1); }
+function setSfxOn(v) { S.sfxOn = v; if (ac && sfxBus) sfxBus.gain.setTargetAtTime(v ? 0.9 : 0, ac.currentTime, .05); }
 function setMuted(v) {
   S.muted = v;
   if (ac && master) master.gain.setTargetAtTime(v ? 0 : 1, ac.currentTime, 0.05);
@@ -558,7 +562,7 @@ const Music = (() => {
   function start(name) {
     cur = name; pending = null; stp = 0; seed = name.length * 7919 + 1; intense = false;
     nextT = ac.currentTime + .05;
-    musBus.gain.cancelScheduledValues(ac.currentTime); musBus.gain.setTargetAtTime(MUS_VOL, ac.currentTime, .5);
+    musBus.gain.cancelScheduledValues(ac.currentTime); musBus.gain.setTargetAtTime(musVol(), ac.currentTime, .5);
     if (!timer) timer = setInterval(tick, 80);
   }
   return {
@@ -574,8 +578,8 @@ const Music = (() => {
     },
     unlock() { initAudio(); if (ac && ac.state === 'suspended') ac.resume(); if (ac && want && !cur) { const w = want; want = null; this.play(w); } },
     setIntense(v) { intense = v; },
-    duck(sec) { if (!ac || !cur) return; musBus.gain.setTargetAtTime(MUS_VOL * .25, ac.currentTime, .05);
-      setTimeout(() => { if (ac && cur) musBus.gain.setTargetAtTime(MUS_VOL, ac.currentTime, .4); }, sec * 1000); },
+    duck(sec) { if (!ac || !cur) return; musBus.gain.setTargetAtTime(musVol() * .25, ac.currentTime, .05);
+      setTimeout(() => { if (ac && cur) musBus.gain.setTargetAtTime(musVol(), ac.currentTime, .4); }, sec * 1000); },
     suspend() { if (ac && ac.state === 'running') ac.suspend(); },
   };
 })();
@@ -1303,7 +1307,7 @@ function step() {
   if (S.freeze > 0 && S.state === 'play' && !S.paused) updateWind();
 
   if (S.state === 'menu') { slimes.forEach(updateSlime); return; }
-  if (S.state === 'shop' || S.state === 'maps') return;
+  if (S.state === 'shop' || S.state === 'maps' || S.state === 'settings') return;
   if (S.paused) { if (wasPressed) S.paused = false; return; }
 
   switch (S.state) {
@@ -1368,6 +1372,18 @@ function buyOrEquip(kind, item, confirmed) {
   else if (S.coins >= item.price && !confirmed) { S.confirm = { kind, item }; S.perk = null; }   // pede confirmação antes de gastar moedas
   else if (S.coins >= item.price) { S.coins -= item.price; owned.push(item.id); S[kind] = item.id; save(); flash(item.name + ' comprado!'); }
   else flash('Moedas insuficientes');
+}
+const FS_OK = !!(document.documentElement && (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
+function openSettings() {
+  if (S.state === 'settings') return;
+  S.setFrom = S.state === 'menu' ? 'menu' : 'play'; S.prevState = S.state; if (S.setFrom === 'play') S.paused = true;
+  S.state = 'settings'; S.resetAsk = false; S.msg = ''; S.msgT = 0;
+}
+function closeSettings() { S.resetAsk = false; S.state = S.setFrom === 'menu' ? 'menu' : S.prevState; }
+function resetData() {
+  try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {}
+  S.savedLevel = 0; S.best = 0; S.coins = 0; S.score = 0; S.unlocked = 1; S.ownedSkins = ['hero']; S.ownedRopes = ['padrao']; S.skin = 'hero'; S.rope = 'padrao';
+  S.resetAsk = false; S.paused = false; save(); goMenu(); flash('Dados apagados');
 }
 function openShop() { S.confirm = null; S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); }
 function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
@@ -2197,9 +2213,41 @@ function drawMenu() {
   if (S.msgT > 0) { txt(S.msg, W / 2, y + 36, 16, '#ffe27a'); }
   txt('← → mover · ↑ ↓ escada · Z/Shift pular · ESPAÇO lançar magia · P pausa · M som', W / 2, H - 16, 12, '#fff', 'center');
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true, lean: .09 }); // mago de enfeite caminhando no chão
-  button(12, 10, 176, 30, `Estilo: ${artStyle === 'pixel' ? 'Pixel' : 'Clássico'}`, '#6741d9', toggleStyle);
+  drawGear(18, 14);
 }
 
+function drawSettings() {
+  menuBtns = []; drawBackground(S.setFrom === 'play' && S.cur ? S.cur.theme : 0); overlay(.55);
+  txt('OPÇÕES', W / 2, 40, 38, '#ffe27a', 'center', '#5a3b00');
+  if (S.resetAsk) { drawResetAsk(); return; }
+  let y = 78; const bw = 440, bx = W / 2 - bw / 2, on = '#2f9e44', off = '#5c677d';
+  const row = (label, fn, col) => { button(bx, y, bw, 38, label, col, fn); y += 46; };
+  row('Música: ' + (S.musicOn ? 'ligada' : 'desligada'), () => { setMusicOn(!S.musicOn); save(); }, S.musicOn ? on : off);
+  row('Sons: ' + (S.sfxOn ? 'ligados' : 'desligados'), () => { setSfxOn(!S.sfxOn); save(); }, S.sfxOn ? on : off);
+  if (FS_OK) { const fsOn = !!(document.fullscreenElement || document.webkitFullscreenElement); row('Tela cheia: ' + (fsOn ? 'sim' : 'não'), toggleFS, fsOn ? on : off); }
+  row('Visual: ' + (artStyle === 'pixel' ? 'Pixel' : 'Clássico'), toggleStyle, '#6741d9');
+  row('Resetar dados', () => { S.resetAsk = true; }, '#c92a2a');
+  row('Voltar', closeSettings, '#495057');
+  if (S.msgT > 0) txt(S.msg, W / 2, y + 12, 15, '#ffe27a', 'center', '#000');
+}
+function drawResetAsk() {
+  menuBtns = []; overlay(.6);
+  const w = 500, h = 210, x = (W - w) / 2, y = (H - h) / 2;
+  ctx.fillStyle = 'rgba(25,20,50,.97)'; ctx.strokeStyle = '#ff8787'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.fill(); ctx.stroke();
+  txt('Apagar todos os dados?', W / 2, y + 34, 22, '#ff8787', 'center', null);
+  txt('Moedas, personagens, fases e recorde', W / 2, y + 78, 14, '#ffffff', 'center', null);
+  txt('serão perdidos. Não dá para desfazer.', W / 2, y + 100, 14, '#ffffff', 'center', null);
+  button(x + 14, y + h - 54, 230, 40, 'Apagar', '#c92a2a', resetData);
+  button(x + w - 244, y + h - 54, 230, 40, 'Cancelar', '#495057', () => { S.resetAsk = false; });
+}
+function drawGear(x, y) {
+  gearBtn = { x: x - 4, y: y - 4, w: 28, h: 28 };
+  ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.roundRect(x - 4, y - 4, 28, 28, 6); ctx.fill();
+  ctx.save(); ctx.translate(x + 10, y + 10); ctx.fillStyle = '#fff';
+  for (let i = 0; i < 8; i++) { ctx.rotate(Math.PI / 4); ctx.fillRect(-2.1, -10.5, 4.2, 5); }
+  ctx.beginPath(); ctx.arc(0, 0, 7.4, 0, TAU); ctx.fill(); ctx.fillStyle = '#2b2748'; ctx.beginPath(); ctx.arc(0, 0, 3.1, 0, TAU); ctx.fill();
+  ctx.restore();
+}
 function drawShop() {
   menuBtns = [];
   drawBackground(1); overlay(.45);
@@ -2308,10 +2356,11 @@ function draw() {
   ctx.clearRect(0, 0, W, H);
   if (S.state === 'shop') { drawShop(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
+  if (S.state === 'settings') { drawSettings(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   if (S.shake > 0) ctx.translate(rnd(-1, 1) * Math.min(6, S.shake * .6), rnd(-1, 1) * Math.min(6, S.shake * .6));
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 100); drawFade();
 
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 48); txt('toque / tecla para continuar', W / 2, H / 2 + 44, 16); return; }
   switch (S.state) {
@@ -3025,7 +3074,37 @@ function drawMenu() {
   txt('← → MOVER · ↑ ↓ ESCADA · Z PULAR · ESPAÇO MAGIA · P PAUSA', W / 2, H - 14, 12, '#ffffff', 'center', '#000');
   const mx = 40 + ((S.tick * .4) % 1) * 0; // mago de enfeite caminhando no chão
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true });
-  button(12, 10, 176, 30, `Estilo: ${artStyle === 'pixel' ? 'Pixel' : 'Clássico'}`, '#6741d9', toggleStyle);
+  drawGear(18, 14);
+}
+function drawSettings() {
+  menuBtns = []; drawBackground(S.setFrom === 'play' && S.cur ? S.cur.theme : 0); overlay(.55);
+  txt('OPÇÕES', W / 2, 40, 38, '#ffe27a', 'center', '#5a3b00');
+  if (S.resetAsk) { drawResetAsk(); return; }
+  let y = 78; const bw = 440, bx = W / 2 - bw / 2, on = '#2f9e44', off = '#5c677d';
+  const row = (label, fn, col) => { button(bx, y, bw, 38, label, col, fn); y += 46; };
+  row('Música: ' + (S.musicOn ? 'ligada' : 'desligada'), () => { setMusicOn(!S.musicOn); save(); }, S.musicOn ? on : off);
+  row('Sons: ' + (S.sfxOn ? 'ligados' : 'desligados'), () => { setSfxOn(!S.sfxOn); save(); }, S.sfxOn ? on : off);
+  if (FS_OK) { const fsOn = !!(document.fullscreenElement || document.webkitFullscreenElement); row('Tela cheia: ' + (fsOn ? 'sim' : 'não'), toggleFS, fsOn ? on : off); }
+  row('Visual: ' + (artStyle === 'pixel' ? 'Pixel' : 'Clássico'), toggleStyle, '#6741d9');
+  row('Resetar dados', () => { S.resetAsk = true; }, '#c92a2a');
+  row('Voltar', closeSettings, '#495057');
+  if (S.msgT > 0) txt(S.msg, W / 2, y + 12, 15, '#ffe27a', 'center', '#000');
+}
+function drawResetAsk() {
+  menuBtns = []; overlay(.6);
+  const w = 500, h = 210, x = (W - w) / 2, y = (H - h) / 2;
+  panel(x / 2, y / 2, w / 2, h / 2, '#241c48', '#ff8787');
+  txt('Apagar todos os dados?', W / 2, y + 34, 22, '#ff8787', 'center', '#000');
+  txt('Moedas, personagens, fases e recorde', W / 2, y + 78, 14, '#ffffff', 'center', null);
+  txt('serão perdidos. Não dá para desfazer.', W / 2, y + 100, 14, '#ffffff', 'center', null);
+  button(x + 14, y + h - 54, 230, 40, 'Apagar', '#c92a2a', resetData);
+  button(x + w - 244, y + h - 54, 230, 40, 'Cancelar', '#495057', () => { S.resetAsk = false; });
+}
+const GEAR = ['....X....', '.X.XXX.X.', '..XXXXX..', '.XXXXXXX.', 'XXXX.XXXX', '.XXXXXXX.', '..XXXXX..', '.X.XXX.X.', '....X....'];
+function drawGear(x, y) {
+  gearBtn = { x: x - 4, y: y - 4, w: 28, h: 28 };
+  const px = Math.round(x / 2), py = Math.round(y / 2);
+  panel(px - 2, py - 2, 14, 14, 'rgba(20,16,40,1)'); spr(GEAR, { X: '#ffffff' }, px + 1, py + 1);
 }
 function drawShop() {
   menuBtns = [];
@@ -3204,9 +3283,10 @@ function render() {
   ctx = lctx; lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LW, LH);
   if (S.state === 'shop') { drawShop(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
+  if (S.state === 'settings') { drawSettings(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 100); drawFade();
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 56, '#ffffff'); txt('TOQUE / TECLA PARA CONTINUAR', W / 2, H / 2 + 50, 16, '#ffffff', 'center', '#000'); return; }
   switch (S.state) {
     case 'ready': {
@@ -3245,7 +3325,7 @@ function draw() { syncZone(); render(); present(); }
 return { draw };
 })();
 
-function draw() { syncZone(); Styles[artStyle].draw(); }
+function draw() { syncZone(); gearBtn.w = 0; Styles[artStyle].draw(); }
 function setStyle(st) { artStyle = st === 'pixel' ? 'pixel' : 'classic'; save(); fitCanvas(true); }
 function toggleStyle() { setStyle(artStyle === 'pixel' ? 'classic' : 'pixel'); }
 
@@ -3270,6 +3350,9 @@ addEventListener('keydown', e => {
     if (e.key === 'l' || e.key === 'L') openShop();
     if (e.key === 'k' || e.key === 'K') openMaps();
   } else if ((S.state === 'shop' || S.state === 'maps') && (e.key === 'Escape' || e.key === 'Enter')) goMenu();
+  else if (S.state === 'settings' && (e.key === 'Escape' || e.key === 'o' || e.key === 'O')) { if (S.resetAsk) S.resetAsk = false; else closeSettings(); }
+  if ((e.key === 'o' || e.key === 'O') && S.state === 'menu') openSettings();
+  if (e.key === 'Escape' && (S.state === 'play' || S.state === 'ready')) openSettings();
   if (e.key === 'Enter') pressed = true;
 });
 addEventListener('keyup', e => { if (KEYMAP[e.key]) { input[KEYMAP[e.key]] = false; e.preventDefault(); } });
@@ -3281,12 +3364,13 @@ cv.addEventListener('pointerdown', e => {
   Music.unlock();
   const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
   if (x >= muteBtn.x && x <= muteBtn.x + muteBtn.w && y >= muteBtn.y && y <= muteBtn.y + muteBtn.h) { setMuted(!S.muted); return; }
+  if (gearBtn.w && x >= gearBtn.x && x <= gearBtn.x + gearBtn.w && y >= gearBtn.y && y <= gearBtn.y + gearBtn.h) { openSettings(); return; }
   if ((S.state === 'menu' || S.state === 'shop') && y >= 6 && y <= 40 && x >= W - 200 && x <= W - 46) { // truque de teste: toques rápidos nas moedas
     const now = performance.now(); coinTaps = coinTaps.filter(t => now - t < 1800); coinTaps.push(now);
     if (coinTaps.length >= 5) { coinTaps = []; S.coins += 99999; S.unlocked = MAPS.length; save(); sfx.item && sfx.item(); flash('+99999 moedas e todos os mapas (modo teste)'); }
     return;
   }
-  if (S.state === 'menu' || S.state === 'shop' || S.state === 'maps') {
+  if (S.state === 'menu' || S.state === 'shop' || S.state === 'maps' || S.state === 'settings') {
     for (const b of menuBtns) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
   } else pressed = true;
 });
@@ -3337,7 +3421,7 @@ function toggleFS() {
 { const fsb = document.getElementById('fsb'), el = document.documentElement;
   if (fsb && fsb.addEventListener && el && (el.requestFullscreen || el.webkitRequestFullscreen) && document.body && document.body.classList) { document.body.classList.add('fsok'); fsb.addEventListener('click', toggleFS); } }
 let playingCls = null;
-function syncZone() { const pl = S.state !== 'menu' && S.state !== 'shop' && S.state !== 'maps'; if (pl !== playingCls && document.body && document.body.classList) { playingCls = pl; document.body.classList.toggle('playing', pl); } }
+function syncZone() { const pl = S.state === 'ready' || S.state === 'play' || S.state === 'dead' || S.state === 'clear'; /* botões de toque só durante as missões */ if (pl !== playingCls && document.body && document.body.classList) { playingCls = pl; document.body.classList.toggle('playing', pl); } }
 document.addEventListener('contextmenu', e => e.preventDefault());
 
 /* =====================================================================
@@ -3373,7 +3457,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
