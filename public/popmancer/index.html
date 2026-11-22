@@ -209,8 +209,18 @@ const LEVELS = [
 const cv = document.getElementById('c');
 let ctx = cv.getContext('2d');
 if (!ctx.roundRect) ctx.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
-const DPR = Math.min(2, window.devicePixelRatio || 1);
-cv.width = W * DPR; cv.height = H * DPR;
+let DPR = 1;
+// resolução real = tamanho exibido na tela (nítido em monitores grandes e telas de alta densidade)
+function fitCanvas() {
+  const r = cv.getBoundingClientRect(), pr = window.devicePixelRatio || 1;
+  const d = Math.min(3, Math.max(1, Math.ceil(((r.width || W) * pr / W) * 4) / 4));
+  if (d === DPR && cv.width === Math.round(W * d)) return;
+  DPR = d; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR);
+  try { for (const k in bgCache) delete bgCache[k]; } catch (e) { /* ainda não criado */ }
+}
+fitCanvas();
+addEventListener('resize', fitCanvas);
+if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
@@ -1530,6 +1540,10 @@ function heart(x, y, s, full) {
   if (full) { ctx.fillStyle = 'rgba(255,255,255,.55)'; ctx.fillRect(-5, -4, 2.4, 2.4); }
   ctx.restore();
 }
+function coinCounter(rx, y) { // texto alinhado à direita (termina antes do botão de som) + moeda à esquerda dele
+  const v = String(S.coins); ctx.font = '800 19px system-ui, sans-serif'; const w = ctx.measureText(v).width;
+  txt(v, rx, y, 19, '#ffe27a', 'right'); coinIcon(rx - w - 14, y);
+}
 function drawMuteIcon(x, y) {
   muteBtn = { x: x - 4, y: y - 4, w: 28, h: 28 };
   ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.beginPath(); ctx.roundRect(x - 4, y - 4, 28, 28, 6); ctx.fill();
@@ -1591,7 +1605,7 @@ function drawMenu() {
   overlay(.25);
   txt('POPMANCER', W / 2, 88, 66, '#7dff7d', 'center', '#0b3d12');
   txt('MAGOS vs SLIMES', W / 2, 146, 34, '#ffe27a', 'center', '#5a3b00');
-  coinIcon(W - 70, 22); txt(String(S.coins), W - 56, 22, 18, '#ffe27a', 'left');
+  coinCounter(W - 50, 22);
   let y = 200;
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 44, label, col, fn); y += 54; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${S.savedLevel + 1}`, () => newGame(S.savedLevel), '#2f9e44');
@@ -1606,7 +1620,7 @@ function drawShop() {
   menuBtns = [];
   drawBackground(1); overlay(.45);
   txt('LOJA', W / 2, 30, 36, '#ffe27a', 'center', '#5a3b00');
-  coinIcon(W - 92, 28); txt(String(S.coins), W - 78, 28, 20, '#ffe27a', 'left');
+  coinCounter(W - 50, 22);
   txt('Personagens', 40, 66, 16, '#fff', 'left');
   SKINS.forEach((k, i) => {
     const x = 36 + i * 122, y = 80, w = 114, h = 150, owned = S.ownedSkins.includes(k.id), eq = S.skin === k.id;
@@ -1708,7 +1722,7 @@ cv.addEventListener('pointerdown', e => {
   Music.unlock();
   const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
   if (x >= muteBtn.x && x <= muteBtn.x + muteBtn.w && y >= muteBtn.y && y <= muteBtn.y + muteBtn.h) { setMuted(!S.muted); return; }
-  if ((S.state === 'menu' || S.state === 'shop') && y >= 6 && y <= 48 && x >= W - 110 && x <= W - 46) { // truque de teste: toques rápidos nas moedas
+  if ((S.state === 'menu' || S.state === 'shop') && y >= 6 && y <= 40 && x >= W - 200 && x <= W - 46) { // truque de teste: toques rápidos nas moedas
     const now = performance.now(); coinTaps = coinTaps.filter(t => now - t < 1800); coinTaps.push(now);
     if (coinTaps.length >= 5) { coinTaps = []; S.coins += 99999; save(); sfx.item && sfx.item(); flash('+99999 moedas (modo teste)'); }
     return;
