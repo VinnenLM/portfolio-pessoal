@@ -6,3 +6,7 @@
 # Deadfront muda a cada atualização: sempre buscar a versão mais nova
 /deadfront/*
   Cache-Control: no-cache
+
+# Popmancer também muda a cada atualização
+/popmancer/*
+  Cache-Control: no-cache
