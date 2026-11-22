@@ -1339,6 +1339,16 @@
       // zumbis (ordenados por y)
       const zs = G.zombies.slice().sort((a, b) => a.y - b.y);
       for (const z of zs) drawZombie(z);
+      if (save.laser && save.laserOn !== false && G.state === 'play') {
+        const wd = DF.WEAPONS[curW().id], mz = wd.muzzle || 22, rng = Math.min(wd.range || 600, 900);
+        const ca = Math.cos(P.angle), sa = Math.sin(P.angle); let len = mz;
+        for (; len < rng; len += 6) { const ti = tileAt(P.x + ca * len, P.y + sa * len); if (ti < 0 || isBlockType(ti)) break; }
+        const x0 = P.x + ca * mz, y0 = P.y + sa * mz, x1 = P.x + ca * len, y1 = P.y + sa * len;
+        const lg = ctx.createLinearGradient(x0, y0, x1, y1); lg.addColorStop(0, 'rgba(255,40,40,0.75)'); lg.addColorStop(1, 'rgba(255,40,40,0.25)');
+        ctx.strokeStyle = 'rgba(255,40,40,0.18)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        ctx.strokeStyle = lg; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,70,70,0.95)'; ctx.beginPath(); ctx.arc(x1, y1, 3, 0, 6.283); ctx.fill(); ctx.fillStyle = 'rgba(255,60,60,0.25)'; ctx.beginPath(); ctx.arc(x1, y1, 7, 0, 6.283); ctx.fill();
+      }
       if (G.furyT > 0) { ctx.fillStyle = 'rgba(255,90,40,' + (0.18 + 0.1 * Math.sin(G.time * 14)) + ')'; ctx.beginPath(); ctx.arc(P.x, P.y, 26, 0, 6.283); ctx.fill(); }
       drawPlayer();
       if (P.reloadT > 0 && P.reloadMax > 0) { const k = 1 - P.reloadT / P.reloadMax; ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(P.x - 19, P.y - P.r - 17, 38, 7); ctx.fillStyle = '#5ac8ff'; ctx.fillRect(P.x - 18, P.y - P.r - 16, 36 * k, 5); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('RECARREGANDO', P.x, P.y - P.r - 22); }

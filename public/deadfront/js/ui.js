@@ -95,6 +95,7 @@
     $('m-sound').textContent = 'SOM: ' + (save.sound ? 'ON' : 'OFF');
     $('p-sound').textContent = 'SOM: ' + (save.sound ? 'ON' : 'OFF');
     $('p-auto').textContent = 'MIRA AUTOMÁTICA: ' + (save.auto ? 'ON' : 'OFF');
+    $('p-laser').classList.toggle('hidden', !save.laser); $('p-laser').textContent = 'MIRA LASER: ' + (save.laserOn !== false ? 'ON' : 'OFF');
   }
   document.querySelectorAll('.coins-corner').forEach((e) => e.addEventListener('click', () => { save.coins += 500; persist(); refreshCoins(); if (DF.sfx) DF.sfx('pickup'); if (!$('shop').classList.contains('hidden')) renderShop(); }));
   document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => { click(); show(b.dataset.back); }));
@@ -125,6 +126,7 @@
   $('m-help').onclick = () => { click(); show('help'); };
   const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; if (DF.applyMute) DF.applyMute(); persist(); refreshCoins(); click(); };
   $('m-sound').onclick = toggleSound; $('p-sound').onclick = toggleSound;
+  $('p-laser').onclick = () => { save.laserOn = save.laserOn === false; persist(); refreshCoins(); };
   $('p-auto').onclick = () => { save.auto = !save.auto; input.auto = save.auto; persist(); refreshCoins(); };
 
   // ---------- fases ----------
@@ -193,6 +195,9 @@
         if (lvl < u.max) { const cost = u.base * (lvl + 1); btn(c, 'Comprar <span class="price">' + COIN + ' ' + cost + '</span>', () => { if (buy(cost)) { save.up[u.id] = lvl + 1; persist(); } }, save.coins < cost, 'primary'); }
         else { const p = document.createElement('p'); p.textContent = 'Nível máximo'; c.appendChild(p); }
       });
+      const lc = card('<h4>🔴 Mira laser</h4><p>Mostra uma linha vermelha até onde o tiro realmente chega (para na parede ou no obstáculo). Dá para ligar/desligar no menu de pausa.</p>');
+      if (save.laser) { const p = document.createElement('p'); p.textContent = '✔ Desbloqueada'; lc.appendChild(p); }
+      else btn(lc, 'Comprar <span class="price">' + COIN + ' ' + DF.LASER_PRICE + '</span>', () => { if (buy(DF.LASER_PRICE)) { save.laser = true; save.laserOn = true; persist(); } }, save.coins < DF.LASER_PRICE, 'primary');
       const c = card('<h4>🛡️ Barricada de Aço</h4><p>Desbloqueia o material mais resistente (900 de vida, custa 50 de sucata).</p>');
       if (save.steel) { const p = document.createElement('p'); p.textContent = '✔ Desbloqueado'; c.appendChild(p); }
       else btn(c, 'Comprar <span class="price">' + COIN + ' ' + DF.STEEL_PRICE + '</span>', () => { if (buy(DF.STEEL_PRICE)) { save.steel = true; persist(); } }, save.coins < DF.STEEL_PRICE, 'primary');

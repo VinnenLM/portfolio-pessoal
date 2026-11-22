@@ -191,6 +191,7 @@
     grenadier: { name: 'Granadeiro', desc: 'Granadas 50% mais fortes e maiores, mais granadas e recarga lenta. Habilidade: Bombardeio.', skill: 'Bombardeio', cd: 40, cost: 0, color: '#c9a227' }
   };
   DF.CLASS_ORDER = ['fighter', 'medic', 'engineer', 'grenadier'];
+  DF.LASER_PRICE = 350;
   DF.TOWER_MAX = 5;
   DF.TOWER_UP_MAX = 5; // +15% de dano e +5% de cadência por nível
   DF.towerUpCost = (id, lvl) => Math.round(DF.TOWERS[id].price * 0.45 + 50) * (lvl + 1);
