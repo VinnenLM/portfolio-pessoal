@@ -725,8 +725,8 @@ function genRush(n) { return bossLevel(RUSH[Math.min(n, RUSH.length) - 1], 1 + .
 const waveFor = n => S.rush ? genRush(n) : genWave(n);
 const NORMAL_LAY = OLD.map((o, i) => i).filter(i => !BOSS_LV.some(b => b.blocks === OLD[i].blocks && b.ladders === OLD[i].ladders));
 const UPS = [
-  { id: 'speed',  name: 'Tiro Veloz',      lb: 'V', col: '#74c0fc', d: ['Magias 15% mais rápidas.'] },
-  { id: 'cool',   name: 'Recarga Rápida',  lb: 'R', col: '#63e6be', d: ['Recarga entre disparos 12% menor.'] },
+  { id: 'speed',  name: 'Tiro Veloz',      lb: 'V', col: '#74c0fc', d: ['Magias 15% mais rápidas. O Raio', 'Persistente também dura mais preso.'] },
+  { id: 'cool',   name: 'Recarga Rápida',  lb: 'R', col: '#63e6be', d: ['Recarga entre disparos 12% menor.', 'Raio Persistente: +1 raio nos nv 1 e 3.'] },
   { id: 'life',   name: 'Vida Extra',      lb: '+', col: '#ff6b81', d: ['+1 vida agora (máximo 5).'] },
   { id: 'shield', name: 'Barreira Inicial', lb: 'B', col: '#4dabf7', d: ['Começa cada onda com escudo', 'de 5 s (acumula).'] },
   { id: 'time',   name: 'Tempo Extra',     lb: 'A', col: '#ffffff', d: ['+10 s de tempo em cada onda.'] },
@@ -735,7 +735,7 @@ const UPS = [
   { id: 'move',   name: 'Pés Ligeiros',    lb: 'M', col: '#b2f2bb', d: ['+10% de velocidade ao andar.'] },
   { id: 'jump',   name: 'Salto Alto',      lb: 'J', col: '#d0bfff', d: ['Pula 8% mais alto.'] },
   { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Ataque de tela cheia no início', 'da onda; +1 passada por nível (máx. 3).'] },
-  { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca:', '5 s, +2 s a cada nível.'] },
+  { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca:', '5 s, +1,25 s por nível (máx. 10 s).'] },
   { id: 'bfrost', name: 'Gelo de Chefe',   lb: 'G', col: '#74c0fc', d: ['Chefes ficam congelados por mais', 'tempo na Nevasca (50% +15%/nível, máx. 3).'] },
   { id: 'magnet', name: 'Ímã de Moedas',   lb: 'I', col: '#f06595', d: ['Atrai moedas do chão até você;', 'alcance maior a cada nível.'] },
   { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
@@ -906,11 +906,14 @@ function updatePlayer() {
   }
 }
 
+// Raio Persistente (verde): Recarga Rápida libera +1 raio simultâneo nos níveis 1 e 3; Tiro Veloz faz o raio ficar preso por mais tempo
+const stickyMax = w => w === WEAPONS.sticky ? w.max + (up('cool') >= 1 ? 1 : 0) + (up('cool') >= 3 ? 1 : 0) : w.max;
+const stickTime = w => w === WEAPONS.sticky ? Math.round(w.stick * (1 + .15 * up('speed'))) : w.stick;
 function handleFire() {
   if (S.fireCd > 0) S.fireCd--;
   if (!input.fire || S.fireCd > 0 || P.climb) return;
   const w = WEAPONS[S.weapon];
-  if (shots.length + (w.n || 1) > w.max) return;
+  if (shots.length + (w.n || 1) > stickyMax(w)) return;
   const x = P.x + P.w / 2, feet = P.y + P.h;
   const anchor = w.kind === 'rope' ? groundBelow(x, feet) : feet;
   if (w.kind === 'pellet') {                               // espingarda: leque de mísseis em arco
@@ -943,7 +946,7 @@ function updateShots() {
       }
     } else {
       sh.t++;
-      if (sh.t >= w.stick) { shots.splice(i, 1); continue; }
+      if (sh.t >= stickTime(w)) { shots.splice(i, 1); continue; }
     }
     // colisão com slimes
     let gone = false;
@@ -1564,7 +1567,7 @@ function step() {
     case 'ready':
       S.timer--;
       if (S.timer <= 0 || (wasPressed && S.timer < 140)) { S.state = 'play'; if (S.openN > 0) { startStrike(['fire', 'bolt', 'meteor'][Math.floor(Math.random() * 3)], S.openN); S.openN = 0; }
-    if (S.frostN > 0) { startFreeze(180 + 120 * S.frostN); S.frostN = 0; } }
+    if (S.frostN > 0) { startFreeze(300 + 75 * (S.frostN - 1)); S.frostN = 0; } }
       updateParts();
       break;
     case 'play':
