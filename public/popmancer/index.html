@@ -137,7 +137,23 @@ const SKINS = [
   { id: 'druida', name: 'Druida',     price: 300, body: '#2b8a3e', legs: '#4a3520', hat: '#8ce99a', style: 'druid',    skin: '#ffd1a1', perk: { name: 'Pés de Raiz', lines: ['A gosma te deixa lento', 'pela metade do tempo.'] } },
   { id: 'necro',  name: 'Necromante', price: 400, body: '#343a40', legs: '#15151a', hat: '#212529', style: 'hood',     skin: '#ced4da', perk: { name: 'Pacto Sombrio', lines: ['Começa cada fase com escudo de 5s', 'e revive 1 vez por fase.'] } },
   { id: 'arqui',  name: 'Arquimago',  price: 700, body: '#f1f3f5', legs: '#7a5a1a', hat: '#ffd43b', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Arcano Veloz', lines: ['Magias 25% mais rápidas', 'e recarga 20% menor.'] } },
+  { id: 'crio', name: 'Criomante', price: 350, body: '#4dabf7', legs: '#2b3a55', hat: '#a5d8ff', style: 'wizard', skin: '#e7f5ff', perk: { name: 'Toque Congelante', lines: ['Slimes atingidos ficam 30% mais', 'lentos por 2 segundos.'] } },
+  { id: 'eletro', name: 'Eletromante', price: 550, body: '#fcc419', legs: '#3b2a1a', hat: '#e8590c', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Choque em Cadeia', lines: ['15% de chance do disparo atingir', 'também um slime próximo.'] } },
+  { id: 'invoc', name: 'Invocador', price: 900, body: '#7048e8', legs: '#1d1538', hat: '#b197fc', style: 'hood', skin: '#ffd1a1', perk: { name: 'Familiar Mágico', lines: ['Um familiar dispara sozinho contra', 'os slimes a cada 5 segundos.'] } },
+  { id: 'geo', name: 'Geomante', price: 350, body: '#8d6e63', legs: '#4a3520', hat: '#c9a227', style: 'druid', skin: '#ffd1a1', perk: { name: 'Pele de Pedra', lines: ['Reduz em 30% o tempo de lentidão', 'depois de ser atingido.'] } },
+  { id: 'ilu', name: 'Ilusionista', price: 450, body: '#e599f7', legs: '#4a2a5a', hat: '#9c36b5', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Reflexo Arcano', lines: ['15% de chance de evitar um golpe', 'sem perder a vida.'] } },
+  { id: 'crono', name: 'Cronomante', price: 600, body: '#12b886', legs: '#14302a', hat: '#63e6be', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Tempo Distorcido', lines: ['O efeito do relógio dura', '50% mais tempo.'] } },
+  { id: 'alqui', name: 'Alquimista', price: 650, body: '#fd7e14', legs: '#2b1b33', hat: '#5f3dc4', style: 'witch', skin: '#ffd1a1', perk: { name: 'Mistura Explosiva', lines: ['Explosões de slimes laranja estouram', 'os slimes num raio 25% maior.'] } },
+  { id: 'sombra', name: 'Sombramante', price: 450, body: '#3b2f63', legs: '#15101f', hat: '#1a1330', style: 'hood', skin: '#b8b8d0', perk: { name: 'Passo das Sombras', lines: ['Aumenta em 20% a velocidade', 'de movimentação.'] } },
+  { id: 'lumi', name: 'Lumimante', price: 650, body: '#fff3bf', legs: '#7a5a1a', hat: '#fab005', style: 'wizard', skin: '#ffe8cc', perk: { name: 'Luz Purificadora', lines: ['Ao estourar um slime, 10% de chance', 'de explosão de luz nos próximos.'] } },
+  { id: 'xama', name: 'Xamã', price: 250, body: '#d9480f', legs: '#4a3520', hat: '#66a80f', style: 'druid', skin: '#e0a878', perk: { name: 'Espírito Guardião', lines: ['Começa cada fase com uma proteção', 'que bloqueia um golpe.'] } },
+  { id: 'runo', name: 'Runomante', price: 550, body: '#364fc7', legs: '#1a2255', hat: '#91a7ff', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Runas Antigas', lines: ['Aumenta em 15% a duração', 'de todos os itens de poder.'] } },
+  { id: 'magmaista', name: 'Magmaísta', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.'] } },
+  { id: 'aero', name: 'Aeromante', price: 500, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', skin: '#ffe8d0', perk: { name: 'Corrente de Vento', lines: ['Aumenta em 20% a velocidade', 'dos disparos.'] } },
+  { id: 'sangue', name: 'Sangromante', price: 800, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', perk: { name: 'Último Sacrifício', lines: ['Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.'] } },
+  { id: 'demo', name: 'Demonologista', price: 1000, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', skin: '#ff8787', sn: 'Demonolog.', perk: { name: 'Pacto Demoníaco', lines: ['Começa cada fase com um disparo', 'especial adicional (Raio Duplo).'] } },
 ];
+SKINS.sort((a, b) => a.price - b.price);
 // Cores da magia (raio principal)
 const ROPES = [
   { id: 'padrao', name: 'Arcano', price: 0,   color: '#c9a6ff' },
@@ -337,7 +353,7 @@ const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, saved
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
-let flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], muteBtn = { x: 0, y: 0, w: 0, h: 0 };
+let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], muteBtn = { x: 0, y: 0, w: 0, h: 0 };
 const P = { x: 0, y: 0, w: 22, h: 34, vy: 0, face: 1, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, anim: 0,
             sq: 0, lean: 0, walking: false, dead: null };
 let coinTaps = [];
@@ -367,6 +383,13 @@ function save() {
 }
 const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
 const ropeNow = () => ROPES.find(k => k.id === S.rope) || ROPES[0];
+// bônus passivos dos magos
+const is = id => S.skin === id;
+const durMul = () => (is('bruxa') ? 1.5 : 1) * (is('runo') ? 1.15 : 1);          // duração de escudo/nevasca/relógio
+const clockMul = () => durMul() * (is('crono') ? 1.5 : 1);
+const slowMul = () => (is('druida') ? .5 : 1) * (is('geo') ? .7 : 1);            // tempo de lentidão
+const shotMul = () => (is('arqui') ? 1.25 : 1) * (is('aero') ? 1.2 : 1);         // velocidade dos disparos
+function chill(s) { if (s.slowT > 0) { s.slowT = 120; return; } s.slowT = 120; s.vx *= .7; s.spd *= .7; }
 
 // ---------- Áudio (tudo gerado por código, sem arquivos) ----------
 let ac = null, master = null, sfxBus = null, musBus = null, noiseBuf = null;
@@ -570,6 +593,9 @@ function startLevel(i) {
   S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0;
   S.shield = 0; S.freeze = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
   S.revUsed = false; if (S.skin === 'necro') S.shield = 300;
+  if (is('xama')) S.shield = 99999;                            // Espírito Guardião: bloqueia 1 golpe
+  if (is('demo') && S.weapon === 'harpoon') S.weapon = 'twin';  // Pacto Demoníaco
+  fires = []; famShots = []; fam = is('invoc') ? { x: P.x + P.w / 2, y: P.y - 36, t: 150 } : null;
   initAmb(L.theme); Music.setIntense(false);
   Music.play(L.slimes.some(d => d.boss) ? 'boss' : 'stage' + L.theme);
   S.state = 'ready';
@@ -581,7 +607,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; S.perk = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = [];
+  S.state = 'menu'; S.perk = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = [];
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -630,7 +656,7 @@ function updatePlayer() {
     }
   }
 
-  if (mv) { P.x += mv * (slow ? 1.4 : 3.1); P.face = mv; P.anim += slow ? 0.12 : 0.28; }
+  if (mv) { P.x += mv * (slow ? 1.4 : 3.1) * (is('sombra') ? 1.2 : 1); P.face = mv; P.anim += slow ? 0.12 : 0.28; }
   P.walking = mv !== 0;
   P.x = clamp(P.x, 0, W - P.w);
 
@@ -667,7 +693,7 @@ function updatePlayer() {
   // poças de gosma deixam o jogador lento
   if (P.onGround) {
     const f = P.y + P.h;
-    for (const p of puddles) if (Math.abs(f - p.y) < 4 && P.x + P.w > p.x - p.w / 2 && P.x < p.x + p.w / 2) S.slow = Math.max(S.slow, S.skin === 'druida' ? 6 : 12);
+    for (const p of puddles) if (Math.abs(f - p.y) < 4 && P.x + P.w > p.x - p.w / 2 && P.x < p.x + p.w / 2) S.slow = Math.max(S.slow, Math.max(3, Math.round(12 * slowMul())));
   }
 }
 
@@ -681,6 +707,7 @@ function handleFire() {
   shots.push({ id: ++S.uid, x, anchor, top: anchor - 8, bottom: w.kind === 'rope' ? anchor : anchor - 8 + 14,
                kind: w.kind, wk: S.weapon, state: 'fly', t: 0, ceil: ceilingFor(x, anchor) });
   S.fireCd = Math.round(w.cd * (S.skin === 'arqui' ? .8 : 1)); P.shoot = 12; sfx.shoot();
+  if (is('magmaista') && Math.random() < .1) { const gy = groundBelow(x, feet); fires.push({ x, y: gy, life: 240, w: 60, cd: 0 }); sparks(x, gy, '#ff7a1a', 10, 4); }
   { const c = spellColor(S.weapon), ox = x + P.face * 12, oy = P.y - 6; sparks(ox, oy, c, 8, 3.5); ring(ox, oy, 22, c, 14, 2); }
 }
 
@@ -688,7 +715,7 @@ function updateShots() {
   for (let i = shots.length - 1; i >= 0; i--) {
     const sh = shots[i], w = WEAPONS[sh.wk];
     if (sh.state === 'fly') {
-      sh.top -= w.speed * (S.skin === 'arqui' ? 1.25 : 1);
+      sh.top -= w.speed * shotMul();
       if (sh.kind === 'rope' && S.tick % 2 === 0) emit({ kind: 'spark', x: sh.x + rnd(-3, 3), y: sh.top, vx: rnd(-.6, .6), vy: rnd(0, 1), g: .05, life: 16, c: spellColor(sh.wk), r: 1.4 });
       if (sh.kind === 'bullet') sh.bottom = sh.top + 14;
       if (sh.top <= sh.ceil) {
@@ -770,6 +797,7 @@ function popSlime(s, sh) {
     for (const dir of [-1, 1]) {
       const c = mkSlime(s.x + dir * s.r * 0.5, s.y, s.size - 1, dir, s.spd, s.color, s.type);
       c.vy = -4.5; c.imm = 25; c.immShot = sh ? sh.id : 0;
+      if (is('crio')) chill(c);
       slimes.push(c);
     }
   }
@@ -779,21 +807,34 @@ function popSlime(s, sh) {
       burst(o.x, o.y, '#ff9a3d', 6); popSlime(o, sh);
     }
   }
+  if (S.state === 'play' && !S.arc) {
+    if (is('eletro') && sh && Math.random() < .15) {         // Choque em Cadeia
+      let o = null, bd = 170; for (const z of slimes) if (!z.boss && z.imm <= 0) { const d = Math.hypot(z.x - s.x, z.y - s.y); if (d < bd) { bd = d; o = z; } }
+      if (o) { for (let i = 0; i <= 8; i++) emit({ kind: 'spark', x: s.x + (o.x - s.x) * i / 8 + rnd(-6, 6), y: s.y + (o.y - s.y) * i / 8 + rnd(-6, 6), g: 0, life: 14, c: '#fff3a0', r: 2 });
+        S.arc = true; popSlime(o, sh); S.arc = false; }
+    }
+    if (is('lumi') && Math.random() < .1) {                   // Luz Purificadora
+      S.arc = true; ring(s.x, s.y, 90, '#fff6b0', 22, 4); sparks(s.x, s.y, '#fff6b0', 18, 6); S.flashA = Math.max(S.flashA, .2); S.flashC = '255,246,176';
+      for (const o of slimes.slice()) if (!o.boss && o.size <= 2 && Math.hypot(o.x - s.x, o.y - s.y) < 90) popSlime(o, null);
+      S.arc = false;
+    }
+  }
 }
 
 function explode(s) {
-  const er = 30 + s.size * 12;
-  fx.push({ x: s.x, y: s.y, r: er, t: 0, life: 22 });
+  const er = 30 + s.size * 12, ER = is('alqui') ? er * 1.25 : er;
+  fx.push({ x: s.x, y: s.y, r: ER, t: 0, life: 22 });
+  if (is('alqui') && S.state === 'play') for (const o of slimes.slice()) if (!o.boss && Math.hypot(o.x - s.x, o.y - s.y) < ER) popSlime(o, null);   // Mistura Explosiva
   S.shake = Math.max(S.shake, 8 + s.size * 2); sfx.boom();
   burst(s.x, s.y, '#ffb347', 14, 5);
-  ring(s.x, s.y, er * 1.3, '#ffe0a0', 24, 4); sparks(s.x, s.y, '#ffcf5a', 22, 7); smoke(s.x, s.y, '#555a66', 8);
+  ring(s.x, s.y, ER * 1.3, '#ffe0a0', 24, 4); sparks(s.x, s.y, '#ffcf5a', 22, 7); smoke(s.x, s.y, '#555a66', 8);
   S.flashA = 0.35; S.flashC = '255,200,120';
   const dx = (P.x + P.w / 2) - s.x, dy = (P.y + P.h / 2) - s.y;
   if (Math.hypot(dx, dy) < er + 8 && S.state === 'play') hurt();
 }
 
 function hitBoss(s, dmg) {
-  s.hp -= dmg; s.hitCd = 8; s.flash = 8; S.score += 50; sfx.boss();
+  s.hp -= dmg; s.hitCd = 8; s.flash = 8; S.score += 50; sfx.boss(); if (is('crio')) chill(s);
   burst(s.x, s.y - s.r * 0.3, '#fff', 6); sparks(s.x, s.y, '#fff', 10, 5); ring(s.x, s.y, s.r * 1.2, '#fff', 12, 3); S.shake = Math.max(S.shake, 6);
   if (s.hp <= 0) { killBoss(s); return; }
   if (!s.enraged && s.hp <= s.maxhp / 2) { s.enraged = true; s.vx *= 1.4; s.spd *= 1.4; S.shake = 14; Music.setIntense(true); popup(s.x, s.y - s.r - 10, 'FÚRIA!', '#ff6b6b', 22); }
@@ -819,6 +860,43 @@ function killBoss(s) {
   for (const o of slimes) if (o !== s) burst(o.x, o.y, o.color, 10);
   for (const f of flyers) burst(f.x, f.y, '#fff', 10);
   slimes.length = 0; flyers.length = 0;
+}
+
+// ---------- Efeitos de habilidades: fogo (Magmaísta) e familiar (Invocador) ----------
+function nearestTarget(x, y) {
+  let best = null, bd = 1e9;
+  for (const o of slimes.concat(flyers)) { if (o.k === 'ghost' && !o.solid) continue; const d = Math.hypot(o.x - x, o.y - y); if (d < bd) { bd = d; best = o; } }
+  return best;
+}
+function updatePerks() {
+  for (let i = fires.length - 1; i >= 0; i--) {
+    const f = fires[i]; if (--f.life <= 0) { fires.splice(i, 1); continue; }
+    if (f.cd > 0) { f.cd--; continue; }
+    for (const s of slimes.slice()) {
+      if (Math.abs(s.x - f.x) > f.w / 2 + s.r * .6 || s.y + s.r < f.y - 16 || s.y - s.r > f.y + 4) continue;
+      f.cd = 18; if (s.boss) { if (s.hitCd <= 0) hitBoss(s, .5); } else popSlime(s, null); break;
+    }
+  }
+  if (fam) {
+    const tx = P.x + P.w / 2 - P.face * 30, ty = P.y - 36 + Math.sin(S.tick * .08) * 4;
+    fam.x += (tx - fam.x) * .1; fam.y += (ty - fam.y) * .1;
+    if (S.freeze <= 0) fam.t++;
+    if (fam.t >= 300) {
+      const tg = nearestTarget(fam.x, fam.y);
+      if (tg) { fam.t = 0; famShots.push({ x: fam.x, y: fam.y, tg }); sfx.shoot(); sparks(fam.x, fam.y, '#d0b8ff', 8, 3); } else fam.t = 290;
+    }
+  }
+  for (let i = famShots.length - 1; i >= 0; i--) {
+    const b = famShots[i]; let tg = b.tg;
+    if (!(slimes.includes(tg) || flyers.includes(tg))) { tg = b.tg = nearestTarget(b.x, b.y); if (!tg) { famShots.splice(i, 1); continue; } }
+    const dx = tg.x - b.x, dy = tg.y - b.y, d = Math.hypot(dx, dy) || 1;
+    b.x += dx / d * 7; b.y += dy / d * 7;
+    if (S.tick % 2 === 0) emit({ kind: 'spark', x: b.x, y: b.y, vx: rnd(-.4, .4), vy: rnd(-.4, .4), g: 0, life: 14, c: '#d0b8ff', r: 1.6 });
+    if (d < tg.r + 5) {
+      famShots.splice(i, 1);
+      if (flyers.includes(tg)) hitFlyer(tg, 1, null); else if (tg.boss) hitBoss(tg, 1); else popSlime(tg, null);
+    }
+  }
 }
 
 // ---------- Voadores: morcego (ondas), fantasma (some e atravessa) e fênix (mergulha) ----------
@@ -885,6 +963,7 @@ function updateFlyers() {
 }
 
 function updateSlime(s) {
+  if (s.slowT > 0) { if (S.tick % 7 === 0) smoke(s.x, s.y - s.r, '#bfe8ff', 1, .3); if (--s.slowT === 0) { s.vx /= .7; s.spd /= .7; } }
   if (s.imm > 0) s.imm--;
   if (s.hitCd > 0) s.hitCd--;
   if (s.flash > 0) s.flash--;
@@ -947,7 +1026,7 @@ function updateGlobs() {
     if (g.x < -10 || g.x > W + 10 || g.y > H + 10 || g.y < -20) { globs.splice(i, 1); continue; }
     if (g.x > P.x - 3 && g.x < P.x + P.w + 3 && g.y > P.y && g.y < P.y + P.h) {
       globs.splice(i, 1); burst(g.x, g.y, '#b6e03a', 8);
-      if (S.shield > 0) sfx.shield(); else S.slow = S.skin === 'druida' ? 120 : 240;
+      if (S.shield > 0) sfx.shield(); else S.slow = Math.round(240 * slowMul());
       continue;
     }
     let landed = null;
@@ -970,15 +1049,15 @@ function pickItem(it) {
   sfx.item(); S.score += 50; sparks(it.x, it.y, d.color, 12, 4); ring(it.x, it.y, 26, d.color, 16, 2);
   popup(P.x + P.w / 2, P.y - 8, d.name, d.color, 13);
   if (WEAPONS[it.type]) S.weapon = it.type;
-  else if (it.type === 'shield') S.shield = Math.round(600 * (S.skin === 'bruxa' ? 1.5 : 1));
+  else if (it.type === 'shield') S.shield = Math.round(600 * durMul());
   else if (it.type === 'freeze') startFreeze();
-  else if (it.type === 'clock') { S.timeLeft += Math.round(20 * 60 * (S.skin === 'bruxa' ? 1.5 : 1)); S.timeFlash = 40; }
+  else if (it.type === 'clock') { S.timeLeft += Math.round(20 * 60 * clockMul()); S.timeFlash = 40; }
   else if (it.type === 'life') S.lives = Math.min(5, S.lives + 1);
 }
 
 // Nevasca: vento de gelo varre a tela e congela os slimes
 function startFreeze() {
-  S.freeze = Math.round(300 * (S.skin === 'bruxa' ? 1.5 : 1)); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
+  S.freeze = Math.round(300 * durMul()); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
   const cx = P.x + P.w / 2, cy = P.y + P.h / 2;
   ring(cx, cy, 130, '#bfe8ff', 30, 4);
   for (let i = 0; i < 30; i++) { const a = rnd(0, TAU), v = rnd(2, 7);
@@ -1054,6 +1133,10 @@ function playerHit() {
 // escudo absorve 1 golpe
 function hurt() {
   if (P.inv > 0 || S.state !== 'play') return;
+  if (is('ilu') && Math.random() < .15) {                  // Reflexo Arcano
+    P.inv = 60; sfx.shield(); ring(P.x + P.w / 2, P.y + P.h / 2, 50, '#f3b0ff', 18, 3); sparks(P.x + P.w / 2, P.y + P.h / 2, '#f3b0ff', 14, 5);
+    popup(P.x + P.w / 2, P.y - 10, 'ESQUIVOU!', '#f3b0ff', 15); return;
+  }
   if (S.shield > 0) {
     S.shield = 0; P.inv = 90; sfx.shield();
     ring(P.x + P.w / 2, P.y + P.h / 2, 60, '#7cc4ff', 20, 4);
@@ -1105,7 +1188,7 @@ function step() {
       if (S.slow > 0) S.slow--;
       updatePlayer(); handleFire(); updateShots();
       if (S.state !== 'play') break;
-      updateSlimes(); updateFlyers(); updateGlobs(); updateFx(); updateItems(); updateParts();
+      updateSlimes(); updateFlyers(); updatePerks(); updateGlobs(); updateFx(); updateItems(); updateParts();
       if (playerHit()) { hurt(); if (S.state !== 'play') break; }
       if (!slimes.length && !flyers.length) {
         S.state = 'clear'; S.timer = 200; sfx.clear();
@@ -1125,7 +1208,7 @@ function step() {
       if (P.dead) { const d = P.dead; d.vy += 0.45; d.x += d.vx; d.y += d.vy; d.rot += 0.28 * d.dir; }
       if (S.timer <= 0) {
         if (S.lives <= 0) { S.state = 'over'; S.best = Math.max(S.best, S.score); save(); }
-        else { S.weapon = 'harpoon'; startLevel(S.level); P.inv = 120; }
+        else { S.weapon = 'harpoon'; startLevel(S.level); P.inv = is('sangue') ? 300 : 120; }
       }
       break;
     case 'clear':
@@ -1153,7 +1236,7 @@ function buyOrEquip(kind, item) {
   else if (S.coins >= item.price) { S.coins -= item.price; owned.push(item.id); S[kind] = item.id; save(); flash(item.name + ' comprado!'); }
   else flash('Moedas insuficientes');
 }
-function openShop() { S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; }
+function openShop() { S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); }
 function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
 function pickMap(m) { if (m < S.unlocked) newGame(m * 3); else flash('Vença o chefe do mapa anterior!'); }
 const levelTag = i => `${LEVELS[i].map + 1}-${LEVELS[i].f + 1}`;
@@ -1657,6 +1740,18 @@ function drawPlayer() {
 }
 
 // ---- magias: hélice arcana, relâmpago persistente, mísseis ----
+function drawPerkFx() {
+  const t = S.tick;
+  for (const f of fires) { ctx.save(); ctx.globalAlpha = Math.min(1, f.life / 40); for (let x = f.x - f.w / 2 + 8; x <= f.x + f.w / 2 - 8; x += 14) flame(x, f.y); ctx.restore(); }
+  if (fam) {
+    ctx.save(); ctx.translate(fam.x, fam.y); const b = Math.sin(t * .15) * 2, ch = Math.min(1, fam.t / 300);
+    ctx.globalCompositeOperation = 'lighter'; glow(0, b, 16 + ch * 8, `rgba(180,140,255,${.35 + ch * .35})`); ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; const wf = Math.sin(t * .7) * 1.2; ctx.beginPath(); ctx.ellipse(-7, b - 2, 5, 2.4 + wf, -.5, 0, TAU); ctx.ellipse(7, b - 2, 5, 2.4 + wf, .5, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#f3e8ff'; circle(0, b, 5.5); ctx.fillStyle = '#b197fc'; circle(0, b + 1.2, 3.6); ctx.fillStyle = '#1d1538'; circle(-1.8, b - .4, .9); circle(1.8, b - .4, .9);
+    ctx.restore();
+  }
+  for (const q of famShots) { ctx.globalCompositeOperation = 'lighter'; glow(q.x, q.y, 14, 'rgba(190,150,255,.7)'); ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#fff'; circle(q.x, q.y, 3.5); }
+}
 function drawFlyers() {
   const t = S.tick;
   for (const f of flyers) {
@@ -1884,8 +1979,8 @@ function drawHUD() {
   ctx.fillStyle = sc; ctx.shadowColor = sc; ctx.shadowBlur = SB * (8); circle(20, H - 18, 5); ctx.shadowBlur = 0;
   txt(wk.name, 32, H - 17, 13, '#fff', 'left', null);
   let ex = W - 10;
-  const eff = (label, col, v) => { const w = 108; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(ex - w, H - 30, w, 24, 8); ctx.fill(); txt(`${label} ${Math.ceil(v / 60)}s`, ex - w / 2, H - 17, 12, col, 'center', null); ex -= w + 6; };
-  if (S.shield > 0) eff('BARREIRA', '#74c0fc', S.shield);
+  const eff = (label, col, v) => { const w = 108; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(ex - w, H - 30, w, 24, 8); ctx.fill(); txt(v > 20000 ? label : `${label} ${Math.ceil(v / 60)}s`, ex - w / 2, H - 17, 12, col, 'center', null); ex -= w + 6; };
+  if (S.shield > 0) eff(S.shield > 20000 ? 'ESPÍRITO' : 'BARREIRA', '#74c0fc', S.shield);
   if (S.freeze > 0) eff('NEVASCA', '#a5d8ff', S.freeze);
   if (S.slow > 0) { ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(ex - 70, H - 30, 70, 24, 8); ctx.fill(); txt('LENTO!', ex - 35, H - 17, 12, '#b6e03a', 'center', null); }
   const boss = slimes.find(s => s.boss);
@@ -1936,8 +2031,12 @@ function drawShop() {
   txt('LOJA', W / 2, 30, 36, '#ffe27a', 'center', '#5a3b00');
   coinCounter(W - 50, 22);
   txt('Personagens', 40, 66, 16, '#fff', 'left');
-  SKINS.forEach((k, i) => {
-    const x = 36 + i * 122, y = 80, w = 114, h = 150, owned = S.ownedSkins.includes(k.id), eq = S.skin === k.id;
+  { const pgN = Math.ceil(SKINS.length / 5), pg = S.shopPage || 0;
+    button(W - 242, 46, 44, 30, '<', '#495057', () => { S.shopPage = (pg + pgN - 1) % pgN; });
+    txt(`${pg + 1}/${pgN}`, W - 164, 62, 15, '#ffffff', 'center');
+    button(W - 130, 46, 44, 30, '>', '#495057', () => { S.shopPage = (pg + 1) % pgN; }); }
+  SKINS.slice((S.shopPage || 0) * 5, (S.shopPage || 0) * 5 + 5).forEach((k, i) => {
+    const x = 36 + i * 146, y = 80, w = 138, h = 150, owned = S.ownedSkins.includes(k.id), eq = S.skin === k.id;
     menuBtns.push({ x: x + w - 32, y, w: 32, h: 32, fn: () => { S.perk = k.id; } });
     menuBtns.push({ x, y, w, h, fn: () => buyOrEquip('skin', k) });
     ctx.fillStyle = eq ? 'rgba(47,158,68,.55)' : 'rgba(255,255,255,.14)'; ctx.strokeStyle = eq ? '#69db7c' : 'rgba(255,255,255,.4)'; ctx.lineWidth = 3;
@@ -1945,7 +2044,7 @@ function drawShop() {
     drawHero(x + w / 2, y + 40, 1, S.tick * .08, 'stand', k, ropeNow().color, { t: S.tick });
     ctx.fillStyle = 'rgba(0,0,0,.5)'; circle(x + w - 16, y + 16, 11); ctx.strokeStyle = '#ffe27a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(x + w - 16, y + 16, 11, 0, TAU); ctx.stroke();
     txt('?', x + w - 16, y + 17, 15, '#ffe27a', 'center', null);
-    txt(k.name, x + w / 2, y + 100, 15, '#fff');
+    txt(k.sn || k.name, x + w / 2, y + 100, 15, '#fff');
     txt(eq ? 'EQUIPADO' : owned ? 'USAR' : String(k.price), x + w / 2 + (owned ? 0 : 8), y + 128, 13, eq ? '#b2f2bb' : owned ? '#fff' : '#ffe27a', 'center', null);
     if (!owned) coinIcon(x + w / 2 - 14 - String(k.price).length * 3.5, y + 128);
   });
@@ -2022,7 +2121,7 @@ function draw() {
   if (S.shake > 0) ctx.translate(rnd(-1, 1) * Math.min(6, S.shake * .6), rnd(-1, 1) * Math.min(6, S.shake * .6));
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
 
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 48); txt('toque / tecla para continuar', W / 2, H / 2 + 44, 16); return; }
   switch (S.state) {
@@ -2680,8 +2779,8 @@ function drawHUD() {
   const wk = WEAPONS[S.weapon], sc = spellColor(S.weapon);
   panel(3, LH - 16, Math.max(78, Math.ceil(txtW(wk.name, 13)) / 2 + 22), 13, '#1a1230'); disc(11, LH - 10, 3, shade(sc, -.3)); disc(11, LH - 10, 2, sc); rc(10, LH - 12, 1, 1, '#fff'); txt(wk.name, 36, (LH - 9.5) * 2, 13, '#ffffff', 'left', null);
   let ex = LW - 4;
-  const eff = (label, col, v) => { const w = 58; panel(ex - w, LH - 16, w, 13, '#1a1230'); txt(`${label} ${Math.ceil(v / 60)}S`, (ex - w / 2) * 2, (LH - 9.5) * 2, 12, col, 'center', null); ex -= w + 3; };
-  if (S.shield > 0) eff('BARREIRA', '#74c0fc', S.shield);
+  const eff = (label, col, v) => { const w = 58; panel(ex - w, LH - 16, w, 13, '#1a1230'); txt(v > 20000 ? label : `${label} ${Math.ceil(v / 60)}S`, (ex - w / 2) * 2, (LH - 9.5) * 2, 12, col, 'center', null); ex -= w + 3; };
+  if (S.shield > 0) eff(S.shield > 20000 ? 'ESPÍRITO' : 'BARREIRA', '#74c0fc', S.shield);
   if (S.freeze > 0) eff('NEVASCA', '#a5d8ff', S.freeze);
   if (S.slow > 0) { panel(ex - 40, LH - 16, 40, 13, '#1a1230'); txt('LENTO!', (ex - 20) * 2, (LH - 9.5) * 2, 12, '#b6e03a', 'center', null); }
   const boss = slimes.find(s => s.boss);
@@ -2737,8 +2836,12 @@ function drawShop() {
   txt('LOJA', W / 2, 30, 42, '#ffe27a', 'center', '#5a3b00');
   coinCounter(W - 52, 22);
   txt('PERSONAGENS', 40, 66, 16, '#ffffff', 'left', '#000');
-  SKINS.forEach((k, i) => {
-    const x = 36 + i * 122, y = 80, w = 114, h = 150, owned = S.ownedSkins.includes(k.id), eq = S.skin === k.id;
+  { const pgN = Math.ceil(SKINS.length / 5), pg = S.shopPage || 0;
+    button(W - 242, 46, 44, 30, '<', '#495057', () => { S.shopPage = (pg + pgN - 1) % pgN; });
+    txt(`${pg + 1}/${pgN}`, W - 164, 62, 15, '#ffffff', 'center');
+    button(W - 130, 46, 44, 30, '>', '#495057', () => { S.shopPage = (pg + 1) % pgN; }); }
+  SKINS.slice((S.shopPage || 0) * 5, (S.shopPage || 0) * 5 + 5).forEach((k, i) => {
+    const x = 36 + i * 146, y = 80, w = 138, h = 150, owned = S.ownedSkins.includes(k.id), eq = S.skin === k.id;
     menuBtns.push({ x: x + w - 32, y, w: 32, h: 32, fn: () => { S.perk = k.id; } });
     menuBtns.push({ x, y, w, h, fn: () => buyOrEquip('skin', k) });
     const X = x / 2, Y = y / 2, Wd = w / 2, Hd = h / 2;
@@ -2747,7 +2850,7 @@ function drawShop() {
     lctx.drawImage(heroTmp.c, Math.round(X + Wd / 2 - 20), Math.round(Y + 4));
     disc(Math.round(X + Wd - 8), Math.round(Y + 8), 6, '#0c0818'); disc(Math.round(X + Wd - 8), Math.round(Y + 8), 5, '#3a3260');
     txt('?', (X + Wd - 8) * 2, (Y + 8) * 2 + 1, 14, '#ffe27a', 'center', null);
-    txt(k.name, x + w / 2, y + 100, 15, '#ffffff', 'center', '#000');
+    txt(k.sn || k.name, x + w / 2, y + 100, 15, '#ffffff', 'center', '#000');
     txt(eq ? 'EQUIPADO' : owned ? 'USAR' : String(k.price), x + w / 2 + (owned ? 0 : 10), y + 128, 13, eq ? '#b2f2bb' : owned ? '#fff' : '#ffe27a', 'center', null);
     if (!owned) coinPx(Math.round((x + w / 2 - 16 - String(k.price).length * 6) / 2), Math.round((y + 128) / 2));
   });
@@ -2808,6 +2911,22 @@ function phoenixP(X, Y, f, t) {
   disc(X + d * 6, Y - 3, 3, '#ff8a24'); fx(8, -3, 3, 1, '#ffe066'); fx(7, -4, 1, 1, '#ffffff');
   fx(5, -7, 1, 2, '#ff4a1a'); fx(6, -8, 1, 2, '#ffb02e'); fx(4, -6, 1, 1, '#ff4a1a');
 }
+function drawPerkFx() {
+  const t = S.tick;
+  for (const f of fires) {
+    ctx.save(); ctx.globalAlpha = Math.min(1, f.life / 40);
+    for (let x = f.x - f.w / 2 + 8; x <= f.x + f.w / 2 - 8; x += 14) { const X = Math.round(x / 2), Y = Math.round(f.y / 2), k = ((t >> 3) + (x | 0)) % 2;
+      ellip(X, Y - 3, 3, 4 + k, '#ff6a1a'); ellip(X, Y - 2, 2, 3 + k, '#ff9d2e'); rc(X, Y - 3, 1, 2, '#ffe27a'); rc(X + (k ? 1 : -1), Y - 8 - k, 1, 2, '#ff9d2e'); }
+    ctx.restore();
+  }
+  if (fam) {
+    const X = Math.round(fam.x / 2), Y = Math.round(fam.y / 2 + Math.sin(t * .15)), up = (t >> 2) % 2, ch = fam.t / 300;
+    if (ch > .8 && (t >> 2) % 2) ellip(X, Y, 6, 6, 'rgba(190,150,255,.35)');
+    rc(X - 6, Y - 2 - up, 4, 2, '#ffffff'); rc(X + 3, Y - 2 - up, 4, 2, '#ffffff'); rc(X - 5, Y - 3 - up, 2, 1, '#e8dcff'); rc(X + 4, Y - 3 - up, 2, 1, '#e8dcff');
+    disc(X, Y, 3, '#f3e8ff'); disc(X, Y + 1, 2, '#b197fc'); rc(X - 1, Y - 1, 1, 1, '#1d1538'); rc(X + 1, Y - 1, 1, 1, '#1d1538');
+  }
+  for (const q of famShots) { const X = Math.round(q.x / 2), Y = Math.round(q.y / 2); disc(X, Y, 2, '#b197fc'); rc(X, Y, 1, 1, '#ffffff'); }
+}
 function drawFlyers() {
   const t = S.tick;
   for (const f of flyers) {
@@ -2847,7 +2966,7 @@ function render() {
   if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 56, '#ffffff'); txt('TOQUE / TECLA PARA CONTINUAR', W / 2, H / 2 + 50, 16, '#ffffff', 'center', '#000'); return; }
   switch (S.state) {
     case 'ready': {
@@ -3000,6 +3119,7 @@ requestAnimationFrame(frame);
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
   MAPS, openMaps, pickMap, mkFlyer, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  get fires() { return fires; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
   get menuBtns() { return menuBtns; } };
