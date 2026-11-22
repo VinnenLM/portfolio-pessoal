@@ -38,7 +38,10 @@
   }
   @media (pointer:coarse) and (orientation:landscape){
     #app{--ctl:0px}
-    #ctl{position:fixed;left:0;right:0;bottom:0}
+    #ctl{position:fixed;left:auto;right:0;bottom:0;width:auto;flex-direction:column;align-items:center;gap:16px;padding:0 max(22px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) 0}
+    #ctl button.jump{margin-bottom:0}
+    #ctl button::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+    #ctl button{position:relative}
     #zone{height:72dvh;width:50%}
   }
 </style>
@@ -108,6 +111,18 @@ const BOSSES = {
            minions: [{ size: 2, type: 'normal' }] },
   queen: { name: 'Rainha Tóxica', hp: 20, color: '#8fd14f', crown: 'tiara', spit: true,
            minions: [{ size: 2, type: 'explosive' }, { size: 2, type: 'normal' }] },
+  skel:  { name: 'Rei Esqueleto',   hp: 16, color: '#dfe6e9', crown: 'king',  spit: false, fly: 'bat',
+           minions: [{ size: 2, type: 'normal' }] },
+  knight:{ name: 'Cavaleiro Slime', hp: 18, color: '#4dabf7', crown: 'king',  spit: false, fly: 'bat',
+           minions: [{ size: 2, type: 'normal' }, { size: 2, type: 'explosive' }] },
+  lord:  { name: 'Lorde Sombrio',   hp: 20, color: '#7048e8', crown: 'king',  spit: true,  fly: 'ghost',
+           minions: [{ size: 2, type: 'normal' }] },
+  golem: { name: 'Gigante de Pedra',hp: 24, color: '#868e96', crown: 'king',  spit: false, fly: 'bat',
+           minions: [{ size: 2, type: 'explosive' }, { size: 2, type: 'normal' }] },
+  magma: { name: 'Slime de Magma',  hp: 22, color: '#ff6b35', crown: 'king',  spit: false, fly: 'phoenix',
+           minions: [{ size: 2, type: 'explosive' }] },
+  frost: { name: 'Rainha do Gelo',  hp: 28, color: '#74c0fc', crown: 'tiara', spit: true,  fly: ['bat', 'ghost', 'phoenix'],
+           minions: [{ size: 2, type: 'normal' }, { size: 2, type: 'explosive' }] },
 };
 
 // ---------- Loja ----------
@@ -135,13 +150,16 @@ const THEMES = [
   { kind: 'ice',     sky: ['#6fbfee', '#b9e5fb', '#f2fcff'], hill: '#d3edf8', ground: '#8bb4cb', grass: '#f0fbff', stone: ['#9ec7de', '#e6f6ff', '#6e98b0'] },
   { kind: 'volcano', sky: ['#1f0a14', '#6b1d2c', '#d4562b'], hill: '#4e1429', ground: '#2a0f14', grass: '#e5603d', stone: ['#5a3a3a', '#8a5a50', '#32201f'] },
   { kind: 'swamp',   sky: ['#12261a', '#35582a', '#9db857'], hill: '#3f6b2a', ground: '#2f2a14', grass: '#7fae2e', stone: ['#6b7a58', '#9fb07a', '#414a35'] },
+  { kind: 'castle',  amb: 'meadow',  sky: ['#6a7fd6', '#f2a37a', '#ffe0a8'], hill: '#7f9a62', ground: '#5d5046', grass: '#a89c88', stone: ['#9a8f86', '#c9bfb2', '#625850'] },
+  { kind: 'darkcastle', amb: 'dungeon', sky: ['#0a0614', '#1b1232', '#3a2158'], hill: '#1c1430', ground: '#1d1826', grass: '#5a4c78', stone: ['#4a4560', '#6f6890', '#2a2640'] },
+  { kind: 'mountain', amb: 'ice', ambN: .3, sky: ['#4d78c9', '#9bc3ee', '#eaf3ff'], hill: '#7f8f9c', ground: '#5b5f66', grass: '#9aa3ab', stone: ['#8d949c', '#c4cad0', '#5a6068'] },
 ];
 
 // ---------- Fases ----------
 // slimes: x,y,size(1..5),dir(±1), type('explosive'|'spitter'), color, boss('king'|'queen')
 // blocks: blocos flutuantes {x,y,w,h}   ladders: escadas {x,y,h} (y = topo)
 // spd: velocidade horizontal dos slimes | color: cor dos slimes normais
-const LEVELS = [
+const OLD = [
   { name: 'Campos do Reino', brief: 'Use sua magia para derrotar todos os slimes antes que o tempo acabe!', theme: 0, time: 60,
     slimes: [{ x: 250, y: 120, size: 3, dir: 1 }] },
 
@@ -202,6 +220,92 @@ const LEVELS = [
     slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'queen' }] },
 ];
 
+// ---------- Mapas (cada um com 3 fases; o chefe fica na última) ----------
+const MAPS = [
+  { name: 'Campo Aberto',    theme: 0, desc: 'Planícies' },
+  { name: 'Dungeon',         theme: 1, desc: 'Morcegos' },
+  { name: 'Castelo',         theme: 5, desc: 'Muralhas' },
+  { name: 'Castelo Sombrio', theme: 6, desc: 'Fantasmas' },
+  { name: 'Montanha',        theme: 7, desc: 'Picos e vento' },
+  { name: 'Vulcão',          theme: 3, desc: 'Fênix de fogo' },
+  { name: 'Pântano',         theme: 4, desc: 'Gosma e névoa' },
+  { name: 'Reino de Gelo',   theme: 2, desc: 'Desafio final' },
+];
+const mkL = (map, lay, o) => Object.assign({ blocks: OLD[lay].blocks, ladders: OLD[lay].ladders, map, theme: MAPS[map].theme }, o);
+const bat = (x, y) => ({ k: 'bat', x, y }), ghost = (x, y) => ({ k: 'ghost', x, y }), phx = (x, y) => ({ k: 'phoenix', x, y });
+const LEVELS = [
+  // 1 · Campo Aberto
+  mkL(0, 0, { name: 'Campos do Reino', brief: 'Use sua magia para derrotar todos os slimes antes que o tempo acabe!', time: 60,
+    slimes: [{ x: 250, y: 120, size: 3, dir: 1 }] }),
+  mkL(0, 1, { name: 'Dupla Verde', brief: 'Dois slimes grandes. Cuidado com os quiques! (PULAR: Z / Shift)', time: 70,
+    slimes: [{ x: 180, y: 110, size: 3, dir: 1 }, { x: 620, y: 110, size: 3, dir: -1 }] }),
+  mkL(0, 5, { name: 'Rei Slime', brief: 'CHEFE! Acerte o Rei Slime várias vezes. Cada golpe chama capangas!', time: 130, spd: 1.2,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'king' }] }),
+  // 2 · Dungeon
+  mkL(1, 2, { name: 'Ruínas Flutuantes', brief: 'Morcegos! Eles voam em ondas e não podem ser pulados. Acerte-os!', time: 85,
+    slimes: [{ x: 150, y: 100, size: 4, dir: 1 }], flyers: [bat(620, 100)] }),
+  mkL(1, 3, { name: 'Escadaria da Torre', brief: 'Suba as escadas, mas cuidado com os morcegos!', time: 100,
+    slimes: [{ x: 400, y: 110, size: 3, dir: 1 }, { x: 300, y: 140, size: 3, dir: -1 }, { x: 650, y: 100, size: 2, dir: 1 }],
+    flyers: [bat(120, 90), bat(700, 120)] }),
+  mkL(1, 11, { name: 'Rei Esqueleto', brief: 'CHEFE! Cada golpe liberta mais morcegos.', time: 140, spd: 1.2,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'skel' }] }),
+  // 3 · Castelo
+  mkL(2, 6, { name: 'Portões do Castelo', brief: 'Slimes laranja EXPLODEM. E há morcegos de guarda!', time: 95,
+    slimes: [{ x: 150, y: 110, size: 3, dir: 1, type: 'explosive' }, { x: 650, y: 110, size: 2, dir: -1, type: 'explosive' }, { x: 400, y: 90, size: 3, dir: 1 }],
+    flyers: [bat(400, 80)] }),
+  mkL(2, 4, { name: 'Salão do Trono', brief: 'Slimes rápidos e dois morcegos reais.', time: 105, spd: 1.6,
+    slimes: [{ x: 200, y: 120, size: 3, dir: 1 }, { x: 600, y: 120, size: 3, dir: -1 }, { x: 400, y: 90, size: 4, dir: 1 }],
+    flyers: [bat(150, 90), bat(650, 90)] }),
+  mkL(2, 5, { name: 'Cavaleiro Slime', brief: 'CHEFE! Ele convoca capangas e morcegos.', time: 140, spd: 1.3,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'knight' }] }),
+  // 4 · Castelo Sombrio
+  mkL(3, 7, { name: 'Corredor Assombrado', brief: 'Fantasmas atravessam tudo — só podem ser atingidos quando estão visíveis!', time: 105,
+    slimes: [{ x: 400, y: 110, size: 3, dir: 1, type: 'spitter' }, { x: 200, y: 130, size: 3, dir: -1 }, { x: 600, y: 130, size: 3, dir: 1, type: 'spitter' }],
+    flyers: [ghost(400, 90)] }),
+  mkL(3, 8, { name: 'Cripta Sombria', brief: 'Explosivos, fantasmas e morcegos. Mantenha a calma!', time: 120, spd: 1.5,
+    slimes: [{ x: 200, y: 100, size: 3, dir: 1, type: 'explosive' }, { x: 600, y: 100, size: 3, dir: -1, type: 'explosive' }, { x: 400, y: 90, size: 4, dir: 1 }],
+    flyers: [ghost(150, 90), ghost(650, 90), bat(400, 70)] }),
+  mkL(3, 11, { name: 'Lorde Sombrio', brief: 'CHEFE! Ele cospe gosma e chama fantasmas.', time: 150, spd: 1.3,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'lord' }] }),
+  // 5 · Montanha
+  mkL(4, 4, { name: 'Trilha Rochosa', brief: 'O vento é forte e os morcegos, rápidos.', time: 105, spd: 1.7,
+    slimes: [{ x: 200, y: 120, size: 3, dir: 1 }, { x: 600, y: 120, size: 3, dir: -1 }, { x: 400, y: 90, size: 4, dir: 1 }],
+    flyers: [bat(100, 90), bat(700, 100)] }),
+  mkL(4, 10, { name: 'Desfiladeiro', brief: 'Muitos slimes e três morcegos no ar.', time: 125, spd: 1.7,
+    slimes: [{ x: 150, y: 100, size: 3, dir: 1 }, { x: 650, y: 100, size: 3, dir: -1 }, { x: 400, y: 90, size: 3, dir: 1, type: 'explosive' }, { x: 300, y: 140, size: 3, dir: -1, type: 'spitter' }],
+    flyers: [bat(120, 90), bat(400, 70), bat(680, 90)] }),
+  mkL(4, 5, { name: 'Gigante de Pedra', brief: 'CHEFE! Duro como rocha. Cada golpe solta explosivos e morcegos.', time: 150, spd: 1.2,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'golem' }] }),
+  // 6 · Vulcão
+  mkL(5, 8, { name: 'Rios de Lava', brief: 'A Fênix mergulha sobre você! Fuja quando ela tremer.', time: 115, spd: 1.6,
+    slimes: [{ x: 200, y: 100, size: 3, dir: 1, type: 'explosive' }, { x: 600, y: 100, size: 3, dir: -1, type: 'explosive' }, { x: 400, y: 90, size: 4, dir: 1 }],
+    flyers: [phx(400, 90)] }),
+  mkL(5, 6, { name: 'Cratera Ardente', brief: 'Fênix e morcego juntos sobre a cratera.', time: 110, spd: 1.5,
+    slimes: [{ x: 150, y: 110, size: 3, dir: 1, type: 'explosive' }, { x: 650, y: 110, size: 3, dir: -1, type: 'explosive' }, { x: 400, y: 90, size: 3, dir: 1 }],
+    flyers: [phx(250, 90), bat(600, 80)] }),
+  mkL(5, 11, { name: 'Slime de Magma', brief: 'CHEFE! Cada golpe invoca uma Fênix de fogo.', time: 155, spd: 1.3,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'magma' }] }),
+  // 7 · Pântano
+  mkL(6, 7, { name: 'Brejo Sombrio', brief: 'Gosma, fantasmas e morcegos entre as árvores.', time: 110,
+    slimes: [{ x: 400, y: 110, size: 3, dir: 1, type: 'spitter' }, { x: 200, y: 130, size: 3, dir: -1 }, { x: 600, y: 130, size: 3, dir: 1, type: 'spitter' }],
+    flyers: [ghost(300, 90), bat(600, 80)] }),
+  mkL(6, 9, { name: 'Pântano das Bruxas', brief: 'Gosma, explosões e dois fantasmas. A Barreira Arcana ajuda!', time: 130, spd: 1.5,
+    slimes: [{ x: 150, y: 110, size: 3, dir: 1, type: 'spitter' }, { x: 650, y: 110, size: 3, dir: -1, type: 'explosive' }, { x: 400, y: 90, size: 4, dir: 1, type: 'spitter' }],
+    flyers: [ghost(200, 90), ghost(600, 90)] }),
+  mkL(6, 11, { name: 'Rainha Tóxica', brief: 'CHEFE! Ela cospe gosma e chama capangas explosivos.', time: 150, spd: 1.2,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'queen' }] }),
+  // 8 · Reino de Gelo
+  mkL(7, 4, { name: 'Planície Congelada', brief: 'Slimes azuis velozes e morcegos de gelo.', time: 110, spd: 1.9, color: '#4aa8ff',
+    slimes: [{ x: 200, y: 120, size: 3, dir: 1 }, { x: 600, y: 120, size: 3, dir: -1 }, { x: 400, y: 90, size: 4, dir: 1 }],
+    flyers: [bat(100, 90), bat(700, 100)] }),
+  mkL(7, 10, { name: 'Tempestade Arcana', brief: 'Rápidos, muitos e de todo tipo — inclusive no ar!', time: 135, spd: 1.8, color: '#4aa8ff',
+    slimes: [{ x: 150, y: 100, size: 3, dir: 1 }, { x: 650, y: 100, size: 3, dir: -1 }, { x: 400, y: 90, size: 3, dir: 1, type: 'explosive' }, { x: 300, y: 140, size: 3, dir: -1, type: 'spitter' }],
+    flyers: [phx(400, 80), ghost(150, 100)] }),
+  mkL(7, 5, { name: 'Rainha do Gelo', brief: 'CHEFE FINAL! Morcegos, fantasmas e fênix a seu favor.', time: 175, spd: 1.3,
+    slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'frost' }] }),
+];
+LEVELS.forEach((l, i) => { l.f = i % 3; l.i = i; });
+
 /* =====================================================================
    Estado
    ===================================================================== */
@@ -227,10 +331,10 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
             cur: LEVELS[0], bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
-            coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
+            unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
-let slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], muteBtn = { x: 0, y: 0, w: 0, h: 0 };
+let flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], muteBtn = { x: 0, y: 0, w: 0, h: 0 };
 const P = { x: 0, y: 0, w: 22, h: 34, vy: 0, face: 1, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, anim: 0,
             sq: 0, lean: 0, walking: false, dead: null };
 let coinTaps = [];
@@ -243,7 +347,8 @@ const KEY = 'popmancer_v1', OLD_KEY = 'popnix_v1';
 function load() {
   try {
     const o = JSON.parse(localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY) || '{}');
-    S.savedLevel = o.level || 0; S.best = o.best || 0; S.coins = o.coins || 0;
+    S.savedLevel = Math.min(Math.max(0, o.level || 0), LEVELS.length - 1); S.best = o.best || 0; S.coins = o.coins || 0;
+    S.unlocked = Math.min(MAPS.length, Math.max(1, o.unlocked || 1, LEVELS[S.savedLevel].map + 1));
     S.ownedSkins = o.skins && o.skins.length ? o.skins : ['hero'];
     S.ownedRopes = o.ropes && o.ropes.length ? o.ropes : ['padrao'];
     S.skin = S.ownedSkins.includes(o.skin) ? o.skin : 'hero';
@@ -253,7 +358,7 @@ function load() {
 }
 function save() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ level: S.savedLevel, best: S.best, coins: S.coins,
+    localStorage.setItem(KEY, JSON.stringify({ level: S.savedLevel, best: S.best, coins: S.coins, unlocked: S.unlocked,
       skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle }));
   } catch (e) {}
 }
@@ -312,6 +417,7 @@ function noise(d, f0, f1, v = 0.08, type = 'bandpass', bus, delay = 0) {
   } catch (e) {}
 }
 const sfx = {
+  screech: () => { beep(1100, .35, 'sawtooth', .035, -700); beep(1650, .25, 'square', .02, -900, .03); },
   shoot: () => { beep(420, .14, 'sawtooth', .025, 900); beep(1200, .1, 'sine', .02, 800, .02); },
   pop:   (s) => { noise(.16, 1200, 250, .1); beep(380 - s * 30, .14, 'triangle', .06, -200); },
   hit:   () => { beep(200, .5, 'sawtooth', .06, -150); noise(.3, 800, 100, .08, 'lowpass'); },
@@ -341,6 +447,9 @@ const Music = (() => {
     stage2: { kind: 'calm', bpm: 66, root: 65, scale: 'lydian', prog: [[0, 1, 0, 4], [0, 5, 1, 4]], arp: .35, bells: .6, drone: 0 },
     stage3: { kind: 'calm', bpm: 64, root: 52, scale: 'phryg',  prog: [[0, 1, 0, 6], [0, 5, 1, 0]], arp: .35, bells: .1, drone: 1 },
     stage4: { kind: 'calm', bpm: 60, root: 60, scale: 'dorian', prog: [[0, 3, 0, 4], [0, 5, 3, 4]], arp: .3, bells: .2,  drone: 1 },
+    stage5: { kind: 'calm', bpm: 70, root: 62, scale: 'major',  prog: [[0, 4, 5, 3], [0, 3, 4, 0]], arp: .55, bells: .25, drone: 0 },
+    stage6: { kind: 'calm', bpm: 52, root: 55, scale: 'minor',  prog: [[0, 5, 3, 6], [0, 2, 5, 4]], arp: .3, bells: .35, drone: 1 },
+    stage7: { kind: 'calm', bpm: 68, root: 59, scale: 'lydian', prog: [[0, 4, 1, 5], [0, 3, 4, 1]], arp: .45, bells: .1, drone: 1 },
     boss:   { kind: 'boss', bpm: 128, root: 50, scale: 'minor', prog: [[0, 5, 6, 4], [0, 5, 2, 6]] },
   };
   const rng = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
@@ -450,6 +559,7 @@ function startLevel(i) {
     if (d.boss) { const B = BOSSES[d.boss]; s.boss = B; s.hp = s.maxhp = B.hp; s.color = B.color; }
     return s;
   });
+  flyers = (L.flyers || []).map(d => mkFlyer(d.k, d.x, d.y));
   blocks = L.blocks || [];
   ladders = (L.ladders || []).map(l => ({ x: l.x, y: l.y, w: 26, h: l.h }));
   shots = []; items = []; parts = []; globs = []; puddles = []; fx = [];
@@ -467,7 +577,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = [];
+  S.state = 'menu'; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = [];
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -586,6 +696,7 @@ function updateShots() {
       if (sh.t >= w.stick) { shots.splice(i, 1); continue; }
     }
     // colisão com slimes
+    let gone = false;
     for (const s of slimes.slice()) {
       if (s.imm > 0 && s.immShot === sh.id) continue;
       if (s.boss && s.hitCd > 0) continue;
@@ -593,6 +704,16 @@ function updateShots() {
       const cy = clamp(s.y, sh.top, sh.bottom), dx = sh.x - s.x, dy = cy - s.y;
       if (dx * dx + dy * dy <= s.r * s.r) {
         if (s.boss) hitBoss(s, w.dmg || 1); else popSlime(s, sh);
+        if (!w.pierce) { shots.splice(i, 1); gone = true; break; }
+      }
+    }
+    if (gone) continue;
+    for (const f of flyers.slice()) {                       // colisão com voadores
+      if ((f.k === 'ghost' && !f.solid) || f.imm > 0) continue;
+      if (Math.abs(sh.x - f.x) > f.r) continue;
+      const cy = clamp(f.y, sh.top, sh.bottom), dx = sh.x - f.x, dy = cy - f.y;
+      if (dx * dx + dy * dy <= f.r * f.r) {
+        hitFlyer(f, w.dmg || 1, sh);
         if (!w.pierce) { shots.splice(i, 1); break; }
       }
     }
@@ -676,6 +797,9 @@ function spawnMinion(s) {
                     TYPE_COLOR[m.type] || S.cur.color || '#5fd35f', m.type);
   c.vy = -6; c.imm = 20;
   slimes.push(c);
+  if (s.boss.fly && flyers.length < 4 && Math.random() < .6) {
+    const ks = [].concat(s.boss.fly); flyers.push(mkFlyer(ks[Math.floor(Math.random() * ks.length)], s.x, Math.max(70, s.y - s.r)));
+  }
 }
 
 function killBoss(s) {
@@ -684,7 +808,71 @@ function killBoss(s) {
   burst(s.x, s.y, s.color, 50, 7);
   for (let i = 0; i < 10; i++) items.push({ x: s.x, y: s.y, vy: rnd(-7, -3), vx: rnd(-3, 3), type: 'coin', val: 3, t: 0 });
   for (const o of slimes) if (o !== s) burst(o.x, o.y, o.color, 10);
-  slimes.length = 0;
+  for (const f of flyers) burst(f.x, f.y, '#fff', 10);
+  slimes.length = 0; flyers.length = 0;
+}
+
+// ---------- Voadores: morcego (ondas), fantasma (some e atravessa) e fênix (mergulha) ----------
+const FLY = { bat: { r: 11, hp: 1, pts: 150 }, ghost: { r: 13, hp: 1, pts: 200 }, phoenix: { r: 15, hp: 2, pts: 350 } };
+function mkFlyer(k, x, y) {
+  const d = FLY[k], sp = Math.min(1.35, (S.cur && S.cur.spd ? S.cur.spd : 1.4) / 1.4);
+  return { k, x, y, r: d.r, hp: d.hp, vx: (Math.random() < .5 ? -1 : 1) * (k === 'bat' ? 1.3 * sp : .9), vy: 0, dvx: 0, base: y,
+           p: Math.random() * TAU, t: Math.floor(Math.random() * 90), st: 'hover', tx: x, flash: 0, imm: 0, alpha: 1, solid: true, face: 1 };
+}
+function hitFlyer(f, dmg, sh) {
+  f.hp -= dmg; f.flash = 8; f.imm = 8;
+  if (f.hp <= 0) { popFlyer(f, sh); return; }
+  sfx.boss(); burst(f.x, f.y, '#fff', 6); sparks(f.x, f.y, '#ffd27a', 8, 4);
+  if (f.k === 'phoenix' && f.st !== 'rise') { f.st = 'rise'; f.t = 0; }
+}
+function popFlyer(f, sh) {
+  const i = flyers.indexOf(f); if (i < 0) return; flyers.splice(i, 1);
+  const c = f.k === 'phoenix' ? '#ff9a2e' : f.k === 'ghost' ? '#dfe8ff' : '#7a5aa8', d = FLY[f.k], sc = sh ? spellColor(sh.wk) : '#fff';
+  S.score += d.pts; sfx.pop(2);
+  burst(f.x, f.y, c, 14); sparks(f.x, f.y, sc, 8, 4); ring(f.x, f.y, f.r * 1.7, sc, 14, 2);
+  popup(f.x, f.y - f.r, '+' + d.pts, '#ffe27a', 12);
+  dropLoot({ x: f.x, y: f.y, size: f.k === 'phoenix' ? 4 : 2 });
+}
+function updateFlyers() {
+  const px = P.x + P.w / 2, py = P.y + P.h / 2;
+  for (const f of flyers) {
+    if (f.imm > 0) f.imm--; if (f.flash > 0) f.flash--;
+    if (S.freeze > 0) continue;
+    f.t++; f.p += .1;
+    if (f.k === 'bat') {
+      f.x += f.vx; if (f.x < f.r) { f.x = f.r; f.vx = Math.abs(f.vx); } else if (f.x > W - f.r) { f.x = W - f.r; f.vx = -Math.abs(f.vx); }
+      f.base = 222 + Math.sin(f.t * .012 + f.p) * 138;          // sobe e desce devagar; no ponto baixo ameaça o mago
+      f.y = f.base + Math.sin(f.p * 1.4) * 30; f.face = f.vx > 0 ? 1 : -1;
+    } else if (f.k === 'ghost') {
+      const cyc = f.t % 330; f.solid = cyc < 220;
+      f.alpha += ((f.solid ? .92 : .2) - f.alpha) * .12;
+      const ty = clamp(py - 24, 70, FLOOR - 60);
+      f.x += clamp((px - f.x) * .012, -.75, .75); f.y += clamp((ty - f.y) * .012 + Math.sin(f.p) * .35, -.7, .7);
+      f.face = px > f.x ? 1 : -1;
+    } else {
+      if (f.st === 'hover') {
+        f.x += f.vx; if (f.x < f.r) { f.x = f.r; f.vx = Math.abs(f.vx); } else if (f.x > W - f.r) { f.x = W - f.r; f.vx = -Math.abs(f.vx); }
+        f.y += (88 + Math.sin(f.p) * 14 - f.y) * .08; f.face = f.vx > 0 ? 1 : -1;
+        if (f.t % 4 === 0) emit({ x: f.x - f.face * 8, y: f.y + 4, vx: rnd(-.3, .3), vy: rnd(.2, .8), g: -.01, life: 16, r: 2.2, c: f.t % 8 ? '#ffb02e' : '#ff6a1a' });
+        if (f.t > 150) { f.st = 'warn'; f.t = 0; f.tx = px; sfx.screech(); }
+      } else if (f.st === 'warn') {
+        f.x += Math.sin(f.t * 1.6) * 1.7; f.y -= .4;
+        if (f.t > 38) {
+          f.st = 'dive'; f.t = 0; const dx = f.tx - f.x, dy = FLOOR - 20 - f.y, d = Math.hypot(dx, dy) || 1;
+          f.dvx = dx / d * 6.4; f.vy = dy / d * 6.4; f.face = dx > 0 ? 1 : -1;
+        }
+      } else if (f.st === 'dive') {
+        f.x += f.dvx; f.y += f.vy;
+        emit({ x: f.x, y: f.y, vx: rnd(-.5, .5), vy: rnd(-.5, .5), g: -.02, life: 20, r: 3.4, c: f.t % 2 ? '#ff7a1a' : '#ffd54a' });
+        if (f.y >= FLOOR - 20 || f.x < f.r || f.x > W - f.r) {
+          f.x = clamp(f.x, f.r, W - f.r); f.st = 'rise'; f.t = 0; ring(f.x, Math.min(f.y, FLOOR - 4), 26, '#ffb347', 14, 3); sparks(f.x, Math.min(f.y, FLOOR - 4), '#ffcf5a', 12, 5); S.shake = Math.max(S.shake, 4);
+        }
+      } else {
+        f.y -= 3.2; f.x += f.vx * .5;
+        if (f.y <= 90) { f.y = 90; f.st = 'hover'; f.t = 0; f.vx = (f.x < W / 2 ? 1 : -1) * .9; }
+      }
+    }
+  }
 }
 
 function updateSlime(s) {
@@ -797,7 +985,7 @@ function updateWind() {
 // ambiente de cada cenário (nuvens, neve, brasas, vaga-lumes...)
 let ambKind = 'meadow';
 function initAmb(ti) {
-  const K = THEMES[ti].kind, n = { meadow: 20, dungeon: 30, ice: 90, volcano: 55, swamp: 36 }[K];
+  const T0 = THEMES[ti], K = T0.amb || T0.kind, n = Math.round({ meadow: 20, dungeon: 30, ice: 90, volcano: 55, swamp: 36 }[K] * (T0.ambN || 1));
   ambKind = K; amb = []; clouds = [];
   for (let i = 0; i < n; i++) amb.push({ x: rnd(0, W), y: rnd(0, FLOOR), p: rnd(0, TAU), s: rnd(.5, 1.3) });
   if (K === 'meadow' || K === 'ice' || K === 'swamp') for (let i = 0; i < 5; i++) clouds.push({ x: rnd(-40, W), y: rnd(55, 175), s: rnd(.7, 1.4), v: rnd(.1, .3) });
@@ -846,6 +1034,11 @@ function playerHit() {
     const dx = s.x - cx, dy = s.y - cy;
     if (dx * dx + dy * dy < (s.r - 2) * (s.r - 2)) return true;
   }
+  for (const f of flyers) {
+    if (f.k === 'ghost' && !f.solid) continue;
+    const cx = clamp(f.x, bx, bx + bw), cy = clamp(f.y, by, by + bh), dx = f.x - cx, dy = f.y - cy;
+    if (dx * dx + dy * dy < (f.r - 3) * (f.r - 3)) return true;
+  }
   return false;
 }
 
@@ -881,7 +1074,7 @@ function step() {
   if (S.freeze > 0 && S.state === 'play' && !S.paused) updateWind();
 
   if (S.state === 'menu') { slimes.forEach(updateSlime); return; }
-  if (S.state === 'shop') return;
+  if (S.state === 'shop' || S.state === 'maps') return;
   if (S.paused) { if (wasPressed) S.paused = false; return; }
 
   switch (S.state) {
@@ -898,9 +1091,9 @@ function step() {
       if (S.slow > 0) S.slow--;
       updatePlayer(); handleFire(); updateShots();
       if (S.state !== 'play') break;
-      updateSlimes(); updateGlobs(); updateFx(); updateItems(); updateParts();
+      updateSlimes(); updateFlyers(); updateGlobs(); updateFx(); updateItems(); updateParts();
       if (playerHit()) { hurt(); if (S.state !== 'play') break; }
-      if (!slimes.length) {
+      if (!slimes.length && !flyers.length) {
         S.state = 'clear'; S.timer = 200; sfx.clear();
         S.bonus = Math.floor(Math.max(0, S.timeLeft) / 60) * 10; S.score += S.bonus;
         const boss = S.cur.slimes.some(d => d.boss);
@@ -908,6 +1101,8 @@ function step() {
         globs = []; puddles = [];
         const last = S.level >= LEVELS.length - 1;
         S.savedLevel = last ? 0 : S.level + 1;
+        S.unlockMsg = '';
+        if (S.cur.f === 2 && S.cur.map + 2 > S.unlocked && S.cur.map + 1 < MAPS.length) { S.unlocked = S.cur.map + 2; S.unlockMsg = 'Novo mapa: ' + MAPS[S.cur.map + 1].name + '!'; }
         S.best = Math.max(S.best, S.score); save();
       }
       break;
@@ -945,6 +1140,9 @@ function buyOrEquip(kind, item) {
   else flash('Moedas insuficientes');
 }
 function openShop() { S.state = 'shop'; S.msg = ''; S.msgT = 0; }
+function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
+function pickMap(m) { if (m < S.unlocked) newGame(m * 3); else flash('Vença o chefe do mapa anterior!'); }
+const levelTag = i => `${LEVELS[i].map + 1}-${LEVELS[i].f + 1}`;
 
 /* =====================================================================
    Desenho
@@ -1067,6 +1265,39 @@ function paintBg(ti) {
       ctx.strokeStyle = '#555'; ctx.lineWidth = 2;
       for (const x of [210, 590]) for (let y = 0; y < 90; y += 9) { ctx.beginPath(); ctx.ellipse(x, y + 4, 3, 4.5, 0, 0, TAU); ctx.stroke(); }
       break; }
+    case 'castle': {
+      glow(560, 200, 230, 'rgba(255,205,130,.85)'); ctx.fillStyle = '#ffeab4'; circle(560, 200, 36);
+      ridge('rgba(125,90,160,.55)', FLOOR - 125, 80, 31, 14, 6); ridge('rgba(100,72,135,.65)', FLOOR - 95, 60, 32, 12, 4);
+      ctx.fillStyle = '#5b4b7c'; castle(400, FLOOR - 118, 1.55); litWindows(400, FLOOR - 118, 1.55, '#ffd36b');
+      ridge('#6f8a5a', FLOOR - 70, 26, 33, 10, 0);
+      ctx.fillStyle = '#a89a8a'; ctx.fillRect(0, FLOOR - 66, W, 66);
+      for (let x = 0; x < W; x += 28) { ctx.fillStyle = '#a89a8a'; ctx.fillRect(x, FLOOR - 80, 17, 15); ctx.fillStyle = '#c9bfb2'; ctx.fillRect(x, FLOOR - 80, 17, 3); }
+      ctx.strokeStyle = 'rgba(60,45,40,.38)'; ctx.lineWidth = 1.5;
+      for (let y = FLOOR - 66, row = 0; y < FLOOR; y += 14, row++) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); for (let x = (row % 2) * 20; x < W; x += 40) { ctx.moveTo(x, y); ctx.lineTo(x, y + 14); } ctx.stroke(); }
+      for (const x of [80, 250, 550, 720]) { ctx.fillStyle = '#b3202f'; ctx.beginPath(); ctx.moveTo(x - 14, FLOOR - 64); ctx.lineTo(x + 14, FLOOR - 64); ctx.lineTo(x + 14, FLOOR - 14); ctx.lineTo(x, FLOOR - 24); ctx.lineTo(x - 14, FLOOR - 14); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#e8c15a'; ctx.fillRect(x - 14, FLOOR - 64, 28, 4); circle(x, FLOOR - 42, 6); ctx.fillStyle = '#b3202f'; circle(x, FLOOR - 42, 3.2); }
+      break; }
+    case 'darkcastle': {
+      glow(640, 110, 200, 'rgba(190,170,255,.5)'); ctx.fillStyle = '#ebe5ff'; circle(640, 110, 38); ctx.fillStyle = 'rgba(150,140,205,.4)'; circle(627, 100, 9); circle(653, 122, 6);
+      ridge('rgba(40,26,70,.85)', FLOOR - 110, 70, 41, 12, 5);
+      ctx.fillStyle = '#0d0818'; castle(290, FLOOR - 112, 1.75); castle(650, FLOOR - 120, 1.1);
+      litWindows(290, FLOOR - 112, 1.75, '#b78cff'); litWindows(650, FLOOR - 120, 1.1, '#b78cff');
+      deadTree(60, FLOOR - 2, 120, '#07040d'); deadTree(760, FLOOR - 2, 100, '#07040d'); deadTree(470, FLOOR - 2, 70, '#07040d');
+      ridge('#1c1430', FLOOR - 42, 18, 43, 10, 0);
+      ctx.fillStyle = '#07040d';
+      for (let x = 0; x < W; x += 14) { ctx.fillRect(x, FLOOR - 40, 3, 40); ctx.beginPath(); ctx.moveTo(x - 1.5, FLOOR - 40); ctx.lineTo(x + 1.5, FLOOR - 50); ctx.lineTo(x + 4.5, FLOOR - 40); ctx.fill(); }
+      ctx.fillRect(0, FLOOR - 28, W, 3);
+      for (const x of [120, 680]) { ctx.fillStyle = '#2a2236'; ctx.fillRect(x - 3, 232, 6, 40); ctx.fillRect(x - 9, 224, 18, 8); }
+      break; }
+    case 'mountain': {
+      glow(690, 95, 170, 'rgba(255,246,214,.8)'); ctx.fillStyle = '#fff6d6'; circle(690, 95, 26);
+      mountain(-10, 170, 190, '#7a8bb0', '#ffffff'); mountain(820, 160, 200, '#7a8bb0', '#ffffff');
+      mountain(140, 220, 280, '#6a7ca3', '#ffffff'); mountain(420, 280, 330, '#586b95', '#ffffff'); mountain(700, 230, 270, '#6a7ca3', '#ffffff');
+      ridge('rgba(200,215,235,.5)', FLOOR - 78, 40, 51, 10, 0);
+      ridge('#5f7f6a', FLOOR - 56, 28, 52, 10, 3);
+      for (let i = 0; i < 11; i++) pine(24 + i * 74 + r() * 24, FLOOR - 2, 46 + r() * 34, ['#2f6a57', '#3a7a65', '#27594a'][i % 3], false);
+      ctx.fillStyle = '#6c7480'; for (const [x, w, h] of [[50, 60, 26], [330, 80, 20], [620, 70, 28], [760, 50, 18]]) { ctx.beginPath(); ctx.moveTo(x - w / 2, FLOOR); ctx.lineTo(x - w * .2, FLOOR - h); ctx.lineTo(x + w * .15, FLOOR - h * .8); ctx.lineTo(x + w / 2, FLOOR); ctx.fill(); }
+      break; }
     case 'ice':
       for (const [yy, c1, o] of [[60, '60,255,180', 0], [95, '120,160,255', 2]]) {
         const ag = ctx.createLinearGradient(0, yy - 30, 0, yy + 70); ag.addColorStop(0, `rgba(${c1},0)`); ag.addColorStop(.5, `rgba(${c1},.32)`); ag.addColorStop(1, `rgba(${c1},0)`);
@@ -1109,7 +1340,10 @@ function paintGround(T, r) {
   for (let i = 0; i < 40; i++) { ctx.fillStyle = `rgba(255,255,255,${.04 + r() * .06})`; ctx.fillRect(r() * W, FLOOR + 12 + r() * 24, 3 + r() * 6, 2); }
   ctx.fillStyle = shade(T.grass, -.15); ctx.fillRect(0, FLOOR, W, 10);
   ctx.fillStyle = T.grass; ctx.fillRect(0, FLOOR, W, 6);
-  for (let x = 0; x < W; x += 3) { const h = 3 + r() * 7; ctx.fillStyle = r() < .5 ? T.grass : shade(T.grass, .2); ctx.fillRect(x, FLOOR - h + 2, 2, h); }
+  if (T.kind === 'castle' || T.kind === 'darkcastle' || T.kind === 'mountain') {
+    ctx.fillStyle = shade(T.grass, .25); ctx.fillRect(0, FLOOR, W, 2); ctx.fillStyle = 'rgba(0,0,0,.28)';
+    for (let x = 0; x < W; x += 44) ctx.fillRect(x + (x % 88 ? 0 : 20), FLOOR + 2, 2, 8);
+  } else for (let x = 0; x < W; x += 3) { const h = 3 + r() * 7; ctx.fillStyle = r() < .5 ? T.grass : shade(T.grass, .2); ctx.fillRect(x, FLOOR - h + 2, 2, h); }
   if (T.kind === 'meadow') for (let i = 0; i < 26; i++) { ctx.fillStyle = ['#fff', '#ffd34d', '#ff8fb1', '#b197fc'][Math.floor(r() * 4)]; circle(r() * W, FLOOR - 4 - r() * 3, 2.2); }
   ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.fillRect(0, FLOOR + 8, W, 3);
 }
@@ -1139,7 +1373,7 @@ function flame(x, y) {
 }
 function drawBgDynamic(ti) {
   const K = THEMES[ti].kind, t = S.tick;
-  if (K === 'swamp' || K === 'volcano') {
+  if (K === 'swamp' || K === 'volcano' || K === 'darkcastle') {
     ctx.fillStyle = '#fff';
     for (const st of STARS) { ctx.globalAlpha = (K === 'volcano' ? .35 : .6) * (0.5 + 0.5 * Math.sin(t * .05 + st.p)); ctx.fillRect(st.x, st.y, 1.6, 1.6); }
     ctx.globalAlpha = 1;
@@ -1151,19 +1385,20 @@ function drawBgDynamic(ti) {
       ctx.beginPath(); ctx.moveTo(bx - 7, by - f); ctx.quadraticCurveTo(bx - 3, by - 3, bx, by); ctx.quadraticCurveTo(bx + 3, by - 3, bx + 7, by - f); ctx.stroke(); }
   }
   if (K === 'dungeon') { flame(270, 214); flame(530, 214); }
+  if (K === 'darkcastle') { flame(120, 224); flame(680, 224); }
   if (K === 'volcano') {
     ctx.globalCompositeOperation = 'lighter'; glow(560, FLOOR - 235, 120 + Math.sin(t * .1) * 14, 'rgba(255,110,30,.35)'); glow(400, FLOOR + 6, 380, 'rgba(255,90,30,.18)'); ctx.globalCompositeOperation = 'source-over';
     for (let i = 0; i < 6; i++) { const ph = (t * .5 + i * 40) % 240;
       ctx.fillStyle = `rgba(60,40,48,${(1 - ph / 240) * .4})`; circle(560 + Math.sin(ph * .03 + i) * 18 + ph * .15, FLOOR - 236 - ph * .6, 14 + ph * .12); }
   }
-  if (K === 'swamp') for (let i = 0; i < 3; i++) {
+  if (K === 'swamp' || K === 'darkcastle') for (let i = 0; i < 3; i++) {
     const mx = ((t * .15 * (i + 1) + i * 300) % (W + 400)) - 200, my = FLOOR - 40 - i * 26;
     const mg = ctx.createRadialGradient(mx, my, 0, mx, my, 220); mg.addColorStop(0, 'rgba(190,230,170,.22)'); mg.addColorStop(1, 'rgba(190,230,170,0)');
     ctx.fillStyle = mg; ctx.fillRect(mx - 220, my - 60, 440, 120);
   }
   // partículas de ambiente
   for (const a of amb) {
-    switch (K) {
+    switch (THEMES[ti].amb || K) {
       case 'meadow': ctx.fillStyle = a.s > .9 ? '#ffd0e0' : '#ffffff'; ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(a.p * 2); ctx.beginPath(); ctx.ellipse(0, 0, 3.2, 1.6, 0, 0, TAU); ctx.fill(); ctx.restore(); break;
       case 'dungeon': ctx.fillStyle = `rgba(210,200,255,${.12 + .12 * Math.sin(a.p * 3)})`; circle(a.x, a.y, 1.3 * a.s); break;
       case 'ice': ctx.fillStyle = 'rgba(255,255,255,.85)'; circle(a.x, a.y, 1.2 + a.s); break;
@@ -1408,6 +1643,61 @@ function drawPlayer() {
 }
 
 // ---- magias: hélice arcana, relâmpago persistente, mísseis ----
+function drawFlyers() {
+  const t = S.tick;
+  for (const f of flyers) {
+    ctx.save(); ctx.translate(f.x, f.y);
+    if (f.flash > 0 && (f.flash >> 1) % 2) ctx.globalAlpha = .55;
+    if (f.k === 'bat') drawBat(f, t); else if (f.k === 'ghost') drawGhost(f, t); else drawPhoenix(f, t);
+    ctx.restore();
+  }
+}
+function drawBat(f, t) {
+  const fl = Math.sin(t * .55 + f.p * 3);
+  for (const sg of [-1, 1]) {
+    ctx.save(); ctx.scale(sg, 1);
+    ctx.fillStyle = '#4a3566'; ctx.strokeStyle = '#1f1430'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(3, -2);
+    ctx.quadraticCurveTo(12, -14 - fl * 9, 25, -4 - fl * 10);
+    ctx.quadraticCurveTo(21, -fl * 3, 18, 3); ctx.quadraticCurveTo(14, -1, 12, 5); ctx.quadraticCurveTo(8, 1, 3, 6);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,110,200,.6)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(4, -1); ctx.lineTo(24, -4 - fl * 10); ctx.moveTo(5, 1); ctx.lineTo(15, 3 - fl * 3); ctx.stroke();
+    ctx.restore();
+  }
+  ctx.fillStyle = '#3a2a52'; ctx.beginPath(); ctx.ellipse(0, 1, 6.5, 8, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#4a3566'; circle(0, -6, 5.6);
+  ctx.beginPath(); ctx.moveTo(-5, -9); ctx.lineTo(-4, -16); ctx.lineTo(-1, -10); ctx.moveTo(5, -9); ctx.lineTo(4, -16); ctx.lineTo(1, -10); ctx.fill();
+  ctx.fillStyle = '#ff4d4d'; circle(-2.2, -6.2, 1.7); circle(2.2, -6.2, 1.7);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.moveTo(-2, -3); ctx.lineTo(-1, -1); ctx.lineTo(0, -3); ctx.moveTo(0, -3); ctx.lineTo(1, -1); ctx.lineTo(2, -3); ctx.fill();
+}
+function drawGhost(f, t) {
+  let a = f.alpha; if (f.solid && f.t % 330 > 190 && (t >> 2) % 2) a *= .55;
+  const w = Math.sin(t * .12 + f.p) * 2;
+  ctx.globalAlpha *= a;
+  ctx.globalCompositeOperation = 'lighter'; glow(0, 0, 32, 'rgba(160,190,255,.45)'); ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = '#e8f0ff'; ctx.beginPath(); ctx.arc(0, -2, 12, Math.PI, 0); ctx.lineTo(12, 10);
+  for (let i = 0; i < 4; i++) ctx.quadraticCurveTo(12 - i * 6 - 3, 10 + (i % 2 ? -5 : 7) + w, 12 - i * 6 - 6, 10);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = 'rgba(150,170,230,.35)'; ctx.beginPath(); ctx.ellipse(6, 3, 5, 9, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#1b2250'; ctx.beginPath(); ctx.ellipse(-4.5, -3, 2.6, 4, 0, 0, TAU); ctx.ellipse(4.5, -3, 2.6, 4, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#2a3270'; ctx.beginPath(); ctx.ellipse(0, 5.5, 2.6, 3.6, 0, 0, TAU); ctx.fill();
+}
+function drawPhoenix(f, t) {
+  const dive = f.st === 'dive', warn = f.st === 'warn', d = f.face || 1, fl = dive ? .2 : Math.sin(t * .4 + f.p);
+  ctx.scale(d, 1);
+  ctx.globalCompositeOperation = 'lighter'; glow(0, 0, 42, dive ? 'rgba(255,120,30,.6)' : warn ? 'rgba(255,230,110,.65)' : 'rgba(255,140,40,.4)'); ctx.globalCompositeOperation = 'source-over';
+  for (const [a, c] of [[.5, '#ff4a1a'], [0, '#ff7a1a'], [-.5, '#ffb02e']]) { ctx.fillStyle = c; ctx.save(); ctx.rotate(a + Math.sin(t * .25) * .12); ctx.beginPath(); ctx.moveTo(-6, 0); ctx.quadraticCurveTo(-22, -5, -36, 4); ctx.quadraticCurveTo(-22, 6, -6, 4); ctx.fill(); ctx.restore(); }
+  ctx.fillStyle = '#ff8a24'; ctx.beginPath();
+  if (dive) { ctx.moveTo(-2, -3); ctx.quadraticCurveTo(-18, -8, -30, -3); ctx.quadraticCurveTo(-16, 2, -2, 3); }
+  else { ctx.moveTo(-4, -2); ctx.quadraticCurveTo(-16, -18 - fl * 15, 4, -24 - fl * 17); ctx.quadraticCurveTo(7, -12 - fl * 7, 8, -2); }
+  ctx.fill(); ctx.fillStyle = '#ffd54a'; ctx.beginPath(); if (!dive) { ctx.moveTo(-2, -3); ctx.quadraticCurveTo(-8, -12 - fl * 8, 3, -16 - fl * 10); ctx.quadraticCurveTo(4, -8 - fl * 4, 5, -3); } ctx.fill();
+  ctx.fillStyle = '#ff6a1a'; ctx.beginPath(); ctx.ellipse(0, 0, 13, 9, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ffd54a'; ctx.beginPath(); ctx.ellipse(1, 3, 9, 5, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ff8a24'; circle(11, -5, 6.6);
+  ctx.fillStyle = '#ff4a1a'; ctx.beginPath(); ctx.moveTo(6, -9); ctx.lineTo(4, -17); ctx.lineTo(9, -11); ctx.lineTo(10, -19); ctx.lineTo(13, -11); ctx.lineTo(17, -16); ctx.lineTo(15, -8); ctx.fill();
+  ctx.fillStyle = '#ffe066'; ctx.beginPath(); ctx.moveTo(16, -6); ctx.lineTo(24, -3); ctx.lineTo(16, -1); ctx.fill();
+  ctx.fillStyle = '#fff'; circle(13, -6.5, 2.2); ctx.fillStyle = '#220'; circle(13.7, -6.5, 1.1);
+}
 function drawShots() {
   for (const sh of shots) {
     const color = spellColor(sh.wk), t = S.tick;
@@ -1566,7 +1856,7 @@ function drawHUD() {
   for (let i = 0; i < Math.max(3, S.lives); i++) heart(20 + i * 22, 18, 1.15, i < S.lives);
   const cx0 = 30 + Math.max(3, S.lives) * 22;
   coinIcon(cx0, 18); txt(String(S.coins), cx0 + 12, 19, 15, '#ffe27a', 'left');
-  txt(`FASE ${S.level + 1} · ${S.cur.name}`, W / 2, 19, 16, '#fff', 'center');
+  txt(`FASE ${levelTag(S.level)} · ${S.cur.name}`, W / 2, 19, 16, '#fff', 'center');
   txt(String(S.score).padStart(6, '0'), W - 48, 19, 18, '#ffe27a', 'right');
   drawMuteIcon(W - 38, 8);
   const frac = clamp(S.timeLeft / (S.cur.time * 60), 0, 1), flash = S.timeFlash > 0 && (S.tick >> 2) % 2;
@@ -1576,7 +1866,7 @@ function drawHUD() {
   tg.addColorStop(0, c1); tg.addColorStop(1, c2); ctx.fillStyle = tg; ctx.fillRect(0, TOP - 6, W * frac, 6);
   // caixa da magia
   const wk = WEAPONS[S.weapon], sc = spellColor(S.weapon);
-  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(6, H - 30, 146, 24, 8); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(6, H - 30, Math.max(146, 44 + wk.name.length * 8.6), 24, 8); ctx.fill();
   ctx.fillStyle = sc; ctx.shadowColor = sc; ctx.shadowBlur = SB * (8); circle(20, H - 18, 5); ctx.shadowBlur = 0;
   txt(wk.name, 32, H - 17, 13, '#fff', 'left', null);
   let ex = W - 10;
@@ -1615,8 +1905,9 @@ function drawMenu() {
   coinCounter(W - 50, 22);
   let y = 200;
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 44, label, col, fn); y += 54; };
-  if (S.savedLevel > 0) add(`Continuar · Fase ${S.savedLevel + 1}`, () => newGame(S.savedLevel), '#2f9e44');
+  if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
+  add('Mapas', openMaps, '#7048e8');
   add('Loja', openShop, '#e67700');
   txt(`Recorde: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center');
   if (S.msgT > 0) { txt(S.msg, W / 2, y + 36, 16, '#ffe27a'); }
@@ -1662,6 +1953,33 @@ function drawShop() {
   txt('Moedas caem dos slimes e ao completar fases', W - 14, H - 14, 11, '#ddd', 'right', null);
 }
 
+function lockIcon(cx, cy) {
+  ctx.fillStyle = '#ffd43b'; ctx.strokeStyle = '#7a5a00'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(cx - 12, cy - 4, 24, 20, 4); ctx.fill(); ctx.stroke();
+  ctx.strokeStyle = '#e0e0e0'; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, cy - 4, 8, Math.PI, 0); ctx.stroke();
+  ctx.fillStyle = '#7a5a00'; circle(cx, cy + 5, 3);
+}
+function drawMaps() {
+  menuBtns = [];
+  drawBackground(0); overlay(.6);
+  txt('MAPAS', W / 2, 30, 40, '#ffe27a', 'center', '#5a3b00');
+  const cur = S.savedLevel > 0 ? LEVELS[S.savedLevel].map : -1;
+  MAPS.forEach((m, i) => {
+    const col = i % 4, row = (i / 4) | 0, w = 182, h = 150, x = 18 + col * (w + 12), y = 60 + row * (h + 14), open = i < S.unlocked;
+    menuBtns.push({ x, y, w, h, fn: () => pickMap(i) });
+    ctx.fillStyle = open ? 'rgba(255,255,255,.14)' : 'rgba(0,0,0,.4)'; ctx.strokeStyle = i === cur ? '#69db7c' : open ? 'rgba(255,255,255,.55)' : 'rgba(255,255,255,.2)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill(); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.roundRect(x + 8, y + 8, w - 16, 93, 8); ctx.clip();
+    const bg = bgFor(m.theme); ctx.drawImage(bg, 0, 0, bg.width, bg.height, x + 8, y + 8, w - 16, 93);
+    if (!open) { ctx.fillStyle = 'rgba(8,4,20,.68)'; ctx.fillRect(x + 8, y + 8, w - 16, 93); }
+    ctx.restore();
+    if (!open) lockIcon(x + w / 2, y + 44);
+    txt(String(i + 1), x + 22, y + 22, 16, '#ffe27a', 'center');
+    txt(m.name, x + w / 2, y + 116, 15, open ? '#fff' : '#aaa');
+    txt(open ? m.desc : 'BLOQUEADO', x + w / 2, y + 136, 11, open ? '#cfe' : '#888', 'center', null);
+  });
+  if (S.msgT > 0) txt(S.msg, W / 2, 388, 16, '#ffe27a');
+  button(W / 2 - 90, H - 46, 180, 36, 'Voltar', '#495057', goMenu);
+}
 function drawFade() {
   if (S.flashA > 0) { ctx.fillStyle = `rgba(${S.flashC},${S.flashA})`; ctx.fillRect(0, 0, W, H); }
   if (S.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${S.fade})`; ctx.fillRect(0, 0, W, H); }
@@ -1671,16 +1989,18 @@ function draw() {
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, W, H);
   if (S.state === 'shop') { drawShop(); drawMuteIcon(W - 38, 8); drawFade(); return; }
+  if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   if (S.shake > 0) ctx.translate(rnd(-1, 1) * Math.min(6, S.shake * .6), rnd(-1, 1) * Math.min(6, S.shake * .6));
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
 
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 48); txt('toque / tecla para continuar', W / 2, H / 2 + 44, 16); return; }
   switch (S.state) {
     case 'ready': {
       overlay(.35);
-      txt(`FASE ${S.level + 1}`, W / 2, H / 2 - 62, 46, '#ffe27a');
+      txt(MAPS[S.cur.map].name.toUpperCase(), W / 2, H / 2 - 108, 18, '#9ae6ff');
+      txt(`FASE ${levelTag(S.level)}`, W / 2, H / 2 - 62, 46, '#ffe27a');
       txt(S.cur.name, W / 2, H / 2 - 14, 30);
       txt(S.cur.brief, W / 2, H / 2 + 28, 16, '#fff');
       if (S.timer < 140) txt('toque / ESPAÇO para começar', W / 2, H / 2 + 64, 14, '#cfe', 'center', null);
@@ -1688,7 +2008,7 @@ function draw() {
     }
     case 'clear':
       overlay(.35); txt('FASE COMPLETA!', W / 2, H / 2 - 30, 48, '#7dff7d');
-      txt(`Bônus de tempo: +${S.bonus}   ·   +${S.gained} moedas`, W / 2, H / 2 + 20, 20); break;
+      txt(`Bônus de tempo: +${S.bonus}   ·   +${S.gained} moedas`, W / 2, H / 2 + 20, 20); if (S.unlockMsg) txt(S.unlockMsg, W / 2, H / 2 + 64, 22, '#ffe27a'); break;
     case 'dead':
       if (S.timer < 70) overlay(.2); break;
     case 'over':
@@ -1897,6 +2217,10 @@ function paintGround(T, K) {
   } else if (K === 'volcano') {
     rc(0, FL, LW, 2, '#5a2a22'); for (let x = 0; x < LW; x += 2) if (r() > .5) rc(x, FL - 1, 2, 1, '#5a2a22');
     for (let i = 0; i < 16; i++) { const x = r() * LW; let px = x, py = FL + 3; for (let k = 0; k < 3; k++) { const nx = px + (r() - .5) * 8, ny = py + 3 + r() * 2; line(px, py, nx, ny, '#ff7a2f'); px = nx; py = ny; } }
+  } else if (K === 'castle' || K === 'darkcastle' || K === 'mountain') {
+    rc(0, FL, LW, 3, T.grass); rc(0, FL, LW, 1, shade(T.grass, .3)); rc(0, FL + 2, LW, 1, shade(T.grass, -.4));
+    for (let x = 0; x < LW; x += 16) rc(x, FL, 1, 3, shade(T.grass, -.45));
+    rc(0, FL + 4, LW, 1, shade(T.ground, -.3)); for (let x = 8; x < LW; x += 16) rc(x, FL + 5, 1, 4, shade(T.ground, -.35));
   } else {
     const gc = T.grass; rc(0, FL - 1, LW, 3, gc); rc(0, FL - 1, LW, 1, shade(gc, .3)); rc(0, FL + 2, LW, 1, shade(gc, -.35));
     for (let x = 0; x < LW; x += 2) { if (r() > .45) rc(x, FL - 2 - (r() * 2 | 0), 1, 2, gc); if (r() > .75) rc(x, FL + 3, 2, 1, shade(gc, -.2)); }
@@ -1925,6 +2249,32 @@ function paintBg(ti) {
       }
       for (const bx of [14, 372]) { rc(bx, 16, 14, 46, '#8a1f2e'); rc(bx, 16, 14, 2, '#c9a24a'); for (let j = 0; j < 7; j++) rc(bx + j, 62 + j, 14 - j * 2, 1, '#8a1f2e'); rc(bx + 4, 28, 6, 6, '#e0b84a'); rc(bx + 5, 29, 4, 4, '#8a1f2e'); rc(bx + 6, 30, 2, 2, '#e0b84a'); }
       for (const cx2 of [120, 255, 380]) for (let y = 0; y < 38; y += 3) rc(cx2 + (y % 6 ? 1 : 0), y, 2, 2, '#6a6590');
+      break; }
+    case 'castle': {
+      disc(300, 74, 22, '#ffd98c'); disc(300, 74, 17, '#fff0c0');
+      mountains('#8a74b0', '#a98fcc', FL - 64, 46, 21, null); mountains('#7a63a0', '#9a82c0', FL - 46, 38, 22, null);
+      castleP(200, FL - 34, { m: '#6a5a8a', l: '#8878a8', d: '#4c3e68', r: '#a03a4a', w: '#ffd36b', dd: '#2a2040', f: '#e0b84a' }, 1.4);
+      hills('#7f9a62', '#a4c27c', FL - 30, 12, 23);
+      brickWall(0, FL - 33, LW, 33, '#a89a8a', '#6a5e52', 24);
+      for (let x = 0; x < LW; x += 13) { rc(x, FL - 39, 8, 6, '#a89a8a'); rc(x, FL - 39, 8, 1, '#c9bfb2'); rc(x + 6, FL - 39, 2, 6, '#7a6e62'); }
+      for (const bx of [38, 124, 262, 350]) { rc(bx, FL - 31, 10, 22, '#b3202f'); rc(bx, FL - 31, 10, 2, '#e0b84a'); for (let j = 0; j < 5; j++) rc(bx + j, FL - 9 + j, 10 - j * 2, 1, '#b3202f'); rc(bx + 4, FL - 23, 2, 4, '#e0b84a'); }
+      break; }
+    case 'darkcastle': {
+      for (const st of STARS) rc(st.x / 2, st.y / 2, 1, 1, 'rgba(230,220,255,.55)');
+      disc(320, 52, 20, '#b8aee8'); disc(320, 52, 17, '#ece8ff'); for (const [dx, dy, dr] of [[-5, -4, 3], [6, 3, 2]]) disc(320 + dx, 52 + dy, dr, '#cfc8f2');
+      mountains('#1d1235', '#2e1d52', FL - 62, 40, 31, null);
+      const dp = { m: '#1a1030', l: '#2d2050', d: '#0e0818', r: '#241640', w: '#b78cff', dd: '#070410', f: '#7048e8' };
+      castleP(110, FL - 26, dp, 1.5); castleP(300, FL - 24, dp, 1);
+      mountains('#120a22', '#1d1235', FL - 32, 22, 32, null);
+      for (let x = 0; x < LW; x += 7) { rc(x, FL - 22, 2, 22, '#07040d'); rc(x - 1, FL - 24, 4, 2, '#07040d'); rc(x, FL - 26, 2, 2, '#07040d'); }
+      rc(0, FL - 14, LW, 2, '#07040d');
+      deadTreeP(30, FL - 1, 44, '#07040d'); deadTreeP(380, FL - 1, 38, '#07040d'); deadTreeP(215, FL - 1, 26, '#07040d');
+      break; }
+    case 'mountain': {
+      disc(330, 38, 12, '#fff3c8'); disc(330, 38, 9, '#fffbe8');
+      mountains('#8a9cc4', '#c4d2ea', FL - 72, 62, 41, FL - 104, '#ffffff'); mountains('#6a7ca8', '#a6b8d6', FL - 48, 50, 42, FL - 80, '#ffffff');
+      hills('#5f7f6a', '#86a890', FL - 18, 14, 44);
+      for (let i = 0; i < 9; i++) pineP(14 + i * 46 + r() * 16, FL - 1, 34 + r() * 22, ['#2f6a57', '#3a7a65', '#27594a'][i % 3], false);
       break; }
     case 'ice': {
       for (let x = 0; x < LW; x++) { const y0 = Math.round(36 + 12 * Math.sin(x * .03) + 6 * Math.sin(x * .08)); for (let j = 0; j < 38; j++) if (((x + j) & 1) === 0 || j < 16) { ctx.fillStyle = j < 12 ? 'rgba(120,255,200,.28)' : j < 26 ? 'rgba(120,230,255,.2)' : 'rgba(170,150,255,.12)'; ctx.fillRect(x, y0 + j, 1, 1); } }
@@ -1965,20 +2315,21 @@ function cloudFor(s, K) { const w = Math.round(46 * s), k = K + w; if (cloudSpr[
 
 function drawBgDynamic(ti) {
   const K = THEMES[ti].kind, t = S.tick;
-  if (K === 'swamp' || K === 'volcano') for (const st of STARS) if (Math.sin(t * .05 + st.p) > .2) rc(st.x / 2, st.y / 2, 1, 1, K === 'volcano' ? '#ffd9c0' : '#ffffd0');
+  if (K === 'swamp' || K === 'volcano' || K === 'darkcastle') for (const st of STARS) if (Math.sin(t * .05 + st.p) > .2) rc(st.x / 2, st.y / 2, 1, 1, K === 'volcano' ? '#ffd9c0' : '#ffffd0');
   if (K !== 'dungeon' && K !== 'volcano') for (const c of clouds) { const sp = cloudFor(c.s, K); lctx.globalAlpha = K === 'swamp' ? .55 : 1; lctx.drawImage(sp, Math.round(c.x / 2), Math.round(c.y / 2 * .8)); lctx.globalAlpha = 1; }
   if (K === 'meadow') for (let i = 0; i < 3; i++) { const bx = Math.round((t * .35 + i * 95) % (LW + 40) - 20), by = Math.round(36 + i * 12 + Math.sin(t * .03 + i) * 3), up = ((t >> 3) + i) % 2;
     rc(bx - 3, by + (up ? -1 : 1), 2, 1, '#26344c'); rc(bx - 1, by, 2, 1, '#26344c'); rc(bx + 1, by, 2, 1, '#26344c'); rc(bx + 3, by + (up ? -1 : 1), 2, 1, '#26344c'); }
+  if (K === 'darkcastle') { flameP(60, FL - 22, t); flameP(340, FL - 22, t + 9); }
   if (K === 'dungeon') { flameP(135, 104, t); flameP(265, 104, t); flameP(30, 104, t + 7); flameP(372, 104, t + 11);
     for (const fx2 of [135, 265]) { ctx.fillStyle = `rgba(255,170,60,${.05 + .03 * Math.sin(t * .2)})`; for (let rr = 40; rr > 8; rr -= 8) { ctx.beginPath(); ctx.arc(fx2, 98, rr, 0, TAU); ctx.fill(); } } }
   if (K === 'volcano') { const gl = 0.5 + 0.5 * Math.sin(t * .08);
     ctx.fillStyle = `rgba(255,120,40,${.10 + .06 * gl})`; for (let rr = 52; rr > 10; rr -= 9) { ctx.beginPath(); ctx.arc(280, FL - 150, rr, 0, TAU); ctx.fill(); }
     for (let i = 0; i < 5; i++) { const ph = (t * .5 + i * 40) % 200; ctx.fillStyle = `rgba(60,40,48,${(1 - ph / 200) * .5})`; const rr = 5 + ph * .05; ctx.fillRect(Math.round(280 + Math.sin(ph * .04 + i) * 8 + ph * .1) - rr / 2, Math.round(FL - 154 - ph * .45), Math.round(rr), Math.round(rr)); }
     dith(0, FL - 1, LW, 2, `rgba(255,${100 + gl * 60 | 0},40,.5)`, t >> 4); }
-  if (K === 'swamp') for (let i = 0; i < 3; i++) { const mx = ((t * .1 * (i + 1) + i * 160) % (LW + 200)) - 100, my = FL - 22 - i * 14; ctx.fillStyle = 'rgba(190,230,170,.12)'; for (let j = 0; j < 4; j++) dith(Math.round(mx - 60 + j * 8), Math.round(my - j * 2), 120 - j * 16, 2, 'rgba(190,230,170,.16)', j); }
+  if (K === 'swamp' || K === 'darkcastle') for (let i = 0; i < 3; i++) { const mx = ((t * .1 * (i + 1) + i * 160) % (LW + 200)) - 100, my = FL - 22 - i * 14; ctx.fillStyle = 'rgba(190,230,170,.12)'; for (let j = 0; j < 4; j++) dith(Math.round(mx - 60 + j * 8), Math.round(my - j * 2), 120 - j * 16, 2, 'rgba(190,230,170,.16)', j); }
   if (K === 'ice') { for (let j = 0; j < 5; j++) dith(0, FL - 28 + j * 5, LW, 1, 'rgba(255,255,255,.12)', j + (t >> 5)); }
   for (const a of amb) { const x = Math.round(a.x / 2), y = Math.round(a.y / 2);
-    switch (K) {
+    switch (THEMES[ti].amb || K) {
       case 'meadow': rc(x, y, 2, 1, a.s > .9 ? '#ffc0d6' : '#ffffff'); if (((t >> 4) + (a.x | 0)) % 2) rc(x + 1, y + 1, 1, 1, '#ffc0d6'); break;
       case 'dungeon': if (Math.sin(a.p * 3) > 0) rc(x, y, 1, 1, 'rgba(220,210,255,.6)'); break;
       case 'ice': rc(x, y, a.s > 1 ? 2 : 1, a.s > 1 ? 2 : 1, '#ffffff'); break;
@@ -2290,7 +2641,7 @@ function drawHUD() {
   rc(0, 0, LW, 19, '#1a1230'); rc(0, 0, LW, 1, '#3a2c5e'); rc(0, 18, LW, 1, '#0c0818');
   const nh = Math.max(3, S.lives); for (let i = 0; i < nh; i++) heartPx(6 + i * 10, 6, i < S.lives);
   const cx0 = 14 + nh * 10; coinPx(cx0, 9); txt(String(S.coins), (cx0 + 7) * 2, 19, 15, '#ffe27a', 'left', null);
-  txt(`FASE ${S.level + 1} · ${S.cur.name}`, W / 2, 19, 16, '#ffffff', 'center', null);
+  txt(`FASE ${levelTag(S.level)} · ${S.cur.name}`, W / 2, 19, 16, '#ffffff', 'center', null);
   txt(String(S.score).padStart(6, '0'), W - 52, 19, 18, '#ffe27a', 'right', null);
   drawMuteIcon(W - 38, 8);
   const frac = clamp(S.timeLeft / (S.cur.time * 60), 0, 1), flash = S.timeFlash > 0 && (S.tick >> 2) % 2, low = frac <= .25;
@@ -2298,7 +2649,7 @@ function drawHUD() {
   const c1 = flash ? '#fff' : low ? ((S.tick >> 3) % 2 ? '#ff5555' : '#ffaaaa') : '#7bf08f', c2 = flash ? '#cfe' : low ? '#a02020' : '#2fa04f';
   rc(1, 19, bw, 2, c1); rc(1, 21, bw, 1, c2); for (let x = 12; x < bw; x += 12) rc(x, 19, 1, 3, 'rgba(0,0,0,.35)');
   const wk = WEAPONS[S.weapon], sc = spellColor(S.weapon);
-  panel(3, LH - 16, 78, 13, '#1a1230'); disc(11, LH - 10, 3, shade(sc, -.3)); disc(11, LH - 10, 2, sc); rc(10, LH - 12, 1, 1, '#fff'); txt(wk.name, 36, (LH - 9.5) * 2, 13, '#ffffff', 'left', null);
+  panel(3, LH - 16, Math.max(78, Math.ceil(txtW(wk.name, 13)) / 2 + 22), 13, '#1a1230'); disc(11, LH - 10, 3, shade(sc, -.3)); disc(11, LH - 10, 2, sc); rc(10, LH - 12, 1, 1, '#fff'); txt(wk.name, 36, (LH - 9.5) * 2, 13, '#ffffff', 'left', null);
   let ex = LW - 4;
   const eff = (label, col, v) => { const w = 58; panel(ex - w, LH - 16, w, 13, '#1a1230'); txt(`${label} ${Math.ceil(v / 60)}S`, (ex - w / 2) * 2, (LH - 9.5) * 2, 12, col, 'center', null); ex -= w + 3; };
   if (S.shield > 0) eff('BARREIRA', '#74c0fc', S.shield);
@@ -2340,8 +2691,9 @@ function drawMenu() {
   coinCounter(W - 52, 22);
   let y = 200;
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 44, label, col, fn); y += 54; };
-  if (S.savedLevel > 0) add(`Continuar · Fase ${S.savedLevel + 1}`, () => newGame(S.savedLevel), '#2f9e44');
+  if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
+  add('Mapas', openMaps, '#7048e8');
   add('Loja', openShop, '#e67700');
   txt(`RECORDE: ${S.best}`, W / 2, y + 10, 16, '#fff', 'center', '#000');
   if (S.msgT > 0) txt(S.msg, W / 2, y + 34, 16, '#ffe27a', 'center', '#000');
@@ -2384,6 +2736,63 @@ function drawShop() {
   button(W / 2 - 90, H - 54, 180, 44, 'Voltar', '#5c677d', goMenu);
   txt('MOEDAS CAEM DOS SLIMES', W - 14, H - 26, 11, '#dddddd', 'right', null);
 }
+function batP(X, Y, f, t) {
+  const up = ((t >> 2) + (f.p * 2 | 0)) % 2;
+  for (const sg of [-1, 1]) for (let i = 1; i <= 8; i++) {
+    const wy = up ? Y - 1 - Math.round(i * .8) : Y - 3 + Math.round(i * .45);
+    rc(X + sg * (2 + i) - (sg < 0 ? 0 : 0), wy, 1, i < 7 ? (i > 4 ? 3 : 4) : 2, i % 2 ? '#5b4380' : '#3e2d5c');
+  }
+  rc(X - 2, Y - 3, 5, 7, '#3e2d5c'); rc(X - 2, Y - 3, 5, 1, '#5b4380');
+  rc(X - 2, Y - 5, 5, 3, '#4a3566'); rc(X - 2, Y - 7, 1, 2, '#4a3566'); rc(X + 2, Y - 7, 1, 2, '#4a3566');
+  rc(X - 1, Y - 4, 1, 1, '#ff5a5a'); rc(X + 1, Y - 4, 1, 1, '#ff5a5a'); rc(X - 1, Y - 2, 1, 1, '#fff'); rc(X + 1, Y - 2, 1, 1, '#fff');
+}
+function ghostP(X, Y, f, t) {
+  let a = f.alpha; if (f.solid && f.t % 330 > 190 && (t >> 2) % 2) a *= .55;
+  ctx.globalAlpha *= a;
+  disc(X, Y - 1, 6, '#dfe8ff'); rc(X - 6, Y - 1, 13, 7, '#dfe8ff'); rc(X + 3, Y - 2, 3, 8, '#c4d2f5');
+  for (let i = -6; i <= 6; i++) rc(X + i, Y + 6, 1, ((i + (t >> 3)) & 2) ? 2 : 1, '#dfe8ff');
+  rc(X - 4, Y - 3, 2, 3, '#1b2250'); rc(X + 2, Y - 3, 2, 3, '#1b2250'); rc(X - 1, Y + 1, 3, 2, '#2a3270');
+}
+function phoenixP(X, Y, f, t) {
+  const d = f.face || 1, dive = f.st === 'dive', up = dive ? 2 : ((t >> 2) + (f.p | 0)) % 2;
+  const fx = (dx, dy, w, h, c) => rc(X + d * dx - (d < 0 ? w - 1 : 0), Y + dy, w, h, c);
+  if (f.st === 'warn' && (t >> 1) % 2) ellip(X, Y, 9, 7, 'rgba(255,255,200,.35)');
+  for (let i = 0; i < 6; i++) { fx(-7 - i, 1 + (i >> 1), 1, 3, i % 2 ? '#ff4a1a' : '#ff7a1a'); fx(-7 - i, 3 + (i >> 1), 1, 1, '#ffd54a'); }
+  if (up === 2) for (let i = 0; i < 9; i++) fx(-2 - i, -2 + (i >> 1), 1, 3, i % 2 ? '#ff7a1a' : '#ffb02e');
+  else for (let i = 0; i < 7; i++) { const h = Math.round(Math.sin(i / 6 * Math.PI) * 8) + 1; if (up) fx(-4 + i, -3 - h + 1, 1, h, i % 2 ? '#ff7a1a' : '#ffb02e'); else fx(-4 + i, 2, 1, h, i % 2 ? '#ff7a1a' : '#ffb02e'); }
+  ellip(X, Y, 6, 4, '#ff6a1a'); ellip(X + d, Y + 1, 4, 2, '#ffd54a');
+  disc(X + d * 6, Y - 3, 3, '#ff8a24'); fx(8, -3, 3, 1, '#ffe066'); fx(7, -4, 1, 1, '#ffffff');
+  fx(5, -7, 1, 2, '#ff4a1a'); fx(6, -8, 1, 2, '#ffb02e'); fx(4, -6, 1, 1, '#ff4a1a');
+}
+function drawFlyers() {
+  const t = S.tick;
+  for (const f of flyers) {
+    const X = Math.round(f.x / 2), Y = Math.round(f.y / 2);
+    ctx.save(); if (f.flash > 0 && (f.flash >> 1) % 2) ctx.globalAlpha = .55;
+    if (f.k === 'bat') batP(X, Y, f, t); else if (f.k === 'ghost') ghostP(X, Y, f, t); else phoenixP(X, Y, f, t);
+    ctx.restore();
+  }
+}
+function lockP(cx, cy) { rc(cx - 3, cy - 6, 1, 5, '#e0e0e0'); rc(cx + 3, cy - 6, 1, 5, '#e0e0e0'); rc(cx - 3, cy - 7, 7, 1, '#e0e0e0'); rc(cx - 5, cy - 1, 11, 8, '#7a5a00'); rc(cx - 4, cy, 9, 6, '#ffd43b'); rc(cx, cy + 2, 1, 2, '#7a5a00'); }
+function drawMaps() {
+  menuBtns = [];
+  drawBackground(0); overlay(.6);
+  txt('MAPAS', W / 2, 30, 42, '#ffe27a', 'center', '#5a3b00');
+  const cur = S.savedLevel > 0 ? LEVELS[S.savedLevel].map : -1;
+  MAPS.forEach((m, i) => {
+    const col = i % 4, row = (i / 4) | 0, w = 182, h = 150, x = 18 + col * (w + 12), y = 60 + row * (h + 14), open = i < S.unlocked;
+    menuBtns.push({ x, y, w, h, fn: () => pickMap(i) });
+    const X = x / 2, Y = y / 2;
+    panel(X, Y, w / 2, h / 2, open ? '#3a3260' : '#1a1428', i === cur ? '#69db7c' : '#0c0818');
+    lctx.drawImage(bgFor(m.theme), 0, 0, LW, LH, Math.round(X + 4), Math.round(Y + 4), 83, 46);
+    if (!open) { ctx.fillStyle = 'rgba(8,4,20,.68)'; ctx.fillRect(Math.round(X + 4), Math.round(Y + 4), 83, 46); lockP(Math.round(X + w / 4), Math.round(Y + 22)); }
+    txt(String(i + 1), x + 22, y + 22, 16, '#ffe27a', 'center', '#000');
+    txt(m.name, x + w / 2, y + 116, 14, open ? '#ffffff' : '#aaaaaa', 'center', '#000');
+    txt(open ? m.desc : 'BLOQUEADO', x + w / 2, y + 136, 11, open ? '#ccffee' : '#888888', 'center', null);
+  });
+  if (S.msgT > 0) txt(S.msg, W / 2, 384, 16, '#ffe27a', 'center', '#000');
+  button(W / 2 - 90, H - 54, 180, 44, 'Voltar', '#5c677d', goMenu);
+}
 function drawFade() {
   if (S.flashA > 0) { ctx.fillStyle = `rgba(${S.flashC},${S.flashA})`; ctx.fillRect(0, 0, LW, LH); }
   if (S.fade > 0) { ctx.fillStyle = `rgba(0,0,0,${Math.round(S.fade * 6) / 6})`; ctx.fillRect(0, 0, LW, LH); }
@@ -2391,21 +2800,23 @@ function drawFade() {
 function render() {
   ctx = lctx; lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LW, LH);
   if (S.state === 'shop') { drawShop(); drawMuteIcon(W - 38, 8); drawFade(); return; }
+  if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); drawFade();
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 56, '#ffffff'); txt('TOQUE / TECLA PARA CONTINUAR', W / 2, H / 2 + 50, 16, '#ffffff', 'center', '#000'); return; }
   switch (S.state) {
     case 'ready': {
       overlay(.4);
-      txt(`FASE ${S.level + 1}`, W / 2, H / 2 - 66, 56, '#ffe27a', 'center', '#5a3b00');
+      txt(MAPS[S.cur.map].name.toUpperCase(), W / 2, H / 2 - 118, 16, '#9ae6ff', 'center', '#000');
+      txt(`FASE ${levelTag(S.level)}`, W / 2, H / 2 - 66, 56, '#ffe27a', 'center', '#5a3b00');
       txt(S.cur.name, W / 2, H / 2 - 12, 28, '#ffffff');
       wrapTxt(S.cur.brief, W / 2, H / 2 + 30, 640, 14, '#ffffff', 18);
       if (S.timer < 140 && (S.tick >> 4) % 2) txt('TOQUE / ESPAÇO PARA COMEÇAR', W / 2, H / 2 + 100, 14, '#ccffee', 'center', null);
       break; }
     case 'clear':
       overlay(.4); txt('FASE COMPLETA!', W / 2, H / 2 - 30, 56, '#7dff7d', 'center', '#0b3d12');
-      txt(`BÔNUS DE TEMPO: +${S.bonus} · +${S.gained} MOEDAS`, W / 2, H / 2 + 24, 16, '#ffffff'); break;
+      txt(`BÔNUS DE TEMPO: +${S.bonus} · +${S.gained} MOEDAS`, W / 2, H / 2 + 24, 16, '#ffffff'); if (S.unlockMsg) txt(S.unlockMsg, W / 2, H / 2 + 64, 18, '#ffe27a', 'center', '#000'); break;
     case 'dead': if (S.timer < 70) overlay(.2); break;
     case 'over':
       overlay(.65); txt('FIM DE JOGO', W / 2, H / 2 - 30, 56, '#ff6b81', 'center', '#4a0a14');
@@ -2454,7 +2865,8 @@ addEventListener('keydown', e => {
     if (e.key === ' ' || e.key === 'Enter') { if (menuBtns[0]) menuBtns[0].fn(); }
     if (e.key === 'n' || e.key === 'N') newGame(0);
     if (e.key === 'l' || e.key === 'L') openShop();
-  } else if (S.state === 'shop' && (e.key === 'Escape' || e.key === 'Enter')) goMenu();
+    if (e.key === 'k' || e.key === 'K') openMaps();
+  } else if ((S.state === 'shop' || S.state === 'maps') && (e.key === 'Escape' || e.key === 'Enter')) goMenu();
   if (e.key === 'Enter') pressed = true;
 });
 addEventListener('keyup', e => { if (KEYMAP[e.key]) { input[KEYMAP[e.key]] = false; e.preventDefault(); } });
@@ -2468,10 +2880,10 @@ cv.addEventListener('pointerdown', e => {
   if (x >= muteBtn.x && x <= muteBtn.x + muteBtn.w && y >= muteBtn.y && y <= muteBtn.y + muteBtn.h) { setMuted(!S.muted); return; }
   if ((S.state === 'menu' || S.state === 'shop') && y >= 6 && y <= 40 && x >= W - 200 && x <= W - 46) { // truque de teste: toques rápidos nas moedas
     const now = performance.now(); coinTaps = coinTaps.filter(t => now - t < 1800); coinTaps.push(now);
-    if (coinTaps.length >= 5) { coinTaps = []; S.coins += 99999; save(); sfx.item && sfx.item(); flash('+99999 moedas (modo teste)'); }
+    if (coinTaps.length >= 5) { coinTaps = []; S.coins += 99999; S.unlocked = MAPS.length; save(); sfx.item && sfx.item(); flash('+99999 moedas e todos os mapas (modo teste)'); }
     return;
   }
-  if (S.state === 'menu' || S.state === 'shop') {
+  if (S.state === 'menu' || S.state === 'shop' || S.state === 'maps') {
     for (const b of menuBtns) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
   } else pressed = true;
 });
@@ -2522,7 +2934,7 @@ function toggleFS() {
 { const fsb = document.getElementById('fsb'), el = document.documentElement;
   if (fsb && fsb.addEventListener && el && (el.requestFullscreen || el.webkitRequestFullscreen) && document.body && document.body.classList) { document.body.classList.add('fsok'); fsb.addEventListener('click', toggleFS); } }
 let playingCls = null;
-function syncZone() { const pl = S.state !== 'menu' && S.state !== 'shop'; if (pl !== playingCls && document.body && document.body.classList) { playingCls = pl; document.body.classList.toggle('playing', pl); } }
+function syncZone() { const pl = S.state !== 'menu' && S.state !== 'shop' && S.state !== 'maps'; if (pl !== playingCls && document.body && document.body.classList) { playingCls = pl; document.body.classList.toggle('playing', pl); } }
 document.addEventListener('contextmenu', e => e.preventDefault());
 
 /* =====================================================================
@@ -2543,6 +2955,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
+  MAPS, openMaps, pickMap, mkFlyer, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
   get menuBtns() { return menuBtns; } };
