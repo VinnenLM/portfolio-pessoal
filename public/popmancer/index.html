@@ -1612,7 +1612,8 @@ function step() {
       if (S.tick % 2 === 0) emit({ kind: 'confetti', x: rnd(0, W), y: TOP, vx: rnd(-.6, .6), vy: rnd(1, 2.2), g: .02, life: 190, r: rnd(2.5, 4), c: ['#ff6b81', '#ffd34d', '#6cf08a', '#74d7ff', '#c9a6ff'][Math.floor(rnd(0, 5))], rot: rnd(0, TAU) });
       if (S.timer <= 0 || (wasPressed && S.timer < 150)) {
         if (S.rush && S.wave >= RUSH.length) { recordRun(); S.state = 'win'; }
-        else if (S.inf) { S.state = 'pick'; S.picks = rollPicks(); S.fade = 0; }
+        else if (S.inf && (S.rush || S.wave % 5 === 0)) { S.state = 'pick'; S.picks = rollPicks(); S.fade = 0; }     // bônus só depois de cada chefe (a cada 5 ondas)
+        else if (S.inf) { S.wave++; startLevel(waveFor(S.wave)); }
         else if (S.level >= LEVELS.length - 1) S.state = 'win'; else startLevel(S.level + 1);
       }
       break;
