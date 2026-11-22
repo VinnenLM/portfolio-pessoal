@@ -776,6 +776,12 @@
           const dd = (z.x - t.x) ** 2 + (z.y - t.y) ** 2;
           if (dd < bd && losShot(t.x, t.y, z.x, z.y)) { bd = dd; best = z; }
         }
+        // reparo: perto de uma torre danificada, gasta 1 sucata a cada 10 de vida recuperados
+        if (t.hp < t.max && P.scrap >= 1 && G.state === 'play' && Math.hypot(P.x - t.x, P.y - t.y) < 75) {
+          const add = Math.min(t.max - t.hp, 18 * dt); t.hp += add; t.fix = (t.fix || 0) + add; t.show = Math.max(t.show, 0.5);
+          if (t.fix >= 10) { t.fix -= 10; P.scrap--; text(t.x, t.y - 34, '-1 🔧', '#9fe0a0'); sfx('build'); }
+          if (Math.random() < 0.3) G.parts.push({ x: t.x + rand(-12, 12), y: t.y + rand(-12, 12), vx: 0, vy: -50, life: 0.5, max: 0.5, size: 3, color: '#6ee07a' });
+        }
         // munição limitada: reabastece quando o jogador chega perto
         if (t.ammo < d.mag && Math.hypot(P.x - t.x, P.y - t.y) < 75) { t.ammo = Math.min(d.mag, t.ammo + d.mag * 0.5 * dt); t.show = Math.max(t.show, 0.5); }
         if (t.ammo <= 0 || !best) continue;

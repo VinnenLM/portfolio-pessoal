@@ -326,7 +326,7 @@
     { t: 'Curar', x: '<b>F</b> usa um kit médico e recupera vida. Os kits são limitados por fase.', sel: '#slot-heal' },
     { t: 'Armadilhas', x: '<b>T</b> coloca a armadilha selecionada e <b>X</b> troca o tipo (espinhos, mina, urso). Ótimas nas portas.', sel: '#slot-trap' },
     { t: 'Granadas', x: '<b>B</b> lança e <b>C</b> troca entre comum, de fogo e Santa. Granadas passam por cima de mesas, mas não de paredes.', sel: '#slot-gren' },
-    { t: 'Torres', x: '<b>G</b> instala a torre e <b>V</b> troca o tipo. Compre torres na loja. Elas têm munição limitada: chegue perto para reabastecer.', sel: '#slot-tower' },
+    { t: 'Torres', x: '<b>G</b> instala a torre e <b>V</b> troca o tipo. Compre torres na loja. Elas têm munição limitada: chegue perto para reabastecer. Perto de uma torre danificada você também a conserta, gastando 1 sucata a cada 10 de vida.', sel: '#slot-tower' },
     { t: 'Habilidade da classe', x: '<b>H</b> usa a habilidade da sua classe (Fúria, Caixa de cura, Caixa de munição ou Bombardeio). Ela recarrega com o tempo.', sel: '#slot-skill' },
     { t: 'Ondas e chefe', x: 'Entre as ondas, <b>N</b> ou Enter pula a espera e dá bônus de sucata. Na última onda vem um chefe: ao derrubá-lo, pegue o loot antes do tempo acabar. No modo infinito, o objetivo é bater o recorde de tempo vivo.', sel: '#wave-info' },
     { t: 'Boa sorte!', x: 'Gaste suas moedas na loja entre as fases: armas, torres, melhorias e visuais. Você pode rever este tutorial na pausa ou nas opções.' }
