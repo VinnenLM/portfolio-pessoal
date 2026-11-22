@@ -1213,9 +1213,12 @@
     };
 
     // ---------------------------------------------------------------- render
+    DF.resizeGame = () => resize();
     function resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
       const vw = window.innerWidth, vh = window.innerHeight;
+      // limita o total de pixels desenhados por quadro (telas grandes/densas ficam pesadas)
+      const budget = DF.lowRes ? 0.9e6 : 1.5e6;
+      const dpr = Math.max(0.5, Math.min(window.devicePixelRatio || 1, 2.5, Math.sqrt(budget / (vw * vh))));
       canvas.width = Math.round(vw * dpr); canvas.height = Math.round(vh * dpr);
       canvas.style.width = vw + 'px'; canvas.style.height = vh + 'px';
       camera.vw = vw; camera.vh = vh; camera.dpr = dpr;
@@ -1430,7 +1433,7 @@
     let lightCv = null, lctx = null, grain = null;
     function drawLighting(psx, psy, shx, shy) {
       const s = camera.s, dpr = camera.dpr;
-      const LS = 0.4, lw = Math.ceil(canvas.width * LS), lh = Math.ceil(canvas.height * LS);
+      const LS = DF.flatSprites ? 0.25 : 0.4, lw = Math.ceil(canvas.width * LS), lh = Math.ceil(canvas.height * LS);
       if (!lightCv || lightCv.width !== lw || lightCv.height !== lh) { lightCv = document.createElement('canvas'); lightCv.width = lw; lightCv.height = lh; lctx = lightCv.getContext('2d'); }
       lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(dpr * LS, 0, 0, dpr * LS, 0, 0);
       lctx.clearRect(0, 0, camera.vw, camera.vh);
@@ -1463,10 +1466,10 @@
       for (const zp of G.zaps) glow(zp.x1, zp.y1, 90, 0.7);
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'low'; ctx.drawImage(lightCv, 0, 0, canvas.width, canvas.height); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       // brilho quente da lanterna (soma de luz)
-      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      if (!DF.flatSprites) { ctx.save(); ctx.globalCompositeOperation = 'lighter';
       const wg = ctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s); wg.addColorStop(0, 'rgba(255,236,190,0.16)'); wg.addColorStop(1, 'rgba(255,236,190,0)');
       ctx.fillStyle = wg; ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill();
-      ctx.restore();
+      ctx.restore(); }
     }
     function drawBar(x, y, w, h, pct, color, alpha) {
       ctx.globalAlpha = alpha; ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
