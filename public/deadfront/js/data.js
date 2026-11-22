@@ -97,40 +97,53 @@
     }
   ];
 
-  // Missão: mapa grande, sem ondas. O jogador vai de objetivo em objetivo e enfrenta o chefe no fim.
+  // Mapas de ondas: escala 1.5x em cada eixo (área ~2.25x maior)
+  (function () {
+    const K = 1.5, r = (v) => Math.round(v * K);
+    DF.LEVELS.forEach((lv) => {
+      lv.w = r(lv.w); lv.h = r(lv.h); lv.start = [r(lv.start[0]), r(lv.start[1])];
+      lv.rooms = lv.rooms.map((q) => ({ x: r(q.x), y: r(q.y), w: r(q.w), h: r(q.h), doors: q.doors.map(([sd, off, wd]) => [sd, r(off), wd + 1]) }));
+      lv.walls = lv.walls.map(([x, y, w, h]) => [r(x), r(y), w === 1 ? 1 : r(w), h === 1 ? 1 : r(h)]);
+      lv.obst = lv.obst.map(([x, y, w, h, t]) => [r(x), r(y), w === 1 ? 1 : r(w), h === 1 ? 1 : r(h), t]);
+    });
+  })();
+
+  // Missão: corredor longo e linear, do terminal ao helicóptero (sempre para leste)
   DF.LEVELS.push({
     id: 'airport-run', name: 'Aeroporto: Fuga', mission: true, open: true, unlock: 3,
-    blurb: 'Atravesse o aeroporto até o helicóptero. Chefe no final.',
-    w: 80, h: 50, waves: 1, hpScale: 1.5, countScale: 1, boss: 'boss_charger', start: [8, 26],
+    blurb: 'Siga em linha reta pelo aeroporto até o helicóptero. Chefe no final.',
+    w: 152, h: 40, waves: 1, hpScale: 1.5, countScale: 1, boss: 'boss_charger', start: [6, 19],
     theme: { floor: '#7d8288', floor2: '#70757b', wall: '#22262b', wallTop: '#3b4148', out: '#4a4d50', out2: '#44474a', dark: 0.5 },
     rooms: [
-      { x: 3, y: 16, w: 28, h: 18, doors: [['E', 6, 3], ['E', 13, 2], ['N', 12, 3], ['S', 20, 3]] },
-      { x: 36, y: 3, w: 24, h: 13, doors: [['S', 4, 3], ['S', 16, 3], ['W', 6, 2]] },
-      { x: 38, y: 38, w: 12, h: 8, doors: [['N', 5, 2], ['W', 3, 2]] },
-      { x: 52, y: 28, w: 12, h: 10, doors: [['W', 4, 2], ['E', 4, 2], ['N', 5, 2]] }
+      { x: 3, y: 8, w: 40, h: 24, doors: [['E', 10, 3]] },
+      { x: 56, y: 9, w: 36, h: 22, doors: [['W', 9, 3], ['E', 9, 3]] },
+      { x: 105, y: 10, w: 22, h: 20, doors: [['W', 8, 3], ['E', 8, 3]] }
     ],
-    walls: [[14, 16, 1, 4], [14, 27, 1, 7]],
+    walls: [],
     obst: [
-      [5, 18, 8, 1, 'counter'], [18, 18, 8, 1, 'counter'], [5, 22, 4, 1, 'seats'], [17, 22, 4, 1, 'seats'], [22, 22, 4, 1, 'seats'], [17, 27, 4, 1, 'seats'], [22, 27, 4, 1, 'seats'], [6, 30, 6, 2, 'belt'], [26, 31, 2, 2, 'crate'],
-      [40, 5, 10, 4, 'plane'], [52, 8, 6, 3, 'plane'], [38, 12, 2, 2, 'crate'], [56, 12, 2, 2, 'crate'], [45, 12, 3, 1, 'crate'],
-      [40, 40, 3, 1, 'counter'], [45, 40, 3, 1, 'counter'], [41, 43, 2, 1, 'crate'],
-      [54, 30, 2, 2, 'crate'], [58, 30, 2, 2, 'crate'], [54, 35, 2, 2, 'crate'], [60, 35, 2, 2, 'crate'], [57, 32, 2, 2, 'crate'],
-      [36, 24, 4, 2, 'truck'], [46, 32, 4, 2, 'truck'], [34, 19, 1, 5, 'barrier'], [48, 18, 5, 1, 'barrier'], [42, 28, 1, 4, 'barrier'],
-      [68, 17, 9, 3, 'plane'], [68, 33, 9, 3, 'plane'], [66, 22, 1, 2, 'barrier'], [66, 29, 1, 2, 'barrier'], [76, 22, 2, 1, 'barrier'], [76, 30, 2, 1, 'barrier'], [62, 42, 4, 2, 'truck'], [56, 20, 3, 2, 'tank'], [26, 40, 3, 3, 'tank']
+      [6, 10, 10, 1, 'counter'], [24, 10, 10, 1, 'counter'], [6, 29, 10, 1, 'counter'], [24, 29, 10, 1, 'counter'],
+      [8, 14, 4, 1, 'seats'], [16, 14, 4, 1, 'seats'], [28, 14, 4, 1, 'seats'], [8, 25, 4, 1, 'seats'], [18, 25, 4, 1, 'seats'], [30, 25, 4, 1, 'seats'],
+      [20, 27, 6, 2, 'belt'], [37, 11, 2, 2, 'crate'], [37, 27, 2, 2, 'crate'],
+      [60, 11, 10, 4, 'plane'], [76, 11, 8, 3, 'plane'], [60, 26, 10, 4, 'plane'], [76, 27, 9, 3, 'plane'], [87, 14, 2, 2, 'crate'], [87, 24, 2, 2, 'crate'], [72, 15, 2, 1, 'crate'], [72, 25, 2, 1, 'crate'],
+      [108, 12, 4, 1, 'counter'], [118, 12, 4, 1, 'counter'], [108, 27, 4, 1, 'counter'], [118, 27, 4, 1, 'counter'], [113, 15, 2, 2, 'crate'], [113, 23, 2, 2, 'crate'],
+      [46, 12, 4, 2, 'truck'], [46, 26, 4, 2, 'truck'], [50, 16, 1, 2, 'barrier'], [50, 23, 1, 2, 'barrier'],
+      [96, 13, 3, 3, 'tank'], [96, 26, 4, 2, 'truck'], [100, 16, 1, 2, 'barrier'], [100, 23, 1, 2, 'barrier'],
+      [132, 9, 9, 3, 'plane'], [132, 28, 9, 3, 'plane'], [129, 15, 1, 2, 'barrier'], [129, 23, 1, 2, 'barrier'], [136, 14, 2, 1, 'crate'], [136, 25, 2, 1, 'crate']
     ],
-    decor: [['pad', 76.5, 26.5], ['dash', 66, 26, 12, 0.18, '#e8e8e8'], ['dash', 32, 27, 4, 0.14, '#e6c13a']],
+    decor: [['pad', 144.5, 19.5], ['dash', 129, 19, 12, 0.18, '#e8e8e8'], ['dash', 4, 19, 38, 0.1, '#e6c13a']],
     objectives: [
-      { type: 'reach', x: 33.5, y: 23.5, text: 'Saia do terminal pela porta leste' },
-      { type: 'reach', x: 47.5, y: 11.5, text: 'Chegue ao hangar' },
-      { type: 'reach', x: 43.5, y: 42.5, text: 'Alcance a torre de controle' },
-      { type: 'reach', x: 66.5, y: 26.5, text: 'Siga para a pista de decolagem' },
-      { type: 'boss', x: 72.5, y: 26.5, r: 9, text: 'Derrote o chefe!' },
-      { type: 'reach', x: 76.5, y: 26.5, text: 'Embarque no helicóptero!', win: true }
+      { type: 'reach', x: 41.5, y: 19.5, text: 'Atravesse o terminal até a saída leste' },
+      { type: 'reach', x: 74.5, y: 19.5, text: 'Cruze o hangar' },
+      { type: 'reach', x: 115.5, y: 19.5, text: 'Passe pela torre de controle' },
+      { type: 'reach', x: 130.5, y: 19.5, text: 'Siga pela pista de decolagem' },
+      { type: 'boss', x: 137.5, y: 19.5, r: 9, text: 'Derrote o chefe!' },
+      { type: 'reach', x: 144.5, y: 19.5, text: 'Embarque no helicóptero!', win: true }
     ],
     groups: [
-      { x: 20, y: 24, n: 9, trig: 16 }, { x: 22, y: 31, n: 7, trig: 14 }, { x: 40, y: 22, n: 9, trig: 14 },
-      { x: 46, y: 11, n: 12, trig: 14 }, { x: 50, y: 21, n: 8, trig: 12 }, { x: 43, y: 41, n: 10, trig: 13 },
-      { x: 57, y: 31, n: 12, trig: 13 }, { x: 63, y: 40, n: 9, trig: 12 }, { x: 68, y: 22, n: 9, trig: 13 }, { x: 68, y: 31, n: 9, trig: 13 }
+      { x: 18, y: 19, n: 8, trig: 15 }, { x: 30, y: 21, n: 9, trig: 14 }, { x: 40, y: 19, n: 7, trig: 13 },
+      { x: 52, y: 19, n: 10, trig: 14 }, { x: 66, y: 19, n: 9, trig: 14 }, { x: 80, y: 20, n: 11, trig: 14 }, { x: 90, y: 19, n: 8, trig: 13 },
+      { x: 98, y: 20, n: 10, trig: 14 }, { x: 110, y: 19, n: 10, trig: 14 }, { x: 120, y: 20, n: 9, trig: 13 }, { x: 126, y: 19, n: 8, trig: 13 },
+      { x: 134, y: 17, n: 9, trig: 13 }, { x: 134, y: 22, n: 9, trig: 13 }
     ]
   });
 
