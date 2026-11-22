@@ -1629,7 +1629,8 @@ function buyOrEquip(kind, item, confirmed) {
   else if (S.coins >= item.price) { S.coins -= item.price; owned.push(item.id); S[kind] = item.id; save(); flash(item.name + ' comprado!'); }
   else flash('Moedas insuficientes');
 }
-const FS_OK = !!(document.documentElement && (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
+const IS_APP = !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());   // dentro do APK não há botão/opção de tela cheia
+const FS_OK = !IS_APP && !!(document.documentElement && (document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen));
 function openSettings() {
   if (S.state === 'settings') return;
   S.setFrom = S.state === 'menu' ? 'menu' : 'play'; S.prevState = S.state; if (S.setFrom === 'play') S.paused = true;
@@ -4097,7 +4098,7 @@ function toggleFS() {
   } else (d.exitFullscreen || d.webkitExitFullscreen).call(d);
 }
 { const fsb = document.getElementById('fsb'), el = document.documentElement;
-  if (fsb && fsb.addEventListener && el && (el.requestFullscreen || el.webkitRequestFullscreen) && document.body && document.body.classList) { document.body.classList.add('fsok'); fsb.addEventListener('click', toggleFS); } }
+  if (!IS_APP && fsb && fsb.addEventListener && el && (el.requestFullscreen || el.webkitRequestFullscreen) && document.body && document.body.classList) { document.body.classList.add('fsok'); fsb.addEventListener('click', toggleFS); } }
 let playingCls = null;
 function syncZone() { const pl = S.state === 'ready' || S.state === 'play' || S.state === 'dead' || S.state === 'clear'; /* botões de toque só durante as missões */ if (pl !== playingCls && document.body && document.body.classList) { playingCls = pl; document.body.classList.toggle('playing', pl); } }
 document.addEventListener('contextmenu', e => e.preventDefault());
