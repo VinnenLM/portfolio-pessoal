@@ -2682,17 +2682,16 @@ function drawMenu() {
   slimes.forEach(drawSlime);
   overlay(.25);
   txt('POPMANCER', W / 2, 88, 66, '#7dff7d', 'center', '#0b3d12');
-  txt('MAGOS vs SLIMES', W / 2, 146, 34, '#ffe27a', 'center', '#5a3b00');
   coinCounter(W - 50, 22);
-  let y = 190;
+  let y = 150;
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 40, label, col, fn); y += 48; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
   button(W / 2 - 170, y, 166, 40, 'Mapas', '#7048e8', openMaps); button(W / 2 + 4, y, 166, 40, 'Loja', '#e67700', openShop); y += 48;
   button(W / 2 - 170, y, 166, 40, 'Infinito', '#0ca678', startInfinite); button(W / 2 + 4, y, 166, 40, 'Boss Rush', '#c2255c', startRush); y += 48;
+  button(W / 2 - 170, y, 340, 36, 'Tutorial', S.tutDone ? '#0b7285' : '#d6336c', startTutorial); y += 44;
   txt(`Recorde: ${S.best}`, W / 2, y + 6, 16, '#fff', 'center');
   if (S.infBest.score > 0 || S.rushBest.score > 0) txt(`Infinito: ${S.infBest.score} · Boss Rush: ${S.rushBest.score}`, W / 2, y + 28, 14, '#9ae6ff', 'center');
-  if (!S.tutDone) txt('Novo por aqui? O Tutorial fica nas Opções (engrenagem)', W / 2, 172, 12, '#ffe27a', 'center');
   if (S.msgT > 0) { txt(S.msg, W / 2, y + 50, 16, '#ffe27a'); }
   txt('← → mover · ↑ ↓ escada · Z/Shift pular · ESPAÇO lançar magia · P pausa · M som', W / 2, H - 16, 12, '#fff', 'center');
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true, lean: .09 }); // mago de enfeite caminhando no chão
@@ -3595,7 +3594,6 @@ function drawTitle() {
   glyphs(s, px, py, sc, '#8dff7d');
   ctx.save(); ctx.beginPath(); ctx.rect(0, py + 18, LW, 40); ctx.clip(); glyphs(s, px, py, sc, '#3fd45b'); ctx.restore();
   glyphs(s, px, py, sc, 'rgba(255,255,255,0)'); rc(px + 4, py + 2, 8, 2, '#d8ffd0');
-  txt('MAGOS VS SLIMES', W / 2, 146, 34, '#ffe27a', 'center', '#5a3b00');
 }
 function drawTip() {
   const d = ITEMS[S.tip], ls = TIPS[S.tip]; overlay(.55);
@@ -3647,15 +3645,15 @@ function drawMenu() {
   overlay(.18);
   drawTitle();
   coinCounter(W - 52, 22);
-  let y = 190;
+  let y = 150;
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 40, label, col, fn); y += 48; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
   button(W / 2 - 170, y, 166, 40, 'Mapas', '#7048e8', openMaps); button(W / 2 + 4, y, 166, 40, 'Loja', '#e67700', openShop); y += 48;
   button(W / 2 - 170, y, 166, 40, 'Infinito', '#0ca678', startInfinite); button(W / 2 + 4, y, 166, 40, 'Boss Rush', '#c2255c', startRush); y += 48;
+  button(W / 2 - 170, y, 340, 36, 'Tutorial', S.tutDone ? '#0b7285' : '#d6336c', startTutorial); y += 44;
   txt(`RECORDE: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center', '#000');
   if (S.infBest.score > 0 || S.rushBest.score > 0) txt(`INFINITO: ${S.infBest.score} · BOSS RUSH: ${S.rushBest.score}`, W / 2, y + 30, 14, '#9ae6ff', 'center', '#000');
-  if (!S.tutDone) txt('NOVO POR AQUI? O TUTORIAL FICA NAS OPÇÕES (ENGRENAGEM)', W / 2, 172, 12, '#ffe27a', 'center', '#000');
   if (S.msgT > 0) txt(S.msg, W / 2, y + 52, 16, '#ffe27a', 'center', '#000');
   txt('← → MOVER · ↑ ↓ ESCADA · Z PULAR · ESPAÇO MAGIA · P PAUSA', W / 2, H - 14, 12, '#ffffff', 'center', '#000');
   const mx = 40 + ((S.tick * .4) % 1) * 0; // mago de enfeite caminhando no chão
