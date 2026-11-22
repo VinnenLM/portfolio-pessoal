@@ -95,6 +95,7 @@
     $('m-sound').textContent = 'SOM: ' + (save.sound ? 'ON' : 'OFF');
     $('p-sound').textContent = 'SOM: ' + (save.sound ? 'ON' : 'OFF');
     $('p-auto').textContent = 'MIRA AUTOMÁTICA: ' + (save.auto ? 'ON' : 'OFF');
+    $('p-light').textContent = 'LUZ DINÂMICA: ' + (save.light !== false ? 'ON' : 'OFF');
     $('p-laser').classList.toggle('hidden', !save.laser); $('p-laser').textContent = 'MIRA LASER: ' + (save.laserOn !== false ? 'ON' : 'OFF');
   }
   document.querySelectorAll('.coins-corner').forEach((e) => e.addEventListener('click', () => { save.coins += 500; persist(); refreshCoins(); if (DF.sfx) DF.sfx('pickup'); if (!$('shop').classList.contains('hidden')) renderShop(); }));
@@ -126,6 +127,7 @@
   $('m-help').onclick = () => { click(); show('help'); };
   const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; if (DF.applyMute) DF.applyMute(); persist(); refreshCoins(); click(); };
   $('m-sound').onclick = toggleSound; $('p-sound').onclick = toggleSound;
+  $('p-light').onclick = () => { save.light = save.light === false; persist(); refreshCoins(); };
   $('p-laser').onclick = () => { save.laserOn = save.laserOn === false; persist(); refreshCoins(); };
   $('p-auto').onclick = () => { save.auto = !save.auto; input.auto = save.auto; persist(); refreshCoins(); };
 

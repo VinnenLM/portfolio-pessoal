@@ -1371,9 +1371,12 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const psx = (P.x - camera.x + shx) * s, psy = (P.y - camera.y + shy) * s;
       const R1 = 230 * s * (camera.s > 0 ? 1 : 1), R2 = 620 * s;
-      const g = ctx.createRadialGradient(psx, psy, R1, psx, psy, R2);
-      g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,8,' + lv.theme.dark + ')');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, camera.vw, camera.vh);
+      if (save.light !== false) drawLighting(psx, psy, shx, shy);
+      else {
+        const g = ctx.createRadialGradient(psx, psy, R1, psx, psy, R2);
+        g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,8,' + lv.theme.dark + ')');
+        ctx.fillStyle = g; ctx.fillRect(0, 0, camera.vw, camera.vh);
+      }
       if (G.holy) {
         const k = 1 - G.holy.t, sx = (G.holy.x - camera.x) * s, sy = (G.holy.y - camera.y) * s, rr = G.holy.R * s * Math.min(1, k * 2.2);
         ctx.save(); ctx.globalAlpha = Math.max(0, G.holy.t);
@@ -1422,6 +1425,49 @@
         { const ot = objTarget(); if (ot) dot(ot.x, ot.y, '#50e6ff', 3.4, true); }
         ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(0, 0, 2.6, 0, 6.283); ctx.fill();
         ctx.restore(); }
+    }
+    // ----- iluminação dinâmica: lanterna em cone + brilho em volta, bloqueada por paredes
+    let lightCv = null, lctx = null, grain = null;
+    function drawLighting(psx, psy, shx, shy) {
+      const s = camera.s, dpr = camera.dpr;
+      if (!lightCv || lightCv.width !== canvas.width || lightCv.height !== canvas.height) { lightCv = document.createElement('canvas'); lightCv.width = canvas.width; lightCv.height = canvas.height; lctx = lightCv.getContext('2d'); }
+      lctx.globalCompositeOperation = 'source-over'; lctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      lctx.clearRect(0, 0, camera.vw, camera.vh);
+      lctx.fillStyle = 'rgba(2,4,12,' + Math.max(0.6, lv.theme.dark + 0.18) + ')'; lctx.fillRect(0, 0, camera.vw, camera.vh);
+      lctx.globalCompositeOperation = 'destination-out';
+      const N = 110, BASE = 215, CONE = 560, half = 0.5;
+      const pts = [];
+      for (let i = 0; i < N; i++) {
+        const a = (i / N) * 6.283;
+        const da = Math.abs(Math.atan2(Math.sin(a - P.angle), Math.cos(a - P.angle)));
+        const mr = BASE + (da < half ? (CONE - BASE) * Math.pow(Math.cos(da / half * 1.5708), 0.6) : 0);
+        const ca = Math.cos(a), sa = Math.sin(a); let r = 10;
+        for (; r < mr; r += 8) { const ti = tileAt(P.x + ca * r, P.y + sa * r); if (ti < 0 || isBlockType(ti)) { r += 4; break; } }
+        r = Math.min(r, mr); pts.push([(P.x + ca * r - camera.x + shx) * s, (P.y + sa * r - camera.y + shy) * s]);
+      }
+      const lg = lctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s);
+      lg.addColorStop(0, 'rgba(0,0,0,0.97)'); lg.addColorStop(0.35, 'rgba(0,0,0,0.8)'); lg.addColorStop(1, 'rgba(0,0,0,0)');
+      lctx.filter = 'blur(' + Math.round(14 * s) + 'px)';       lctx.fillStyle = lg; lctx.beginPath(); pts.forEach((p, i) => (i ? lctx.lineTo(p[0], p[1]) : lctx.moveTo(p[0], p[1]))); lctx.closePath(); lctx.fill(); lctx.filter = 'none';
+      const glow = (wx, wy, r, a) => { const x = (wx - camera.x + shx) * s, y = (wy - camera.y + shy) * s; const g = lctx.createRadialGradient(x, y, 2, x, y, r * s); g.addColorStop(0, 'rgba(0,0,0,' + a + ')'); g.addColorStop(1, 'rgba(0,0,0,0)'); lctx.fillStyle = g; lctx.beginPath(); lctx.arc(x, y, r * s, 0, 6.283); lctx.fill(); };
+      if (P.flash > 0) glow(P.x + Math.cos(P.angle) * 40, P.y + Math.sin(P.angle) * 40, 150, 0.65);
+      for (const f of G.fires) glow(f.x, f.y, f.r * 1.5, 0.7);
+      for (const t of G.towers) glow(t.x, t.y, t.flash > 0 ? 130 : 70, t.flash > 0 ? 0.6 : 0.35);
+      for (const b of G.boxes) glow(b.x, b.y, 80, 0.5);
+      for (const L of G.loot) glow(L.x, L.y, 48, 0.45);
+      for (const r of G.rockets) glow(r.x, r.y, 90, 0.7);
+      if (G.holy) glow(G.holy.x, G.holy.y, G.holy.R * 1.4, 0.9 * G.holy.t);
+      for (const g of G.grenFly) if (g.t >= 0 && g.type === 'fire') glow(g.x, g.y, 70, 0.6);
+      for (const z of G.zombies) if (z.burnT > 0) glow(z.x, z.y, 70, 0.5);
+      for (const zp of G.zaps) glow(zp.x1, zp.y1, 90, 0.7);
+      ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(lightCv, 0, 0); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      // brilho quente da lanterna (soma de luz)
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const wg = ctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s); wg.addColorStop(0, 'rgba(255,236,190,0.16)'); wg.addColorStop(1, 'rgba(255,236,190,0)');
+      ctx.fillStyle = wg; ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill();
+      ctx.restore();
+      // grão de filme
+      if (!grain) { grain = document.createElement('canvas'); grain.width = grain.height = 128; const gc = grain.getContext('2d'); const id = gc.createImageData(128, 128); for (let i = 0; i < id.data.length; i += 4) { const v = Math.random() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 22; } gc.putImageData(id, 0, 0); }
+      ctx.globalAlpha = 0.5; ctx.fillStyle = ctx.createPattern(grain, 'repeat'); ctx.save(); ctx.translate(Math.floor(rand(0, 128)), Math.floor(rand(0, 128))); ctx.fillRect(-128, -128, camera.vw + 256, camera.vh + 256); ctx.restore(); ctx.globalAlpha = 1;
     }
     function drawBar(x, y, w, h, pct, color, alpha) {
       ctx.globalAlpha = alpha; ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
