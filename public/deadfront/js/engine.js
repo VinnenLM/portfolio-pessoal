@@ -544,7 +544,7 @@
 
     // ----- torres automáticas
     const tUp = (id) => (save.tlvl && save.tlvl[id]) || 0;
-    const ownedTowers = () => DF.ALL_TOWERS.filter((id) => (save.towers && save.towers[id]) || (cls === 'engineer' && DF.TOWERS[id].eng));
+    const ownedTowers = () => DF.ALL_TOWERS.filter((id) => DF.TOWERS[id].eng ? cls === 'engineer' : !!(save.towers && save.towers[id]) || false);
     const towerMax = DF.TOWER_MAX + (cls === 'engineer' ? 2 : 0);
     const tcost = (id) => Math.round(DF.TOWERS[id].cost * (cls === 'engineer' ? 0.75 : 1));
     { const o0 = ownedTowers(); if (o0.length) P.towerI = DF.ALL_TOWERS.indexOf(o0[0]); }
