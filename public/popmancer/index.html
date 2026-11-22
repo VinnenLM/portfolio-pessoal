@@ -2693,7 +2693,6 @@ function drawMenu() {
   txt(`Recorde: ${S.best}`, W / 2, y + 6, 16, '#fff', 'center');
   if (S.infBest.score > 0 || S.rushBest.score > 0) txt(`Infinito: ${S.infBest.score} · Boss Rush: ${S.rushBest.score}`, W / 2, y + 28, 14, '#9ae6ff', 'center');
   if (S.msgT > 0) { txt(S.msg, W / 2, y + 50, 16, '#ffe27a'); }
-  txt('← → mover · ↑ ↓ escada · Z/Shift pular · ESPAÇO lançar magia · P pausa · M som', W / 2, H - 16, 12, '#fff', 'center');
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true, lean: .09 }); // mago de enfeite caminhando no chão
   drawGear(18, 14);
 }
@@ -3655,7 +3654,6 @@ function drawMenu() {
   txt(`RECORDE: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center', '#000');
   if (S.infBest.score > 0 || S.rushBest.score > 0) txt(`INFINITO: ${S.infBest.score} · BOSS RUSH: ${S.rushBest.score}`, W / 2, y + 30, 14, '#9ae6ff', 'center', '#000');
   if (S.msgT > 0) txt(S.msg, W / 2, y + 52, 16, '#ffe27a', 'center', '#000');
-  txt('← → MOVER · ↑ ↓ ESCADA · Z PULAR · ESPAÇO MAGIA · P PAUSA', W / 2, H - 14, 12, '#ffffff', 'center', '#000');
   const mx = 40 + ((S.tick * .4) % 1) * 0; // mago de enfeite caminhando no chão
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true });
   drawGear(18, 14);
