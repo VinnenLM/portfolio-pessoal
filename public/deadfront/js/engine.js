@@ -567,7 +567,7 @@
       for (const t of G.towers) if (Math.hypot(t.x - x, t.y - y) < 40) { msg('Muito perto de outra torre', '#ffb347'); return; }
       P.scrap -= tcost(id);
       const hp = Math.round(d.hp * (1 + 0.1 * tUp(id)));
-      G.towers.push({ type: id, x, y, hp, max: hp, angle: P.angle, cd: 0.4, flash: 0, recoil: 0, show: 2, firing: false });
+      G.towers.push({ type: id, x, y, hp, max: hp, ammo: DF.TOWERS[id].mag, angle: P.angle, cd: 0.4, flash: 0, recoil: 0, show: 2, firing: false });
       sfx('build'); text(x, y - 22, d.name, '#e8c07a');
     }
     function hurtTower(t, dmg) {
@@ -664,7 +664,8 @@
       for (let i = G.boxes.length - 1; i >= 0; i--) {
         const b = G.boxes[i]; b.t -= dt; const d = Math.hypot(P.x - b.x, P.y - b.y);
         if (b.kind === 'heal') { if (d < 105 && P.hp < P.maxHp) { P.hp = Math.min(P.maxHp, P.hp + 11 * dt); if (Math.random() < 0.15) G.parts.push({ x: P.x + rand(-8, 8), y: P.y + rand(-8, 8), vx: 0, vy: -40, life: 0.5, max: 0.5, size: 3, color: '#6ee07a' }); } }
-        else if (d < 34) {
+        else if (b.kind === 'ammo') { for (const t of G.towers) if (Math.hypot(t.x - b.x, t.y - b.y) < 130) t.ammo = Math.min(DF.TOWERS[t.type].mag, t.ammo + DF.TOWERS[t.type].mag * 0.25 * dt); }
+        if (b.kind !== 'heal' && d < 34) {
           const own = P.weapons.filter((x) => x.id !== 'pistol');
           if (own.length && own.some((x) => x.reserve < DF.WEAPONS[x.id].reserve * 1.2)) { for (const w2 of own) w2.reserve += Math.round(DF.WEAPONS[w2.id].reserve * 0.35); b.uses--; msg('Munição reabastecida', '#d6c27a'); sfx('pickup'); }
         }
@@ -682,12 +683,14 @@
           const dd = (z.x - t.x) ** 2 + (z.y - t.y) ** 2;
           if (dd < bd && losShot(t.x, t.y, z.x, z.y)) { bd = dd; best = z; }
         }
-        if (!best) continue;
+        // munição limitada: reabastece quando o jogador chega perto
+        if (t.ammo < d.mag && Math.hypot(P.x - t.x, P.y - t.y) < 75) { t.ammo = Math.min(d.mag, t.ammo + d.mag * 0.5 * dt); t.show = Math.max(t.show, 0.5); }
+        if (t.ammo <= 0 || !best) continue;
         const want = Math.atan2(best.y - t.y, best.x - t.x);
         const diff = Math.atan2(Math.sin(want - t.angle), Math.cos(want - t.angle));
         t.angle += clamp(diff, -dt * 7, dt * 7);
         if (Math.abs(diff) > 0.3 || t.cd > 0) continue;
-        const mult = (1 + 0.15 * lv) * (cls === 'engineer' ? 1.2 : 1); t.cd = d.rate * (1 - 0.05 * lv);
+        const mult = (1 + 0.15 * lv) * (cls === 'engineer' ? 1.2 : 1); t.cd = d.rate * (1 - 0.05 * lv); t.ammo = Math.max(0, t.ammo - 1);
         if (t.type === 'mg') {
           const a = t.angle + rand(-0.06, 0.06);
           G.bullets.push({ x: t.x + Math.cos(t.angle) * 24, y: t.y + Math.sin(t.angle) * 24, vx: Math.cos(a) * 900, vy: Math.sin(a) * 900, dmg: d.dmg * mult, life: d.range / 900, pierce: 1, hit: new Set(), color: '#ffd27a' });
@@ -1274,6 +1277,7 @@
       for (const t of G.towers) {
         ctx.save(); ctx.translate(t.x, t.y); DF.sprites.tower(ctx, t, G.time); ctx.restore();
         if (t.show > 0 || t.hp < t.max) drawBar(t.x - 18, t.y - 30, 36, 5, t.hp / t.max, '#7ab8ff', t.show > 0 ? Math.min(1, t.show / 0.5) : 0.6);
+        { const af = t.ammo / DF.TOWERS[t.type].mag; if (af < 0.999) drawBar(t.x - 18, t.y - 24, 36, 3, af, af <= 0 ? '#ff5a4a' : '#ffd27a', 0.85); }
       }
       // loot
       for (const L of G.loot) {

@@ -173,14 +173,14 @@
 
   // ---------- Torres automáticas ----------
   DF.TOWERS = {
-    mg:      { name: 'Metralhadora', cost: 55,  price: 180, hp: 170, range: 340, dmg: 8,   rate: 0.11, desc: 'Rajadas rápidas de balas. Boa contra quase tudo.' },
-    flame:   { name: 'Lança-chamas', cost: 80,  price: 320, hp: 210, range: 150, dmg: 6,   rate: 0.07, desc: 'Queima todos na frente. Curto alcance.' },
-    bazooka: { name: 'Bazuca',       cost: 125, price: 520, hp: 150, range: 430, dmg: 130, rate: 1.7,  splash: 85, desc: 'Foguete com explosão em área. Lento, mas devastador.' }
+    mg:      { name: 'Metralhadora', cost: 55,  price: 180, hp: 170, range: 340, dmg: 8,   rate: 0.11, mag: 140, desc: 'Rajadas rápidas de balas. Boa contra quase tudo. Munição limitada: chegue perto para reabastecer.' },
+    flame:   { name: 'Lança-chamas', cost: 80,  price: 320, hp: 210, range: 150, dmg: 6,   rate: 0.07, mag: 170, desc: 'Queima todos na frente. Curto alcance.' },
+    bazooka: { name: 'Bazuca',       cost: 125, price: 520, hp: 150, range: 430, dmg: 130, rate: 1.7,  splash: 85, mag: 14, desc: 'Foguete com explosão em área. Lento, mas devastador.' }
   };
   DF.TOWER_ORDER = ['mg', 'flame', 'bazooka'];
   // torres exclusivas do Engenheiro
-  DF.TOWERS.tesla = { name: 'Tesla', cost: 70, price: 0, hp: 160, range: 250, dmg: 26, rate: 0.6, chain: 3, eng: true, desc: 'Raio que salta entre zumbis. Só do Engenheiro.' };
-  DF.TOWERS.railgun = { name: 'Sniper', cost: 95, price: 0, hp: 130, range: 640, dmg: 110, rate: 1.25, eng: true, desc: 'Tiro perfurante de longo alcance. Só do Engenheiro.' };
+  DF.TOWERS.tesla = { name: 'Tesla', cost: 70, price: 0, hp: 160, range: 250, dmg: 26, rate: 0.6, chain: 3, mag: 45, eng: true, desc: 'Raio que salta entre zumbis. Só do Engenheiro.' };
+  DF.TOWERS.railgun = { name: 'Sniper', cost: 95, price: 0, hp: 130, range: 640, dmg: 110, rate: 1.25, mag: 14, eng: true, desc: 'Tiro perfurante de longo alcance. Só do Engenheiro.' };
   DF.ENG_TOWERS = ['tesla', 'railgun'];
   DF.ALL_TOWERS = DF.TOWER_ORDER.concat(DF.ENG_TOWERS);
   // ---------- Classes ----------
