@@ -279,6 +279,14 @@
     // ----- utilidades de tile
     const tileAt = (x, y) => { const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE); return tx < 0 || ty < 0 || tx >= MW || ty >= MH ? -1 : ty * MW + tx; };
     const isBlockType = (i) => tiles[i] === T.WALL || tiles[i] === T.OBST;
+    // sistema de altura: obstáculos baixos (mesas, sofás, caixotes...) deixam passar tiros e granadas; paredes e coisas altas não
+    const HIGH = new Set(['plane', 'tank', 'truck', 'shelf']);
+    const isHigh = (i) => tiles[i] === T.WALL || (tiles[i] === T.OBST && HIGH.has(map.obst[i]));
+    function losShot(x0, y0, x1, y1) {
+      const d = Math.hypot(x1 - x0, y1 - y0); const n = Math.ceil(d / 12);
+      for (let i = 1; i < n; i++) { const ti = tileAt(x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n); if (ti < 0 || isHigh(ti)) return false; }
+      return true;
+    }
     function solid(tx, ty, forPlayer) {
       if (tx < 0 || ty < 0 || tx >= MW || ty >= MH) return true;
       const i = ty * MW + tx; const t = tiles[i];
@@ -486,7 +494,7 @@
           const dx = z.x - P.x, dy = z.y - P.y, dist = Math.hypot(dx, dy);
           if (dist > d.range + z.r) continue;
           const da = Math.atan2(Math.sin(Math.atan2(dy, dx) - angle), Math.cos(Math.atan2(dy, dx) - angle));
-          if (Math.abs(da) < 0.4 && los(P.x, P.y, z.x, z.y, false)) { z.burnT = 2.4; z.burnDmg = 4 * (1 + 0.12 * wLvl(w.id)); hurtZ(z, dmg, 0, 0, 0, true); }
+          if (Math.abs(da) < 0.4 && losShot(P.x, P.y, z.x, z.y)) { z.burnT = 2.4; z.burnDmg = 4 * (1 + 0.12 * wLvl(w.id)); hurtZ(z, dmg, 0, 0, 0, true); }
         }
         for (let k = 0; k < 7; k++) { const a = angle + rand(-0.3, 0.3), sp = rand(380, 520), lf = d.range / sp * rand(0.55, 1); G.parts.push({ x: ox, y: oy, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: lf, max: lf, size: rand(3, 7), color: pick(['#ff9f1c', '#ffd23f', '#ff6b2b']) }); }
         sfx('flame'); if (w.mag <= 0) startReload(); return;
@@ -577,7 +585,7 @@
     function explode(x, y, R, dmg, fall, bossMul) {
       for (const z of G.zombies.slice()) {
         const d = Math.hypot(z.x - x, z.y - y);
-        if (d < R + z.r) hurtZ(z, dmg * (z.boss && bossMul ? bossMul : 1) * (1 - (d / (R + z.r)) * (fall === undefined ? 0.55 : fall)), (z.x - x) / (d || 1), (z.y - y) / (d || 1), 220);
+        if (d < R + z.r && (d < 30 || losShot(x, y, z.x, z.y))) hurtZ(z, dmg * (z.boss && bossMul ? bossMul : 1) * (1 - (d / (R + z.r)) * (fall === undefined ? 0.55 : fall)), (z.x - x) / (d || 1), (z.y - y) / (d || 1), 220);
       }
       for (let k = 0; k < 28; k++) { const a = rand(0, 6.283), sp = rand(60, 330); G.parts.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rand(0.25, 0.6), max: 0.6, size: rand(2, 5), color: pick(['#ffb347', '#ff6b2b', '#ffe27a', '#555']) }); }
       decal(x, y, Math.min(R * 0.45, 70), 'rgba(8,6,4,0.35)');
@@ -595,7 +603,7 @@
       }
       P.gren[id]--; P.grenCd = 0.5;
       let tx = P.x, ty = P.y; const ca = Math.cos(P.angle), sa = Math.sin(P.angle);
-      for (let dd = 14; dd <= 270; dd += 12) { const x = P.x + ca * dd, y = P.y + sa * dd; const ti = tileAt(x, y); if (ti < 0 || isBlockType(ti) || bars[ti]) break; tx = x; ty = y; }
+      for (let dd = 14; dd <= 270; dd += 12) { const x = P.x + ca * dd, y = P.y + sa * dd; const ti = tileAt(x, y); if (ti < 0 || isHigh(ti)) break; tx = x; ty = y; }
       G.grenFly.push({ type: id, x0: P.x, y0: P.y, x1: tx, y1: ty, x: P.x, y: P.y, t: 0, T: 0.65, h: 0 });
       sfx('throw');
     }
@@ -672,7 +680,7 @@
         for (const z of G.zombies) {
           if (z.born > 0.3) continue;
           const dd = (z.x - t.x) ** 2 + (z.y - t.y) ** 2;
-          if (dd < bd && los(t.x, t.y, z.x, z.y, false)) { bd = dd; best = z; }
+          if (dd < bd && losShot(t.x, t.y, z.x, z.y)) { bd = dd; best = z; }
         }
         if (!best) continue;
         const want = Math.atan2(best.y - t.y, best.x - t.x);
@@ -714,7 +722,7 @@
         const r = G.rockets[ri]; r.x += r.vx * dt; r.y += r.vy * dt; r.life -= dt;
         G.parts.push({ x: r.x, y: r.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0.4, max: 0.4, size: 3, color: '#b9b9b9' });
         let boom = r.life <= 0; const ti = tileAt(r.x, r.y);
-        if (ti < 0 || isBlockType(ti)) boom = true;
+        if (ti < 0 || isHigh(ti)) boom = true;
         else for (const z of G.zombies) if ((z.x - r.x) ** 2 + (z.y - r.y) ** 2 < (z.r + 5) ** 2) { boom = true; break; }
         if (boom) { explode(r.x, r.y, r.splash, r.dmg); G.rockets.splice(ri, 1); }
       }
@@ -1029,7 +1037,7 @@
         let best = null, bd = (w.range * 0.95) ** 2;
         for (const z of G.zombies) {
           const dd = (z.x - P.x) ** 2 + (z.y - P.y) ** 2;
-          if (dd < bd && z.born < 0.3 && los(P.x, P.y, z.x, z.y, false)) { bd = dd; best = z; }
+          if (dd < bd && z.born < 0.3 && losShot(P.x, P.y, z.x, z.y)) { bd = dd; best = z; }
         }
         if (best) { angle = Math.atan2(best.y - P.y, best.x - P.x); wantFire = true; }
         else if (Math.hypot(input.mx, input.my) > 0.2) angle = Math.atan2(input.my, input.mx);
@@ -1124,7 +1132,7 @@
         for (let s = 0; s < steps && !dead; s++) {
           b.x += (b.vx * dt) / steps; b.y += (b.vy * dt) / steps;
           const ti = tileAt(b.x, b.y);
-          if (ti < 0 || isBlockType(ti)) { dead = true; blood(b.x, b.y, 3, '#d9d27a', 80); break; }
+          if (ti < 0 || isHigh(ti)) { dead = true; blood(b.x, b.y, 3, '#d9d27a', 80); break; }
           for (const z of G.zombies) {
             if (b.hit.has(z.id)) continue;
             if ((z.x - b.x) ** 2 + (z.y - b.y) ** 2 < (z.r + 3) ** 2) {
@@ -1345,7 +1353,7 @@
       if (save.laser && save.laserOn !== false && G.state === 'play') {
         const wd = DF.WEAPONS[curW().id], mz = wd.muzzle || 22, rng = Math.min(wd.range || 600, 900);
         const ca = Math.cos(P.angle), sa = Math.sin(P.angle); let len = mz;
-        for (; len < rng; len += 6) { const ti = tileAt(P.x + ca * len, P.y + sa * len); if (ti < 0 || isBlockType(ti)) break; }
+        for (; len < rng; len += 6) { const ti = tileAt(P.x + ca * len, P.y + sa * len); if (ti < 0 || isHigh(ti)) break; }
         const x0 = P.x + ca * mz, y0 = P.y + sa * mz, x1 = P.x + ca * len, y1 = P.y + sa * len;
         const lg = ctx.createLinearGradient(x0, y0, x1, y1); lg.addColorStop(0, 'rgba(255,40,40,0.75)'); lg.addColorStop(1, 'rgba(255,40,40,0.25)');
         ctx.strokeStyle = 'rgba(255,40,40,0.18)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
