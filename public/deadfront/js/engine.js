@@ -959,7 +959,7 @@
     }
     function hurtZ(z, dmg, nx, ny, kb, quiet) {
       if (z.boss === 'swat' && z.shield && (nx || ny) && nx * Math.cos(z.face) + ny * Math.sin(z.face) < -0.35) { dmg *= 0.2; if (Math.random() < 0.5) { G.parts.push({ x: z.x + Math.cos(z.face) * z.r, y: z.y + Math.sin(z.face) * z.r, vx: rand(-80, 80), vy: rand(-80, 80), life: 0.25, max: 0.25, size: 3, color: '#ffe9a0' }); } if (Math.random() < 0.15) text(z.x, z.y - z.r - 18, 'ESCUDO', '#9fd0ff'); }
-      if (z.boss === 'necro' && z.ward) dmg *= 0.15;
+      if (z.boss === 'necro' && z.ward) { dmg *= 0.15; if (Math.random() < 0.2) text(z.x, z.y - z.r - 18, 'PROTEGIDO', '#c79bff'); if (!z.hint2 && G.time - (z.hintAt || 0) > 0) { z.hint2 = true; msg('Destrua os totens para ferir o Necromante!', '#c79bff'); } }
       z.hp -= dmg; z.barT = 2.4; z.flash = 0.1;
       if (kb && !z.boss) { z.kb.x += nx * kb; z.kb.y += ny * kb; }
       if (!quiet) { text(z.x + rand(-6, 6), z.y - z.r - 6, String(Math.round(dmg)), z.boss ? '#ffd27a' : '#fff'); blood(z.x, z.y, 2, z.type === 'spitter' ? '#3a8a6a' : '#7a0f12', 100); }
@@ -1049,7 +1049,7 @@
       const b = z.boss, key = b === 'twin' ? (z.type === 'boss_twin_a' ? 'twin_a' : 'twin_b') : b;
       const ang = Math.atan2(P.y - z.y, P.x - z.x), dP = Math.hypot(P.x - z.x, P.y - z.y), er = z.enraged ? 1.4 : 1;
       if (b === 'swat') { const was = z.shield; z.shield = z.hp > z.max * 0.5; if (was && !z.shield) { msg('O escudo do Comandante quebrou!', '#9fd0ff'); sfx('break'); } }
-      if (b === 'necro') { z.ward = G.zombies.some((o) => o.def.totem); if (z.enraged && !z.reTot) { z.reTot = true; raiseTotems(z, 2); msg('Novos totens!', '#b36bff'); } }
+      if (b === 'necro') { if (!z.hinted && z.ward !== undefined) { z.hintT = (z.hintT || 0) + dt; if (z.hintT > 2.2) { z.hinted = true; msg('Destrua os totens verdes para ferir o Necromante!', '#c79bff'); } } z.ward = G.zombies.some((o) => o.def.totem); if (z.enraged && !z.reTot) { z.reTot = true; raiseTotems(z, 2); msg('Novos totens!', '#b36bff'); } }
       if (b === 'twin') { const o = G.zombies.find((q) => q !== z && q.boss === 'twin'); z.link = o && Math.hypot(o.x - z.x, o.y - z.y) < 340 ? o : null; if (z.link) z.hp = Math.min(z.max, z.hp + z.max * 0.012 * dt); }
       if (b === 'ice' && dP < 150 && G.state === 'play') P.slowT = Math.max(P.slowT || 0, 0.4);
       if (z.mode === 'idle') {
@@ -1719,6 +1719,7 @@
       for (const h of G.haz) { const k = Math.min(1, h.life / 1.2), g = ctx.createRadialGradient(h.x, h.y, 2, h.x, h.y, h.r); g.addColorStop(0, 'rgba(255,200,60,' + 0.7 * k + ')'); g.addColorStop(0.6, 'rgba(255,100,20,' + 0.45 * k + ')'); g.addColorStop(1, 'rgba(255,60,10,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, 6.283); ctx.fill(); }
       for (const e of G.eproj) { const pr = PRJ[e.kind] || PRJ.bullet; if (e.kind === 'bullet') { ctx.strokeStyle = pr.c; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(e.x, e.y); ctx.lineTo(e.x - e.vx * 0.03, e.y - e.vy * 0.03); ctx.stroke(); continue; } ctx.fillStyle = pr.c; ctx.beginPath(); ctx.arc(e.x, e.y, pr.r, 0, 6.283); ctx.fill(); ctx.globalAlpha = 0.3; ctx.beginPath(); ctx.arc(e.x, e.y, pr.r * 1.7, 0, 6.283); ctx.fill(); ctx.globalAlpha = 1; }
       for (const z of G.zombies) if (z.link && z.id < z.link.id) { ctx.strokeStyle = 'rgba(120,255,160,' + (0.5 + 0.3 * Math.sin(G.time * 8)) + ')'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(z.x, z.y); ctx.lineTo(z.link.x, z.link.y); ctx.stroke(); }
+      for (const o of G.zombies) if (o.def.totem) { ctx.strokeStyle = 'rgba(120,255,160,' + (0.4 + 0.3 * Math.sin(G.time * 5)) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(o.x, o.y, 24 + 3 * Math.sin(G.time * 5), 0, 6.283); ctx.stroke(); }
       for (const z of G.zombies) if (z.boss === 'necro') for (const o of G.zombies) if (o.def.totem) { ctx.strokeStyle = 'rgba(150,90,220,0.45)'; ctx.lineWidth = 2; ctx.setLineDash([6, 6]); ctx.beginPath(); ctx.moveTo(z.x, z.y); ctx.lineTo(o.x, o.y); ctx.stroke(); ctx.setLineDash([]); }
       for (const t of G.towers) if (t.off > 0) { ctx.strokeStyle = 'rgba(255,235,80,0.9)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(t.x - 12, t.y - 8); ctx.lineTo(t.x - 3, t.y - 18 + rand(-3, 3)); ctx.lineTo(t.x + 3, t.y - 6); ctx.lineTo(t.x + 12, t.y - 16 + rand(-3, 3)); ctx.stroke(); }
       if ((P.freezeT || 0) > 0) { ctx.fillStyle = 'rgba(180,230,255,0.45)'; ctx.strokeStyle = '#e6f6ff'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(P.x, P.y, P.r + 7, 0, 6.283); ctx.fill(); ctx.stroke(); }
