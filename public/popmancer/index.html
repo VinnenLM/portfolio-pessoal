@@ -344,6 +344,51 @@ const LEVELS = [
     slimes: [{ x: 400, y: 140, size: 6, dir: 1, boss: 'frost' }] }),
 ];
 LEVELS.forEach((l, i) => { l.f = i % 3; l.i = i; });
+// Tutorial: fase especial sem tempo, sem morte, com passos guiados
+const TUT = { name: 'Tutorial', brief: '', time: 9000, map: 0, theme: 0, f: 0, i: 0, slimes: [],
+  blocks: [{ x: 470, y: 270, w: 260, h: 20 }], ladders: [{ x: 490, y: 270, h: 140 }] };
+const TUT_STEPS = [
+  { h: () => TOUCH ? 'Andar: arraste o dedo na metade ESQUERDA' : 'Andar: use as setas ← e →', s: () => ['Ande um pouco para os dois lados.'], ok: t => t.mv > 160 },
+  { h: () => TOUCH ? 'Pular: toque no botão PULAR' : 'Pular: tecle Z ou Shift', s: () => ['Pule para fugir dos slimes que quicam.'], ok: t => t.jumped },
+  { h: () => TOUCH ? 'Escada: vá até ela e arraste para CIMA' : 'Escada: chegue nela e aperte ↑', s: () => ['Suba até a plataforma. Para descer, use ↓.'], ok: t => t.climbed && P.onGround && !P.climb && P.y + P.h <= 272 },
+  { h: () => TOUCH ? 'Atirar: toque no botão LANÇAR' : 'Atirar: tecle ESPAÇO', s: () => ['A magia sobe em linha reta e para no teto.', 'Atire 3 vezes.'], ok: t => t.n >= 3 },
+  { h: () => 'Estoure o slime!', s: () => ['Ao ser atingido ele se divide em menores.', 'Acabe com todos. Se um encostar em você, perde a proteção.'], ok: t => slimes.length === 0 && t.t > 30,
+    enter: () => { slimes.push(mkSlime(250, 120, 2, 1, 1.4, '#5fd35f')); } },
+  { h: () => 'Bônus: pegue a Barreira Arcana (B)', s: () => ['Slimes dropam itens: armas, escudo, relógio, vida.', 'A barreira bloqueia um golpe.'], ok: t => t.got === 'shield',
+    enter: () => { S.shield = 0; }, keep: () => ({ x: W / 2, y: 200, vy: -3, vx: 0, type: 'shield', t: 0 }) },
+  { h: () => 'Especial: pegue a Tempestade (T)', s: () => ['Raios, fogo e meteoros dão dano em todos da tela.', 'A Nevasca (N) congela tudo por um tempo.'], ok: t => t.got === 'bolt' && slimes.length === 0,
+    enter: () => { slimes.push(mkSlime(190, 150, 1, 1, 1.4, '#5fd35f'), mkSlime(610, 150, 1, -1, 1.4, '#5fd35f')); }, keep: () => ({ x: W / 2, y: 200, vy: -3, vx: 0, type: 'bolt', t: 0 }) },
+  { h: () => 'Visitantes mágicos', s: () => ['Se você demorar na fase, uma criatura mágica passa voando.', 'Derrube-a para ganhar um bônus!'], ok: t => t.t > 420 },
+  { h: () => 'Poderes dos magos', s: () => ['Cada mago da Loja tem um poder único.', 'Toque no "?" do mago para ver o que ele faz.'], ok: t => t.t > 420 },
+  { h: () => 'Tutorial concluído!', s: () => ['Boa sorte, mago! Derrote todos os slimes.'], ok: t => t.t > 150 },
+];
+function enterTutStep() {
+  const t = S.tut, st = TUT_STEPS[t.step];
+  t.t = 0; t.mv = 0; t.px = P.x; t.jumped = false; t.n = 0; t.ps = shots.length; t.got = null;
+  if (st.enter) st.enter();
+  sfx.chime && sfx.chime();
+}
+function tutUpdate() {
+  const t = S.tut; if (!t) return;
+  t.t++;
+  const st = TUT_STEPS[t.step];
+  if (t.step === 0) { if (P.onGround && !P.climb) t.mv += Math.abs(P.x - t.px); t.px = P.x; }
+  if (!P.onGround && !P.climb) t.jumped = true;
+  if (P.climb) t.climbed = true;
+  if (shots.length > t.ps) t.n++; t.ps = shots.length;
+  if (st.keep && !t.got && !items.some(i => i.type === (st.keep().type))) items.push(st.keep());
+  if (t.step === 3 && slimes.length === 0 && t.t === 1) { /* nada */ }
+  if (st.ok(t)) {
+    if (t.step >= TUT_STEPS.length - 1) { endTutorial(); return; }
+    t.step++; t.climbed = false; enterTutStep();
+  }
+}
+function startTutorial() {
+  S.lives = 3; S.score = 0; S.weapon = 'harpoon';
+  startLevel('tut');
+}
+function endTutorial() { S.tutDone = true; S.tut = null; save(); goMenu(); flash('Tutorial concluído!'); }
+
 
 /* =====================================================================
    Estado
@@ -369,11 +414,11 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
-let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], gearBtn = { x: 0, y: 0, w: 0, h: 0 }, amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
+let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], gearBtn = { x: 0, y: 0, w: 0, h: 0 }, tutBtn = { x: 0, y: 0, w: 0, h: 0 }, amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
 const P = { x: 0, y: 0, w: 22, h: 34, vy: 0, face: 1, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, anim: 0,
             sq: 0, lean: 0, walking: false, dead: null };
 let coinTaps = [];
@@ -393,13 +438,13 @@ function load() {
     S.skin = S.ownedSkins.includes(o.skin) ? o.skin : 'hero';
     S.rope = S.ownedRopes.includes(o.rope) ? o.rope : 'padrao';
     artStyle = o.style === 'pixel' ? 'pixel' : 'classic'; fitCanvas(true);
-    S.musicOn = o.music !== false; S.sfxOn = o.sfx !== false;
+    S.musicOn = o.music !== false; S.sfxOn = o.sfx !== false; S.tutDone = !!o.tut;
   } catch (e) {}
 }
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({ level: S.savedLevel, best: S.best, coins: S.coins, unlocked: S.unlocked,
-      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn }));
+      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn, tut: S.tutDone }));
   } catch (e) {}
 }
 const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
@@ -605,7 +650,7 @@ function mkSlime(x, y, size, dir, spd, color, type) {
 }
 
 function startLevel(i) {
-  S.level = i; const L = LEVELS[i]; S.cur = L;
+  const isTut = i === 'tut'; S.level = isTut ? 0 : i; const L = isTut ? TUT : LEVELS[i]; S.cur = L; S.tut = isTut ? { step: 0, t: 0, mv: 0, px: 0, jumped: false, n: 0, ps: 0, got: null, climbed: false } : null;
   const spd = L.spd || 1.4;
   slimes = L.slimes.map(d => {
     const s = mkSlime(d.x, d.y, d.size, d.dir, spd, d.color || TYPE_COLOR[d.type] || L.color || '#5fd35f', d.type);
@@ -625,7 +670,7 @@ function startLevel(i) {
   fires = []; famShots = []; fam = is('invoc') ? { x: P.x + P.w / 2, y: P.y - 36, t: 150 } : null;
   initAmb(L.theme); Music.setIntense(false);
   Music.play(L.slimes.some(d => d.boss) ? 'boss' : 'stage' + L.theme);
-  S.state = 'ready';
+  if (S.tut) { S.shield = 0; S.state = 'play'; S.fade = 0; S.tut.px = P.x; enterTutStep(); } else S.state = 'ready';
 }
 
 function newGame(fromLevel) {
@@ -634,7 +679,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
+  S.state = 'menu'; S.tut = null; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -1085,8 +1130,8 @@ function updateFx() {
 }
 
 function pickItem(it) {
-  if (it.type === 'coin') { S.coins += it.val; sfx.coin(); save(); emit({ kind: 'star', x: it.x, y: it.y, vy: -.8, g: 0, life: 20, r: 3, c: '#ffe27a' }); return; }
-  const d = ITEMS[it.type];
+  if (it.type === 'coin') { if (S.tut) return; S.coins += it.val; sfx.coin(); save(); emit({ kind: 'star', x: it.x, y: it.y, vy: -.8, g: 0, life: 20, r: 3, c: '#ffe27a' }); return; }
+  const d = ITEMS[it.type]; if (S.tut) S.tut.got = it.type;
   sfx.item(); S.score += 50; sparks(it.x, it.y, d.color, 12, 4); ring(it.x, it.y, 26, d.color, 16, 2);
   popup(P.x + P.w / 2, P.y - 8, d.name, d.color, 13);
   if (WEAPONS[it.type]) S.weapon = it.type;
@@ -1280,6 +1325,7 @@ function playerHit() {
 // escudo absorve 1 golpe
 function hurt() {
   if (P.inv > 0 || S.state !== 'play') return;
+  if (S.tut) { P.inv = 90; sfx.shield(); popup(P.x + P.w / 2, P.y - 10, 'Cuidado!', '#ffd0d0', 14); return; }
   if (is('ilu') && Math.random() < .15) {                  // Reflexo Arcano
     P.inv = 60; sfx.shield(); ring(P.x + P.w / 2, P.y + P.h / 2, 50, '#f3b0ff', 18, 3); sparks(P.x + P.w / 2, P.y + P.h / 2, '#f3b0ff', 14, 5);
     popup(P.x + P.w / 2, P.y - 10, 'ESQUIVOU!', '#f3b0ff', 15); return;
@@ -1328,7 +1374,7 @@ function step() {
       updateParts();
       break;
     case 'play':
-      S.timeLeft--; S.lvT++;
+      S.timeLeft--; S.lvT++; if (S.tut) { S.timeLeft = 9000 * 60; S.lvT = 0; }
       if (S.timeLeft <= 0) { killPlayer(); break; }
       if (S.shield > 0) S.shield--;
       if (S.freeze > 0) S.freeze--;
@@ -1336,8 +1382,9 @@ function step() {
       updatePlayer(); handleFire(); updateShots();
       if (S.state !== 'play') break;
       updateSlimes(); updateFlyers(); updateWisp(); updateStrikes(); updatePerks(); updateGlobs(); updateFx(); updateItems(); updateParts();
+      if (S.tut) { tutUpdate(); if (S.state !== 'play') break; }
       if (playerHit()) { hurt(); if (S.state !== 'play') break; }
-      if (!slimes.length && !flyers.length) {
+      if (!S.tut && !slimes.length && !flyers.length) {
         S.state = 'clear'; S.timer = 200; sfx.clear();
         S.bonus = Math.floor(Math.max(0, S.timeLeft) / 60) * 10; S.score += S.bonus;
         const boss = S.cur.slimes.some(d => d.boss);
@@ -2206,6 +2253,17 @@ function button(x, y, w, h, label, col, fn) {
   txt(label, x + w / 2, y + h / 2 + 1, Math.min(22, h * .5), '#fff', 'center', null);
 }
 
+function drawTut() {
+  const t = S.tut, st = t && TUT_STEPS[t.step]; if (!st) return;
+  const bw = 600, bx = W / 2 - bw / 2, by = 52, lines = st.s();
+  ctx.fillStyle = 'rgba(14,10,40,.78)'; ctx.strokeStyle = '#ffe27a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(bx, by, bw, 66, 12); ctx.fill(); ctx.stroke();
+  txt(`${t.step + 1}/${TUT_STEPS.length}  ${st.h()}`, W / 2, by + 18, 20, '#ffe27a', 'center', '#000');
+  lines.forEach((l, i) => txt(l, W / 2, by + 40 + i * 16, 14, '#fff', 'center', null));
+  tutBtn = { x: W - 118, y: 84, w: 76, h: 28 };
+  ctx.fillStyle = '#c92a2a'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(tutBtn.x, tutBtn.y, tutBtn.w, tutBtn.h, 8); ctx.fill(); ctx.stroke();
+  txt('Pular', tutBtn.x + 38, tutBtn.y + 15, 14, '#fff', 'center', null);
+}
 function drawMenu() {
   menuBtns = [];
   slimes.forEach(drawSlime);
@@ -2217,8 +2275,8 @@ function drawMenu() {
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 40, label, col, fn); y += 48; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
-  add('Mapas', openMaps, '#7048e8');
-  add('Loja', openShop, '#e67700');
+  button(W / 2 - 170, y, 166, 40, 'Mapas', '#7048e8', openMaps); button(W / 2 + 4, y, 166, 40, 'Loja', '#e67700', openShop); y += 48;
+  add('Tutorial', startTutorial, S.tutDone ? '#0b7285' : '#d6336c');
   txt(`Recorde: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center');
   if (S.msgT > 0) { txt(S.msg, W / 2, y + 36, 16, '#ffe27a'); }
   txt('← → mover · ↑ ↓ escada · Z/Shift pular · ESPAÇO lançar magia · P pausa · M som', W / 2, H - 16, 12, '#fff', 'center');
@@ -2387,6 +2445,7 @@ function draw() {
       if (S.timer < 140) txt('toque / ESPAÇO para começar', W / 2, H / 2 + 64, 14, '#cfe', 'center', null);
       break;
     }
+    case 'play': if (S.tut) drawTut(); break;
     case 'clear':
       overlay(.35); txt('FASE COMPLETA!', W / 2, H / 2 - 30, 48, '#7dff7d');
       txt(`Bônus de tempo: +${S.bonus}   ·   +${S.gained} moedas`, W / 2, H / 2 + 20, 20); if (S.unlockMsg) txt(S.unlockMsg, W / 2, H / 2 + 64, 22, '#ffe27a'); break;
@@ -3070,6 +3129,16 @@ function drawTitle() {
   glyphs(s, px, py, sc, 'rgba(255,255,255,0)'); rc(px + 4, py + 2, 8, 2, '#d8ffd0');
   txt('MAGOS VS SLIMES', W / 2, 146, 34, '#ffe27a', 'center', '#5a3b00');
 }
+function drawTut() {
+  const t = S.tut, st = t && TUT_STEPS[t.step]; if (!st) return;
+  const bw = 700, bx = W / 2 - bw / 2, by = 50, lines = st.s();
+  panel(Math.round(bx / 2), Math.round(by / 2), bw / 2, 38, '#1b1740', '#ffe27a');
+  txt(`${t.step + 1}/${TUT_STEPS.length} ${st.h()}`, W / 2, by + 16, 16, '#ffe27a', 'center', '#000');
+  lines.forEach((l, i) => txt(l, W / 2, by + 40 + i * 18, 14, '#ffffff', 'center', null));
+  tutBtn = { x: W - 118, y: by + 82, w: 76, h: 28 };
+  panel(Math.round(tutBtn.x / 2), Math.round(tutBtn.y / 2), 38, 14, '#c92a2a', '#0c0818');
+  txt('PULAR', tutBtn.x + 38, tutBtn.y + 15, 14, '#ffffff', 'center', '#000');
+}
 function drawMenu() {
   menuBtns = [];
   slimes.forEach(drawSlime);
@@ -3080,8 +3149,8 @@ function drawMenu() {
   const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 40, label, col, fn); y += 48; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
-  add('Mapas', openMaps, '#7048e8');
-  add('Loja', openShop, '#e67700');
+  button(W / 2 - 170, y, 166, 40, 'Mapas', '#7048e8', openMaps); button(W / 2 + 4, y, 166, 40, 'Loja', '#e67700', openShop); y += 48;
+  add('Tutorial', startTutorial, S.tutDone ? '#0b7285' : '#d6336c');
   txt(`RECORDE: ${S.best}`, W / 2, y + 10, 16, '#fff', 'center', '#000');
   if (S.msgT > 0) txt(S.msg, W / 2, y + 34, 16, '#ffe27a', 'center', '#000');
   txt('← → MOVER · ↑ ↓ ESCADA · Z PULAR · ESPAÇO MAGIA · P PAUSA', W / 2, H - 14, 12, '#ffffff', 'center', '#000');
@@ -3314,6 +3383,7 @@ function render() {
       wrapTxt(S.cur.brief, W / 2, H / 2 + 30, 640, 14, '#ffffff', 18);
       if (S.timer < 140 && (S.tick >> 4) % 2) txt('TOQUE / ESPAÇO PARA COMEÇAR', W / 2, H / 2 + 100, 14, '#ccffee', 'center', null);
       break; }
+    case 'play': if (S.tut) drawTut(); break;
     case 'clear':
       overlay(.4); txt('FASE COMPLETA!', W / 2, H / 2 - 30, 56, '#7dff7d', 'center', '#0b3d12');
       txt(`BÔNUS DE TEMPO: +${S.bonus} · +${S.gained} MOEDAS`, W / 2, H / 2 + 24, 16, '#ffffff'); if (S.unlockMsg) txt(S.unlockMsg, W / 2, H / 2 + 64, 18, '#ffe27a', 'center', '#000'); break;
@@ -3342,7 +3412,7 @@ function draw() { syncZone(); render(); present(); }
 return { draw };
 })();
 
-function draw() { syncZone(); gearBtn.w = 0; Styles[artStyle].draw(); }
+function draw() { syncZone(); gearBtn.w = 0; tutBtn.w = 0; Styles[artStyle].draw(); }
 function setStyle(st) { artStyle = st === 'pixel' ? 'pixel' : 'classic'; save(); fitCanvas(true); }
 function toggleStyle() { setStyle(artStyle === 'pixel' ? 'classic' : 'pixel'); }
 
@@ -3381,6 +3451,7 @@ cv.addEventListener('pointerdown', e => {
   Music.unlock();
   const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
   if (muteBtn.w && x >= muteBtn.x && x <= muteBtn.x + muteBtn.w && y >= muteBtn.y && y <= muteBtn.y + muteBtn.h) { setMuted(!S.muted); return; }
+  if (tutBtn.w && x >= tutBtn.x && x <= tutBtn.x + tutBtn.w && y >= tutBtn.y && y <= tutBtn.y + tutBtn.h) { endTutorial(); return; }
   if (gearBtn.w && x >= gearBtn.x && x <= gearBtn.x + gearBtn.w && y >= gearBtn.y && y <= gearBtn.y + gearBtn.h) { openSettings(); return; }
   if ((S.state === 'menu' || S.state === 'shop') && y >= 6 && y <= 40 && x >= W - 200 && x <= W - 46) { // truque de teste: toques rápidos nas moedas
     const now = performance.now(); coinTaps = coinTaps.filter(t => now - t < 1800); coinTaps.push(now);
@@ -3474,7 +3545,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  startTutorial, endTutorial, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
