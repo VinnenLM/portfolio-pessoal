@@ -176,7 +176,7 @@ const SKINS = [
   { id: 'magmaista', name: 'Mago Vulcão', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.', 'Meteoros deixam fogo no chão.'] } },
   { id: 'aero', name: 'Mago do Vento', price: 850, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', sn: 'Mago Vento', skin: '#ffe8d0', start: 'gun', perk: { name: 'Passos de Vento', lines: ['Pula 25% mais alto.', 'Começa com Mísseis Mágicos.'] } },
   { id: 'sangue', name: 'Cultista', price: 500, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', perk: { name: 'Último Sacrifício', lines: ['Começa o jogo com 4 vidas.', 'Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.'] } },
-  { id: 'demo', name: 'Mago Infernal', price: 1200, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', sn: 'Infernal', skin: '#ff8787', start: 'shotgun', perk: { name: 'Pacto Demoníaco', lines: ['Espingarda Arcana inicial e imune a fogo', '(Dragão e ondas da Fênix não o ferem).', 'Onda de Fogo e Meteoros caem 2x mais.'] } },
+  { id: 'demo', name: 'Mago Infernal', price: 1200, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', sn: 'Infernal', skin: '#ff8787', start: 'shotgun', perk: { name: 'Pacto Demoníaco', lines: ['Espingarda Arcana inicial. Absorve 1 golpe', 'de fogo a cada 10 s (Dragão e Fênix).', 'Onda de Fogo e Meteoros caem 2x mais.'] } },
 ];
 SKINS.sort((a, b) => a.price - b.price);
 // Cores da magia (raio principal)
@@ -796,7 +796,7 @@ function startLevel(i) {
   shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; strikeQ = []; wisp = null; wispT = 0;
   Object.assign(P, { x: W / 2 - P.w / 2, y: FLOOR - P.h, vy: 0, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, face: 1, sq: 0, lean: 0, walking: false, dead: null });
   S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0; S.lvT = 0;
-  S.shield = 0; S.freeze = 0; S.magnet = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
+  S.shield = 0; S.freeze = 0; S.magnet = 0; S.demoCd = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
   S.revUsed = false; if (S.skin === 'necro') S.shield = 300;
   if (is('crono') && !S.tut) S.timeLeft += 900;                // Tempo Distorcido: +15 s
   if (is('xama')) S.shield = 99999;                            // Espírito Guardião: bloqueia 1 golpe
@@ -1207,7 +1207,7 @@ function updateFlyers() {
         emit({ x: f.x, y: f.y, vx: rnd(-.5, .5), vy: rnd(-.5, .5), g: -.02, life: 20, r: 3.4, c: f.t % 2 ? '#ff7a1a' : '#ffd54a' });
         if (f.y >= FLOOR - 20 || f.x < f.r || f.x > W - f.r) {
           f.x = clamp(f.x, f.r, W - f.r); f.st = 'rise'; f.t = 0; ring(f.x, Math.min(f.y, FLOOR - 4), 26, '#ffb347', 14, 3); sparks(f.x, Math.min(f.y, FLOOR - 4), '#ffcf5a', 12, 5); S.shake = Math.max(S.shake, 4);
-          if (big) { S.shake = 12; sfx.boom(); ring(f.x, FLOOR - 4, 130, '#ff9a3d', 24, 5); if (P.onGround && Math.abs(P.x + P.w / 2 - f.x) < 125 && !is('demo')) hurt(); }   // onda de choque do impacto
+          if (big) { S.shake = 12; sfx.boom(); ring(f.x, FLOOR - 4, 130, '#ff9a3d', 24, 5); if (P.onGround && Math.abs(P.x + P.w / 2 - f.x) < 125 && !absorbFire()) hurt(); }   // onda de choque do impacto
         }
       } else {
         f.y -= 3.2; f.x += f.vx * .5;
@@ -1281,7 +1281,7 @@ function updateGlobs() {
     if (g.x < -10 || g.x > W + 10 || g.y > H + 10 || g.y < -20) { globs.splice(i, 1); continue; }
     if (g.x > P.x - 3 && g.x < P.x + P.w + 3 && g.y > P.y && g.y < P.y + P.h) {
       globs.splice(i, 1);
-      if (g.fire) { burst(g.x, g.y, '#ff7a2f', 10); if (S.freeze <= 0 && !is('demo')) hurt(); continue; }
+      if (g.fire) { burst(g.x, g.y, '#ff7a2f', 10); if (S.freeze <= 0 && !absorbFire()) hurt(); continue; }
       burst(g.x, g.y, '#b6e03a', 8);
       if (S.shield > 0) sfx.shield(); else S.slow = Math.round(240 * slowMul());
       continue;
@@ -1509,6 +1509,11 @@ function playerHit() {
 }
 
 // escudo absorve 1 golpe
+// Mago Infernal: absorve 1 golpe de fogo (bolas do Dragão, onda da Fênix) a cada 10 s
+function absorbFire() {
+  if (!is('demo') || (S.demoCd || 0) > 0 || P.inv > 0) return false;
+  S.demoCd = 600; ring(P.x + P.w / 2, P.y + P.h / 2, 30, '#ff7a2f', 18, 3); popup(P.x + P.w / 2, P.y - 8, 'Fogo absorvido!', '#ff9a3d', 13); sfx.item(); return true;
+}
 function hurt() {
   if (P.inv > 0 || S.state !== 'play') return;
   if (S.tut) { P.inv = 90; sfx.shield(); popup(P.x + P.w / 2, P.y - 10, 'Cuidado!', '#ffd0d0', 14); return; }
@@ -1567,6 +1572,7 @@ function step() {
       if (S.shield > 0) S.shield--;
       if (S.freeze > 0) S.freeze--;
       if (S.magnet > 0) S.magnet--;
+      if (S.demoCd > 0) S.demoCd--;
       if (S.slow > 0) S.slow--;
       updatePlayer(); handleFire(); updateShots();
       if (S.state !== 'play') break;
