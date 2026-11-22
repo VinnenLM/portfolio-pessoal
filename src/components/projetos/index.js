@@ -61,7 +61,7 @@ const projetos = [
     titulo: "Popmancer",
     categoria: "app",
     descricao:
-      "Jogo estilo Super Pang em que um mago estoura slimes bravos com magias, feito em JavaScript puro (Canvas) e empacotado para Android com Capacitor. 24 fases em 8 mapas, chefes, escadas, plataformas, pulo, power-ups e ataques que atingem a tela toda, visitantes mágicos, slimes explosivos e cuspidores, 21 magos com poderes próprios, cores de magia, dois estilos visuais, tutorial e música gerada por código.",
+      "Jogo estilo Super Pang em que um mago estoura slimes bravos com magias, feito em JavaScript puro (Canvas) e empacotado para Android com Capacitor. 33 fases em 11 mapas, chefes, escadas, plataformas, pulo, power-ups e ataques que atingem a tela toda, visitantes mágicos, slimes explosivos e cuspidores, 21 magos com poderes próprios, cores de magia, dois estilos visuais, tutorial e música gerada por código.",
     link: `${process.env.PUBLIC_URL}/popmancer/`,
     jogar: true,
     extra: {
