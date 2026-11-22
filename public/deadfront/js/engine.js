@@ -311,7 +311,7 @@
       for (const [rx, ry, rw, rh] of planeRects) {
         if (tx < rx || tx >= rx + rw || ty < ry || ty >= ry + rh) continue;
         const L = rw * TILE - 6, W = rh * TILE - 6, dx = x - (rx * TILE + 3 + L / 2), dy = y - (ry * TILE + 3 + W / 2);
-        if (Math.abs(dy) < W * 0.12 && dx > -L * 0.47 && dx < L * 0.5) return true;
+        { const r0 = W * 0.12, ax = -L * 0.47 + r0, bx = L * 0.5 - r0; if (Math.hypot(dx - clamp(dx, ax, bx), dy) < r0) return true; }
         for (const sg of [-1, 1]) {
           if (inPoly([[L * 0.14, sg * W * 0.09], [-L * 0.08, sg * W * 0.5], [-L * 0.2, sg * W * 0.5], [-L * 0.02, sg * W * 0.09]], dx, dy)) return true;
           if (inPoly([[-L * 0.36, sg * W * 0.05], [-L * 0.46, sg * W * 0.26], [-L * 0.41, sg * W * 0.26], [-L * 0.3, sg * W * 0.05]], dx, dy)) return true;
@@ -331,7 +331,7 @@
         const L = rw * TILE - 6, W = rh * TILE - 6, cx = rx * TILE + 3 + L / 2, cy = ry * TILE + 3 + W / 2;
         if (Math.abs(e.x - cx) > L / 2 + e.r + 4 || Math.abs(e.y - cy) > W / 2 + e.r + 4) continue;
         const shapes = [];
-        shapes.push({ cap: [cx - L * 0.38, cy, cx + L * 0.38, cy, W * 0.12] });
+        shapes.push({ cap: [cx - L * 0.47 + W * 0.12, cy, cx + L * 0.5 - W * 0.12, cy, W * 0.12] });
         for (const sg of [-1, 1]) for (const f of SHP) shapes.push({ poly: f(L, sg).map(([px, py]) => [cx + px, cy + py * W]) });
         for (const sh of shapes) {
           let qx, qy, inside = false;
@@ -1612,12 +1612,14 @@
       lctx.globalCompositeOperation = 'destination-out';
       const N = 120, BASE = 215, CONE = 560, half = 0.5;
       const pts = [];
+      const startInside = (() => { const ti = tileAt(P.x, P.y); return ti >= 0 && (tiles[ti] === T.OBST && map.obst[ti] === 'plane' ? planeHit(P.x, P.y) : isHigh(ti)); })();
       for (let i = 0; i < N; i++) {
         const a = (i / N) * 6.283;
         const da = Math.abs(Math.atan2(Math.sin(a - P.angle), Math.cos(a - P.angle)));
         const mr = BASE + (da < half ? (CONE - BASE) * Math.pow(Math.cos(da / half * 1.5708), 0.6) : 0);
         const ca = Math.cos(a), sa = Math.sin(a); let r = 10;
-        const blk = (rr) => { const bx = P.x + ca * rr, by = P.y + sa * rr, ti = tileAt(bx, by); if (ti < 0) return true; if (tiles[ti] === T.OBST && map.obst[ti] === 'plane') return planeHit(bx, by); return isHigh(ti); };
+        const blk = (rr) => (startInside && rr < 40 ? false : blkRaw(rr));
+        const blkRaw = (rr) => { const bx = P.x + ca * rr, by = P.y + sa * rr, ti = tileAt(bx, by); if (ti < 0) return true; if (tiles[ti] === T.OBST && map.obst[ti] === 'plane') return planeHit(bx, by); return isHigh(ti); };
         for (; r < mr; r += 12) { if (blk(r)) { let lo = Math.max(10, r - 12), hi = r; for (let k = 0; k < 5; k++) { const mid = (lo + hi) / 2; if (blk(mid)) hi = mid; else lo = mid; } r = hi; break; } }
         r = Math.min(r, mr); pts.push([(P.x + ca * r - camera.x + shx) * s, (P.y + sa * r - camera.y + shy) * s]);
       }
