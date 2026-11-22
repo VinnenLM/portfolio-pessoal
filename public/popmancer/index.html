@@ -734,6 +734,7 @@ const UPS = [
   { id: 'jump',   name: 'Salto Alto',      lb: 'J', col: '#d0bfff', d: ['Pula 8% mais alto.'] },
   { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Ataque de tela cheia no início', 'da onda; +1 passada por nível.'] },
   { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca:', '5 s, +2 s a cada nível.'] },
+  { id: 'bfrost', name: 'Gelo de Chefe',   lb: 'G', col: '#74c0fc', d: ['Chefes ficam congelados por mais', 'tempo na Nevasca (50% +15% por nível).'] },
   { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
 ];
 const UPS_BY = Object.fromEntries(UPS.map(u => [u.id, u]));
@@ -1157,7 +1158,7 @@ function updateFlyers() {
   const px = P.x + P.w / 2, py = P.y + P.h / 2;
   for (const f of flyers) {
     if (f.imm > 0) f.imm--; if (f.flash > 0) f.flash--;
-    if (S.freeze > 0) continue;
+    if (isFz(f)) continue;
     f.t++; f.p += .1;
     if (f.k === 'bat' || f.k === 'megabat') {
       const mb = f.k === 'megabat', rage = mb && f.hp <= f.maxhp / 2; if (mb) f.enraged = rage;
@@ -1252,7 +1253,7 @@ function updateSpit(s) {
 
 function updateSlimes() {
   for (const s of slimes) {
-    if (S.freeze > 0) {
+    if (isFz(s)) {
       if (s.imm > 0) s.imm--; if (s.hitCd > 0) s.hitCd--; if (s.flash > 0) s.flash--;
       s.sq = Math.max(0, s.sq - 0.04);
       if ((S.tick + s.id) % 22 === 0) smoke(s.x, s.y - s.r, '#dff4ff', 1, .35);
@@ -1418,8 +1419,10 @@ function updateStrikes() {
 }
 
 // Nevasca: vento de gelo varre a tela e congela os slimes
+// Chefes ficam congelados só metade do tempo da Nevasca (o bônus 'Gelo de Chefe' aumenta essa fração até 100%)
+function isFz(e) { return S.freeze > 0 && (!e.boss || (S.freezeTotal || 0) - S.freeze < (S.bossFz || 0)); }
 function startFreeze(ticks) {
-  S.freeze = Math.round((ticks || 300) * freezeMul()); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
+  S.freeze = Math.round((ticks || 300) * freezeMul()); S.freezeTotal = S.freeze; S.bossFz = Math.round(S.freeze * Math.min(1, .5 + .15 * up('bfrost'))); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
   const cx = P.x + P.w / 2, cy = P.y + P.h / 2;
   ring(cx, cy, 130, '#bfe8ff', 30, 4);
   for (let i = 0; i < 30; i++) { const a = rnd(0, TAU), v = rnd(2, 7);
@@ -1985,7 +1988,7 @@ function drawBlocks() {
 function drawSlime(s) {
   const r = s.r, st = clamp(Math.abs(s.vy) * 0.012, 0, 0.14), wob = Math.sin(S.tick * 0.12 + s.id) * 0.025;
   const sx = 1 + s.sq - st * 0.5 + wob, sy = 1 - s.sq + st - wob;
-  const frozen = S.freeze > 0 && S.state !== 'menu';
+  const frozen = isFz(s) && S.state !== 'menu';
   { // sombra no chão
     const gy = groundBelow(s.x, s.y + r - 2), hg = clamp((gy - (s.y + r)) / 260, 0, 1);
     ctx.fillStyle = `rgba(0,0,0,${0.28 * (1 - hg * .7)})`; ctx.beginPath(); ctx.ellipse(s.x, gy + 1, r * (1 - hg * .45), r * .22, 0, 0, TAU); ctx.fill();
@@ -3237,7 +3240,7 @@ function drawBlocks() {
 
 // ---- slimes ----
 function drawSlime(s) {
-  const frozen = S.freeze > 0 && S.state !== 'menu', r = s.r / 2, t = S.tick;
+  const frozen = isFz(s) && S.state !== 'menu', r = s.r / 2, t = S.tick;
   const st = clamp(Math.abs(s.vy) * 0.012, 0, .14), wob = Math.sin(t * .12 + s.id) * .03;
   const rx = Math.max(3, Math.round(r * (1 + s.sq - st * .5 + wob))), ry = Math.max(3, Math.round(r * (1 - s.sq + st - wob)));
   const cx = Math.round(s.x / 2), by = Math.round((s.y + s.r) / 2), cy = by - ry;
