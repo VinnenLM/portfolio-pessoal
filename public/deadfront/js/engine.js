@@ -1691,10 +1691,7 @@
         const glow = ctx.createRadialGradient(0, 0, 2, 0, 0, 30); glow.addColorStop(0, 'rgba(255,230,120,0.45)'); glow.addColorStop(1, 'rgba(255,230,120,0)');
         ctx.fillStyle = glow; ctx.beginPath(); ctx.arc(0, 0, 30, 0, 6.283); ctx.fill();
         ctx.fillStyle = '#7a5a2e'; rrect(ctx, -12, -12, 24, 24, 4); ctx.fill(); ctx.strokeStyle = '#d9b36a'; ctx.lineWidth = 2; rrect(ctx, -12, -12, 24, 24, 4); ctx.stroke();
-        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        let lab = L.kind === 'grenade' ? 'GR' : L.kind === 'coins' ? '$' : L.kind === 'ammo' ? (L.all ? 'MUN' : 'AM') : L.kind === 'scrap' ? 'SU' : L.kind === 'weapon' ? DF.WEAPONS[L.w].name.slice(0, 3).toUpperCase() : L.trap === 'spike' ? 'ES' : L.trap === 'mine' ? 'MI' : 'UR';
-        if (L.kind === 'medkit') { ctx.fillStyle = '#e53935'; ctx.fillRect(-3, -8, 6, 16); ctx.fillRect(-8, -3, 16, 6); }
-        else { ctx.fillStyle = L.kind === 'grenade' ? '#ff8a5c' : L.kind === 'coins' ? '#ffd86b' : L.kind === 'weapon' ? '#7ab8ff' : L.kind === 'ammo' ? '#ffd27a' : L.kind === 'scrap' ? '#e8c07a' : '#ffb347'; ctx.fillText(lab, 0, 1); }
+        lootIcon(L);
         ctx.restore();
       }
       // barricadas
@@ -1901,6 +1898,35 @@
       for (const zp of G.zaps) glow(zp.x1, zp.y1, 90, 0.7);
       if (!DF.flatSprites) { lctx.globalCompositeOperation = 'source-over'; const wg = lctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s); wg.addColorStop(0, 'rgba(255,225,170,0.13)'); wg.addColorStop(1, 'rgba(255,225,170,0)'); lctx.fillStyle = wg; lctx.beginPath(); pts.forEach((p, k) => (k ? lctx.lineTo(p[0], p[1]) : lctx.moveTo(p[0], p[1]))); lctx.closePath(); lctx.fill(); }
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'low'; ctx.drawImage(lightCv, 0, 0, canvas.width, canvas.height); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+    const wImgs = {};
+    function wImg(id) { if (!wImgs[id]) { const im = new Image(); im.src = 'data:image/svg+xml;utf8,' + encodeURIComponent(DF.weaponSVG(id)); wImgs[id] = im; } return wImgs[id]; }
+    function lootIcon(L) {
+      const k = L.kind;
+      if (k === 'medkit') { ctx.fillStyle = '#f2f2f2'; rrect(ctx, -8, -8, 16, 16, 3); ctx.fill(); ctx.fillStyle = '#e53935'; ctx.fillRect(-2.5, -6, 5, 12); ctx.fillRect(-6, -2.5, 12, 5); }
+      else if (k === 'ammo') {
+        for (let i = -1; i <= 1; i++) { const x = i * 6; ctx.fillStyle = '#d9a441'; ctx.fillRect(x - 2.2, -2, 4.4, 9); ctx.fillStyle = '#b8742a'; ctx.beginPath(); ctx.moveTo(x - 2.2, -2); ctx.quadraticCurveTo(x, -10, x + 2.2, -2); ctx.fill(); ctx.fillStyle = '#7a5a2e'; ctx.fillRect(x - 2.2, 5, 4.4, 2); }
+        if (L.all) { ctx.fillStyle = '#fff'; ctx.font = 'bold 8px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('TODAS', 0, -13); }
+      } else if (k === 'grenade') {
+        const c1 = L.g === 'fire' ? '#d4551c' : L.g === 'holy' ? '#f4efe0' : '#4f6b3a';
+        ctx.fillStyle = c1; ctx.strokeStyle = '#111'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(0, 2, 7, 0, 6.283); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#555'; ctx.fillRect(-2.5, -8, 5, 4); ctx.strokeStyle = '#ccc'; ctx.beginPath(); ctx.arc(5, -7, 3, 0, 6.283); ctx.stroke();
+        if (L.g === 'holy') { ctx.fillStyle = '#d4a017'; ctx.fillRect(-1, -1, 2, 8); ctx.fillRect(-3.5, 1.5, 7, 2); }
+        else { ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(6, 2); ctx.moveTo(0, -4); ctx.lineTo(0, 8); ctx.stroke(); }
+      } else if (k === 'scrap') {
+        ctx.strokeStyle = '#e8c07a'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-6, 6); ctx.lineTo(4, -4); ctx.stroke(); ctx.lineCap = 'butt';
+        ctx.fillStyle = '#c9ccd0'; ctx.beginPath(); ctx.arc(5, -5, 4.5, 0, 6.283); ctx.fill(); ctx.fillStyle = '#7a5a2e'; ctx.beginPath(); ctx.arc(5, -5, 1.8, 0, 6.283); ctx.fill();
+        ctx.fillStyle = '#9aa0a6'; ctx.fillRect(-9, 3, 6, 5);
+      } else if (k === 'coins') {
+        ctx.fillStyle = '#ffd86b'; ctx.strokeStyle = '#a8761a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.283); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#a8761a'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', 0, 1);
+      } else if (k === 'weapon') {
+        const im = wImg(L.w); if (im.complete && im.naturalWidth) { const s = 22 / Math.max(im.naturalWidth, im.naturalHeight); ctx.drawImage(im, -im.naturalWidth * s / 2, -im.naturalHeight * s / 2, im.naturalWidth * s, im.naturalHeight * s); }
+        else { ctx.fillStyle = '#7ab8ff'; ctx.fillRect(-8, -2, 16, 4); }
+      } else if (k === 'trap') {
+        if (L.trap === 'spike') { ctx.fillStyle = '#c9ccd0'; for (let i = -1; i <= 1; i++) { ctx.beginPath(); ctx.moveTo(i * 6 - 3, 6); ctx.lineTo(i * 6, -7); ctx.lineTo(i * 6 + 3, 6); ctx.fill(); } ctx.fillStyle = '#555'; ctx.fillRect(-10, 5, 20, 3); }
+        else if (L.trap === 'mine') { ctx.fillStyle = '#3a3d40'; ctx.beginPath(); ctx.arc(0, 1, 8, 0, 6.283); ctx.fill(); ctx.fillStyle = '#d33'; ctx.beginPath(); ctx.arc(0, 1, 2.5, 0, 6.283); ctx.fill(); ctx.strokeStyle = '#999'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, -10); ctx.stroke(); }
+        else { ctx.strokeStyle = '#b8bcc0'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.283); ctx.stroke(); ctx.fillStyle = '#b8bcc0'; for (let i = 0; i < 8; i++) { const a = i * 0.785; ctx.beginPath(); ctx.moveTo(Math.cos(a) * 8, Math.sin(a) * 8); ctx.lineTo(Math.cos(a + 0.2) * 11.5, Math.sin(a + 0.2) * 11.5); ctx.lineTo(Math.cos(a + 0.4) * 8, Math.sin(a + 0.4) * 8); ctx.fill(); } }
+      }
     }
     function drawBar(x, y, w, h, pct, color, alpha) {
       ctx.globalAlpha = alpha; ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);
