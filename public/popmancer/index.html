@@ -1619,6 +1619,7 @@ function drawMenu() {
   txt(`Recorde: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center');
   if (S.msgT > 0) { txt(S.msg, W / 2, y + 36, 16, '#ffe27a'); }
   txt('← → mover · ↑ ↓ escada · Z/Shift pular · ESPAÇO lançar magia · P pausa · M som', W / 2, H - 16, 12, '#fff', 'center');
+  const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true, lean: .09 }); // mago de enfeite caminhando no chão
   button(12, 10, 176, 30, `Estilo: ${artStyle === 'pixel' ? 'Pixel' : 'Clássico'}`, '#6741d9', toggleStyle);
 }
 
