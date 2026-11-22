@@ -303,9 +303,56 @@
     // sistema de altura: obstáculos baixos (mesas, sofás, caixotes...) deixam passar tiros e granadas; paredes e coisas altas não
     const HIGH = new Set(['plane', 'tank', 'truck', 'shelf', 'gate']);
     const isHigh = (i) => tiles[i] === T.WALL || (tiles[i] === T.OBST && HIGH.has(map.obst[i]));
+    // silhueta do avião para a luz (segue o formato, não o retângulo)
+    const planeRects = lv.obst.filter((o) => o[4] === 'plane');
+    const inPoly = (pt, x, y) => { let c = false; for (let i = 0, j = pt.length - 1; i < pt.length; j = i++) { const [xi, yi] = pt[i], [xj, yj] = pt[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+    function planeHit(x, y) {
+      const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
+      for (const [rx, ry, rw, rh] of planeRects) {
+        if (tx < rx || tx >= rx + rw || ty < ry || ty >= ry + rh) continue;
+        const L = rw * TILE - 6, W = rh * TILE - 6, dx = x - (rx * TILE + 3 + L / 2), dy = y - (ry * TILE + 3 + W / 2);
+        if (Math.abs(dy) < W * 0.12 && dx > -L * 0.47 && dx < L * 0.5) return true;
+        for (const sg of [-1, 1]) {
+          if (inPoly([[L * 0.14, sg * W * 0.09], [-L * 0.08, sg * W * 0.5], [-L * 0.2, sg * W * 0.5], [-L * 0.02, sg * W * 0.09]], dx, dy)) return true;
+          if (inPoly([[-L * 0.36, sg * W * 0.05], [-L * 0.46, sg * W * 0.26], [-L * 0.41, sg * W * 0.26], [-L * 0.3, sg * W * 0.05]], dx, dy)) return true;
+        }
+        return false;
+      }
+      return false;
+    }
+    const SHP = [
+      (L, sg) => [[L * 0.14, sg * 0.09], [-L * 0.08, sg * 0.5], [-L * 0.2, sg * 0.5], [-L * 0.02, sg * 0.09]],
+      (L, sg) => [[-L * 0.36, sg * 0.05], [-L * 0.46, sg * 0.26], [-L * 0.41, sg * 0.26], [-L * 0.3, sg * 0.05]]
+    ];
+    // colisão do círculo com a silhueta do avião (capsula da fuselagem + asas + cauda)
+    function planePush(e) {
+      let hit = false;
+      for (const [rx, ry, rw, rh] of planeRects) {
+        const L = rw * TILE - 6, W = rh * TILE - 6, cx = rx * TILE + 3 + L / 2, cy = ry * TILE + 3 + W / 2;
+        if (Math.abs(e.x - cx) > L / 2 + e.r + 4 || Math.abs(e.y - cy) > W / 2 + e.r + 4) continue;
+        const shapes = [];
+        shapes.push({ cap: [cx - L * 0.38, cy, cx + L * 0.38, cy, W * 0.12] });
+        for (const sg of [-1, 1]) for (const f of SHP) shapes.push({ poly: f(L, sg).map(([px, py]) => [cx + px, cy + py * W]) });
+        for (const sh of shapes) {
+          let qx, qy, inside = false;
+          if (sh.cap) { const [ax, ay, bx, by, cr] = sh.cap; const t = clamp(((e.x - ax) * (bx - ax)) / ((bx - ax) ** 2), 0, 1); qx = ax + (bx - ax) * t; qy = ay; const d = Math.hypot(e.x - qx, e.y - qy); if (d < e.r + cr) { const nx = d > 0.001 ? (e.x - qx) / d : 0, ny = d > 0.001 ? (e.y - qy) / d : -1; const push = e.r + cr - d; e.x += nx * push; e.y += ny * push; hit = true; } continue; }
+          const pt = sh.poly; let best = 1e9, bx2 = 0, by2 = 0;
+          for (let a = 0; a < pt.length; a++) {
+            const [x1, y1] = pt[a], [x2, y2] = pt[(a + 1) % pt.length]; const dx = x2 - x1, dy = y2 - y1;
+            const t = clamp(((e.x - x1) * dx + (e.y - y1) * dy) / (dx * dx + dy * dy), 0, 1); const px = x1 + dx * t, py = y1 + dy * t; const d = Math.hypot(e.x - px, e.y - py);
+            if (d < best) { best = d; bx2 = px; by2 = py; }
+          }
+          inside = inPoly(pt, e.x, e.y);
+          if (inside) { const d = best || 1; e.x += ((bx2 - e.x) / d) * (best + e.r); e.y += ((by2 - e.y) / d) * (best + e.r); hit = true; }
+          else if (best < e.r) { const nx = (e.x - bx2) / (best || 1), ny = (e.y - by2) / (best || 1); e.x += nx * (e.r - best); e.y += ny * (e.r - best); hit = true; }
+        }
+      }
+      return hit;
+    }
+    const hiAt = (ti, x, y) => ti < 0 || (tiles[ti] === T.OBST && map.obst[ti] === 'plane' ? planeHit(x, y) : isHigh(ti));
     function losShot(x0, y0, x1, y1) {
       const d = Math.hypot(x1 - x0, y1 - y0); const n = Math.ceil(d / 12);
-      for (let i = 1; i < n; i++) { const ti = tileAt(x0 + ((x1 - x0) * i) / n, y0 + ((y1 - y0) * i) / n); if (ti < 0 || isHigh(ti)) return false; }
+      for (let i = 1; i < n; i++) { const qx = x0 + ((x1 - x0) * i) / n, qy = y0 + ((y1 - y0) * i) / n, ti = tileAt(qx, qy); if (ti < 0 || hiAt(ti, qx, qy)) return false; }
       return true;
     }
     function solid(tx, ty, forPlayer) {
@@ -322,6 +369,7 @@
       const y0 = Math.floor((e.y - e.r) / TILE), y1 = Math.floor((e.y + e.r) / TILE);
       for (let ty = y0; ty <= y1; ty++) for (let tx = x0; tx <= x1; tx++) {
         if (!solid(tx, ty, forPlayer)) continue;
+        if (tiles[ty * MW + tx] === T.OBST && map.obst[ty * MW + tx] === 'plane') continue;
         const cx = clamp(e.x, tx * TILE, tx * TILE + TILE), cy = clamp(e.y, ty * TILE, ty * TILE + TILE);
         let dx = e.x - cx, dy = e.y - cy; const d2 = dx * dx + dy * dy;
         if (d2 < e.r * e.r) {
@@ -330,6 +378,7 @@
           if (bars[ty * MW + tx]) hit = ty * MW + tx;
         }
       }
+      if (planeRects.length && planePush(e)) hit = hit;
       return hit;
     }
     function moveEnt(e, dx, dy, forPlayer) {
@@ -624,7 +673,7 @@
       }
       P.gren[id]--; P.grenCd = 0.5;
       let tx = P.x, ty = P.y; const ca = Math.cos(P.angle), sa = Math.sin(P.angle);
-      for (let dd = 14; dd <= 270; dd += 12) { const x = P.x + ca * dd, y = P.y + sa * dd; const ti = tileAt(x, y); if (ti < 0 || isHigh(ti)) break; tx = x; ty = y; }
+      for (let dd = 14; dd <= 270; dd += 12) { const x = P.x + ca * dd, y = P.y + sa * dd; const ti = tileAt(x, y); if (ti < 0 || hiAt(ti, x, y)) break; tx = x; ty = y; }
       G.grenFly.push({ type: id, x0: P.x, y0: P.y, x1: tx, y1: ty, x: P.x, y: P.y, t: 0, T: 0.65, h: 0 });
       sfx('throw');
     }
@@ -748,7 +797,7 @@
         const r = G.rockets[ri]; r.x += r.vx * dt; r.y += r.vy * dt; r.life -= dt;
         G.parts.push({ x: r.x, y: r.y, vx: rand(-20, 20), vy: rand(-20, 20), life: 0.4, max: 0.4, size: 3, color: '#b9b9b9' });
         let boom = r.life <= 0; const ti = tileAt(r.x, r.y);
-        if (ti < 0 || isHigh(ti)) boom = true;
+        if (ti < 0 || hiAt(ti, r.x, r.y)) boom = true;
         else for (const z of G.zombies) if ((z.x - r.x) ** 2 + (z.y - r.y) ** 2 < (z.r + 5) ** 2) { boom = true; break; }
         if (boom) { explode(r.x, r.y, r.splash, r.dmg); G.rockets.splice(ri, 1); }
       }
@@ -1234,7 +1283,7 @@
         for (let s = 0; s < steps && !dead; s++) {
           b.x += (b.vx * dt) / steps; b.y += (b.vy * dt) / steps;
           const ti = tileAt(b.x, b.y);
-          if (ti < 0 || isHigh(ti)) { dead = true; blood(b.x, b.y, 3, '#d9d27a', 80); break; }
+          if (ti < 0 || hiAt(ti, b.x, b.y)) { dead = true; blood(b.x, b.y, 3, '#d9d27a', 80); break; }
           for (const z of G.zombies) {
             if (b.hit.has(z.id)) continue;
             if ((z.x - b.x) ** 2 + (z.y - b.y) ** 2 < (z.r + 3) ** 2) {
@@ -1466,7 +1515,7 @@
       if (save.laser && save.laserOn !== false && G.state === 'play') {
         const wd = DF.WEAPONS[curW().id], mz = wd.muzzle || 22, rng = Math.min(wd.range || 600, 900);
         const ca = Math.cos(P.angle), sa = Math.sin(P.angle); let len = mz;
-        for (; len < rng; len += 6) { const ti = tileAt(P.x + ca * len, P.y + sa * len); if (ti < 0 || isHigh(ti)) break; }
+        for (; len < rng; len += 6) { const ti = tileAt(P.x + ca * len, P.y + sa * len); if (ti < 0 || hiAt(ti, P.x + ca * len, P.y + sa * len)) break; }
         const x0 = P.x + ca * mz, y0 = P.y + sa * mz, x1 = P.x + ca * len, y1 = P.y + sa * len;
         const lg = ctx.createLinearGradient(x0, y0, x1, y1); lg.addColorStop(0, 'rgba(255,40,40,0.75)'); lg.addColorStop(1, 'rgba(255,40,40,0.25)');
         ctx.strokeStyle = 'rgba(255,40,40,0.18)'; ctx.lineWidth = 5; ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
@@ -1553,23 +1602,6 @@
     }
     // ----- iluminação dinâmica: lanterna em cone + brilho em volta, bloqueada por paredes
     let lightCv = null, lctx = null, grain = null;
-    // silhueta do avião para a luz (segue o formato, não o retângulo)
-    const planeRects = lv.obst.filter((o) => o[4] === 'plane');
-    const inPoly = (pt, x, y) => { let c = false; for (let i = 0, j = pt.length - 1; i < pt.length; j = i++) { const [xi, yi] = pt[i], [xj, yj] = pt[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
-    function planeHit(x, y) {
-      const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
-      for (const [rx, ry, rw, rh] of planeRects) {
-        if (tx < rx || tx >= rx + rw || ty < ry || ty >= ry + rh) continue;
-        const L = rw * TILE - 6, W = rh * TILE - 6, dx = x - (rx * TILE + 3 + L / 2), dy = y - (ry * TILE + 3 + W / 2);
-        if (Math.abs(dy) < W * 0.12 && dx > -L * 0.47 && dx < L * 0.5) return true;
-        for (const sg of [-1, 1]) {
-          if (inPoly([[L * 0.14, sg * W * 0.09], [-L * 0.08, sg * W * 0.5], [-L * 0.2, sg * W * 0.5], [-L * 0.02, sg * W * 0.09]], dx, dy)) return true;
-          if (inPoly([[-L * 0.36, sg * W * 0.05], [-L * 0.46, sg * W * 0.26], [-L * 0.41, sg * W * 0.26], [-L * 0.3, sg * W * 0.05]], dx, dy)) return true;
-        }
-        return false;
-      }
-      return false;
-    }
     function drawLighting(psx, psy, shx, shy) {
       const s = camera.s, dpr = camera.dpr;
       const LS = DF.flatSprites ? 0.25 : 0.4, lw = Math.ceil(canvas.width * LS), lh = Math.ceil(canvas.height * LS);
