@@ -176,7 +176,7 @@ const SKINS = [
   { id: 'magmaista', name: 'Mago Vulcão', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.', 'Meteoros deixam fogo no chão.'] } },
   { id: 'aero', name: 'Mago do Vento', price: 850, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', sn: 'Mago Vento', skin: '#ffe8d0', start: 'gun', perk: { name: 'Passos de Vento', lines: ['Pula 25% mais alto.', 'Começa com Mísseis Mágicos.'] } },
   { id: 'sangue', name: 'Cultista', price: 500, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', perk: { name: 'Último Sacrifício', lines: ['Começa o jogo com 4 vidas.', 'Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.'] } },
-  { id: 'demo', name: 'Mago Infernal', price: 1200, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', sn: 'Infernal', skin: '#ff8787', start: 'shotgun', perk: { name: 'Pacto Demoníaco', lines: ['Espingarda Arcana inicial. Absorve 1 golpe', 'de fogo a cada 10 s (Dragão e Fênix).', 'Onda de Fogo e Meteoros caem 2x mais.'] } },
+  { id: 'demo', name: 'Mago Infernal', price: 1200, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', sn: 'Infernal', skin: '#ff8787', start: 'shotgun', perk: { name: 'Pacto Demoníaco', lines: ['Espingarda Arcana inicial. Absorve 1 golpe', 'de fogo a cada 15 s (Dragão e Fênix).', 'Onda de Fogo e Meteoros caem 2x mais.'] } },
 ];
 SKINS.sort((a, b) => a.price - b.price);
 // Cores da magia (raio principal)
@@ -1509,10 +1509,10 @@ function playerHit() {
 }
 
 // escudo absorve 1 golpe
-// Mago Infernal: absorve 1 golpe de fogo (bolas do Dragão, onda da Fênix) a cada 10 s
+// Mago Infernal: absorve 1 golpe de fogo (bolas do Dragão, onda da Fênix) a cada 15 s
 function absorbFire() {
   if (!is('demo') || (S.demoCd || 0) > 0 || P.inv > 0) return false;
-  S.demoCd = 600; ring(P.x + P.w / 2, P.y + P.h / 2, 30, '#ff7a2f', 18, 3); popup(P.x + P.w / 2, P.y - 8, 'Fogo absorvido!', '#ff9a3d', 13); sfx.item(); return true;
+  S.demoCd = 900; ring(P.x + P.w / 2, P.y + P.h / 2, 30, '#ff7a2f', 18, 3); popup(P.x + P.w / 2, P.y - 8, 'Fogo absorvido!', '#ff9a3d', 13); sfx.item(); return true;
 }
 function hurt() {
   if (P.inv > 0 || S.state !== 'play') return;
