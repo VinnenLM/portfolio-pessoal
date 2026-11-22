@@ -128,3 +128,5 @@ body.touch .s-key { display: none; }
 #dock { flex-wrap: wrap; justify-content: center; width: max-content; max-width: 98vw; }
 .slot .s-ico svg { height: 22px; width: auto; }
 .screen#menu { justify-content: safe center; gap: 12px; }
+
+.gear { position: absolute; top: max(10px, env(safe-area-inset-top)); left: max(14px, env(safe-area-inset-left)); width: 44px; height: 44px; font-size: 24px; }

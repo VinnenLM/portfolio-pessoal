@@ -61,14 +61,22 @@
   </div>
   <div class="menu-btns">
     <button class="btn primary" id="m-play">JOGAR</button>
+    <button class="btn" id="m-endless">MODO INFINITO</button>
     <button class="btn" id="m-shop">LOJA</button>
+  </div>
+  <div class="coins-corner"><i class="coin-ico"></i> <b id="menu-coins">0</b></div>
+  <button class="round-btn gear" id="m-gear" aria-label="Opções">⚙</button>
+</section>
+
+<section id="options" class="screen hidden">
+  <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Opções</h2><div></div></header>
+  <div class="menu-btns">
     <button class="btn" id="m-help">COMO JOGAR</button>
     <button class="btn ghost" id="m-unlock">🧪 LIBERAR TUDO (teste)</button>
     <button class="btn ghost" id="m-export">EXPORTAR SAVE</button>
     <button class="btn ghost" id="m-import">IMPORTAR SAVE</button>
     <button class="btn ghost" id="m-sound">SOM: ON</button>
   </div>
-  <div class="coins-corner"><i class="coin-ico"></i> <b id="menu-coins">0</b></div>
 </section>
 
 <!-- FASES -->
@@ -86,7 +94,7 @@
 
 <!-- AJUDA -->
 <section id="help" class="screen hidden">
-  <header class="bar-top"><button class="btn small" data-back="menu">◀ Voltar</button><h2>Como jogar</h2><div></div></header>
+  <header class="bar-top"><button class="btn small" data-back="options">◀ Voltar</button><h2>Como jogar</h2><div></div></header>
   <div class="help-body">
     <h3>Objetivo</h3>
     <p>Defenda o local por todas as ondas. Na última onda aparece um <b>chefe</b>. Zumbis entram pelas <b>portas</b> (marcadas em vermelho). Ganhe moedas ao fim de cada fase para gastar na loja.</p>
@@ -94,6 +102,8 @@
     <p>Fique perto de uma porta e use <b>Construir</b> para tapá-la com Madeira, Ferro ou Aço (gasta sucata 🔧, que cai dos zumbis). Zumbis quebram as barricadas — repare ou melhore usando Construir de novo. Zumbis escolhem o caminho mais fraco, então reforce bem todas as entradas. Setas amarelas na borda da tela avisam qual porta está sob ataque.</p>
     <h3>Torres</h3>
     <p>Compre torres na loja (metralhadora, lança-chamas, bazuca) e coloque até 5 por fase, perto de você, gastando sucata. Elas atiram sozinhas nos zumbis ao alcance, mas os zumbis também as atacam. Pular a espera entre ondas dá sucata de bônus.</p>
+    <h3>Modo infinito</h3>
+    <p>Escolha um mapa e sobreviva o máximo possível: as ondas não acabam e a dificuldade sobe com o tempo (a cada 5 ondas vem um chefe). Seu recorde de tempo vivo fica salvo por mapa. Há uma <b>caixa de munição</b> no mapa: chegue perto e use Construir para reabastecer (gasta sucata).</p>
     <h3>Loot</h3>
     <p>Caixas aparecem dentro da área segura com armas, munição, kits médicos, sucata e armadilhas. Passe por cima para pegar. Somem depois de um tempo.</p>
     <h3>Controles — celular</h3>

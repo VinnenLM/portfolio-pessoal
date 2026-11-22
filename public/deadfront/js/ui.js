@@ -83,7 +83,7 @@
   ['pointerdown', 'keydown', 'touchstart'].forEach((ev) => window.addEventListener(ev, () => { if (DF.audioInit) DF.audioInit(); }, { passive: true }));
 
   // ---------- telas ----------
-  const screens = ['menu', 'levels', 'shop', 'help', 'pause', 'result'];
+  const screens = ['menu', 'options', 'levels', 'shop', 'help', 'pause', 'result'];
   function show(name) {
     for (const s of screens) $(s).classList.toggle('hidden', s !== name);
     refreshCoins();
@@ -99,7 +99,9 @@
   document.querySelectorAll('.coins-corner').forEach((e) => e.addEventListener('click', () => { save.coins += 500; persist(); refreshCoins(); if (DF.sfx) DF.sfx('pickup'); if (!$('shop').classList.contains('hidden')) renderShop(); }));
   document.querySelectorAll('[data-back]').forEach((b) => b.addEventListener('click', () => { click(); show(b.dataset.back); }));
   function click() { if (DF.audioInit) DF.audioInit(); if (DF.sfx) DF.sfx('click'); }
-  $('m-play').onclick = () => { click(); renderLevels(); show('levels'); };
+  $('m-play').onclick = () => { click(); renderLevels(false); show('levels'); };
+  $('m-endless').onclick = () => { click(); renderLevels(true); show('levels'); };
+  $('m-gear').onclick = () => { click(); show('options'); };
   $('m-shop').onclick = () => { click(); renderShop(); show('shop'); };
   $('m-unlock').onclick = () => {
     click(); DF.LEVELS.forEach((lv) => { save.stars[lv.id] = Math.max(save.stars[lv.id] || 0, 3); });
@@ -126,14 +128,17 @@
   $('p-auto').onclick = () => { save.auto = !save.auto; input.auto = save.auto; persist(); refreshCoins(); };
 
   // ---------- fases ----------
-  function renderLevels() {
+  function fmtT(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function renderLevels(endless) {
+    document.querySelector('#levels h2').textContent = endless ? 'Modo infinito — escolha o mapa' : 'Escolha o local';
     const g = $('level-grid'); g.innerHTML = '';
     DF.LEVELS.forEach((lv, i) => {
+      if (endless && lv.mission) return;
       const locked = i >= save.unlocked || (lv.unlock !== undefined && save.unlocked < lv.unlock); const st = save.stars[lv.id] || 0;
       const c = document.createElement('div'); c.className = 'card' + (locked ? ' locked' : '');
-      c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (lv.mission ? 'Missão: atravesse o aeroporto até o helicóptero · chefe no final' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
+      c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (endless ? 'Sobreviva o máximo que puder · Recorde: <b>' + fmtT((save.records || {})[lv.id] || 0) + '</b>' : lv.mission ? 'Missão: atravesse o aeroporto até o helicóptero · chefe no final' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
       const b = document.createElement('button'); b.className = 'btn primary small'; b.textContent = locked ? '🔒 Bloqueada' : 'JOGAR'; b.disabled = locked;
-      b.onclick = () => { click(); startGame(i); };
+      b.onclick = () => { click(); startGame(i, endless); };
       c.appendChild(b); g.appendChild(c);
     });
   }
@@ -203,7 +208,7 @@
     const now = performance.now(); if (now - lastHud < 90) return; lastHud = now;
     const h = G.hud();
     els.hpFill.style.width = (h.hp / h.maxHp * 100) + '%'; els.hpText.textContent = Math.ceil(h.hp) + ' / ' + h.maxHp;
-    els.wave.textContent = h.mission ? 'Missão · Restam ' + h.left : h.wave === 0 ? 'Prepare-se!' : 'Onda ' + h.wave + '/' + h.waves + ' · Restam ' + h.left;
+    els.wave.textContent = h.endless ? 'Onda ' + h.wave + ' · ' + fmtT(h.time) + ' · Recorde ' + fmtT(Math.max(h.record, h.time)) : h.mission ? 'Missão · Restam ' + h.left : h.wave === 0 ? 'Prepare-se!' : 'Onda ' + h.wave + '/' + h.waves + ' · Restam ' + h.left;
     els.scrap.textContent = h.scrap;
     els.toast.textContent = h.msg; els.toast.style.color = h.msgColor;
     if (h.bossTimer > 0) { els.count.classList.remove('hidden'); els.count.textContent = 'Missão termina em ' + h.bossTimer + 's — pegue o loot!'; els.skip.classList.add('hidden'); }
@@ -223,12 +228,14 @@
     if (h.mission) { els.obj.classList.remove('hidden'); els.obj.innerHTML = '🎯 ' + h.mission.step + '/' + h.mission.total + ' · ' + h.mission.text + ' <b>' + h.mission.dist + 'm</b>'; } else els.obj.classList.add('hidden');
     if (DF.musicMode) DF.musicMode(h.boss ? 'boss' : 'game');
   }
-  function startGame(level) {
+  let curEndless = false;
+  function startGame(level, endless) {
+    curEndless = !!endless;
     if (DF.audioInit) DF.audioInit();
     stopGame(); curLevel = level; hideAll(); $('hud').classList.remove('hidden');
     for (const k in keys) keys[k] = false; input.mx = input.my = 0; input.actions.length = 0; input.stick.active = false; input.keyFire = false; input.mouseDown = false;
     inGame = true; paused = false; lastHud = 0;
-    engine = DF.Engine.create({ level, canvas: cv, save, onHud: updateHud, onEnd: onEnd });
+    engine = DF.Engine.create({ level, endless: curEndless, canvas: cv, save, onHud: updateHud, onEnd: onEnd });
   }
   function stopGame() { if (engine) engine.stop(); engine = null; inGame = false; if (DF.musicMode) DF.musicMode('menu'); $('hud').classList.add('hidden'); }
   function togglePause() {
@@ -238,6 +245,13 @@
   function onEnd(r) {
     lastResult = r; const lv = DF.LEVELS[r.level];
     save.coins += r.coins;
+    if (r.endless) {
+      save.records = save.records || {}; const old = save.records[lv.id] || 0; const nr = r.time > old; if (nr) save.records[lv.id] = r.time; persist();
+      if (DF.sfx) DF.sfx('lose');
+      $('r-title').textContent = nr ? 'Novo recorde!' : 'Você caiu...'; $('r-stars').innerHTML = '';
+      $('r-info').innerHTML = 'Mapa: <b>' + lv.name + '</b><br>Tempo vivo: <b>' + fmtT(r.time) + '</b> (recorde ' + fmtT(Math.max(old, r.time)) + ')<br>Onda: <b>' + r.wave + '</b> · Zumbis: <b>' + r.kills + '</b><br>Moedas ganhas: <b style="color:#ffd86b">' + COIN + ' ' + r.coins + '</b>';
+      $('r-next').classList.add('hidden'); stopGame(); show('result'); return;
+    }
     if (r.win) { save.stars[lv.id] = Math.max(save.stars[lv.id] || 0, r.stars); save.unlocked = Math.max(save.unlocked, Math.min(DF.LEVELS.length, r.level + 2)); }
     persist();
     if (DF.sfx) DF.sfx(r.win ? 'win' : 'lose');
@@ -249,15 +263,15 @@
   }
   $('btn-pause').addEventListener('pointerdown', (e) => { e.preventDefault(); togglePause(); });
   $('p-resume').onclick = () => { click(); togglePause(); };
-  $('p-restart').onclick = () => { click(); $('pause').classList.add('hidden'); startGame(curLevel); };
+  $('p-restart').onclick = () => { click(); $('pause').classList.add('hidden'); startGame(curLevel, curEndless); };
   $('p-quit').onclick = () => { click(); stopGame(); paused = false; renderLevels(); show('menu'); };
-  $('r-next').onclick = () => { click(); startGame(lastResult.level + 1); };
-  $('r-retry').onclick = () => { click(); startGame(lastResult.level); };
+  $('r-next').onclick = () => { click(); startGame(lastResult.level + 1, false); };
+  $('r-retry').onclick = () => { click(); startGame(lastResult.level, curEndless); };
   $('r-shop').onclick = () => { click(); renderShop(); show('shop'); };
   $('r-menu').onclick = () => { click(); show('menu'); };
   document.addEventListener('visibilitychange', () => { if (document.hidden && inGame && !paused) togglePause(); });
 
   // debug / testes
-  DF._debug = { startGame, get engine() { return engine; }, save, input };
+  DF._debug = { startGame, fmtT, get engine() { return engine; }, save, input };
   show('menu');
 })();

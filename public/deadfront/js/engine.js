@@ -154,6 +154,7 @@
   function create(opts) {
     const lv = DF.LEVELS[opts.level];
     const save = opts.save;
+    const endless = !!opts.endless;
     const canvas = opts.canvas;
     const ctx = canvas.getContext('2d');
     const map = buildMap(lv);
@@ -380,8 +381,22 @@
       }
       return 'noop';
     }
+    const AMMO_COST = 40;
+    let ammoBox = null;
+    if (endless) {
+      const sx = lv.start[0] * TILE, sy = lv.start[1] * TILE; let best = null, bd = 1e9;
+      for (const ti of map.floorTiles) { const x = (ti % MW + 0.5) * TILE, y = (((ti / MW) | 0) + 0.5) * TILE; const dd = Math.hypot(x - sx, y - sy); if (dd > 130 && dd < bd) { bd = dd; best = { x, y }; } }
+      ammoBox = best;
+    }
     function actBuild() {
       if (P.buildCd > 0) return;
+      if (endless && ammoBox && Math.hypot(P.x - ammoBox.x, P.y - ammoBox.y) < 70) {
+        if (P.scrap < AMMO_COST) { msg('Precisa de ' + AMMO_COST + ' sucata', '#ff6b6b'); return; }
+        const own = P.weapons.filter((x) => x.id !== 'pistol'); if (!own.length) { msg('Você só tem a pistola (munição infinita)', '#aaa'); return; }
+        P.scrap -= AMMO_COST; P.buildCd = 0.4;
+        for (const w2 of own) w2.reserve += Math.round(DF.WEAPONS[w2.id].reserve * 0.5);
+        msg('Munição reabastecida! −' + AMMO_COST + ' sucata', '#d6c27a'); sfx('pickup'); return;
+      }
       const d = doorInRange();
       if (!d) { msg('Chegue perto de uma entrada para construir', '#ffb347'); return; }
       const matId = DF.MATERIAL_ORDER[P.mat]; const m = DF.MATERIALS[matId];
@@ -604,10 +619,10 @@
         const door = pick(map.doors); const sp = pick(door.spawns);
         x = (sp.x + 0.5) * TILE + rand(-10, 10); y = (sp.y + 0.5) * TILE + rand(-10, 10);
       }
-      const waveMul = mission ? 1 + 0.08 * mission.idx : 1 + 0.06 * (Math.max(1, G.wave) - 1);
+      const waveMul = mission ? 1 + 0.08 * mission.idx : endless ? 1 + 0.07 * (Math.max(1, G.wave) - 1) + G.time / 300 : 1 + 0.06 * (Math.max(1, G.wave) - 1);
       const hp = d.boss ? d.hp : Math.round(d.hp * lv.hpScale * waveMul);
       const z = {
-        id: G.idc++, type: typeId, def: d, x, y, r: d.r, hp, max: hp, speed: d.speed * rand(0.92, 1.1),
+        id: G.idc++, type: typeId, def: d, x, y, r: d.r, hp, max: hp, speed: d.speed * rand(0.92, 1.1) * (endless && !d.boss ? 1 + Math.min(0.35, G.time / 900) : 1),
         atkT: rand(0, 0.5), barT: 0, flash: 0, rootT: 0, slowT: 0, born: 0.35, losT: rand(0, 0.2), canSee: false,
         boss: d.boss || null, v: rint(0, 3), atkAnim: 0, burnT: 0, burnTick: 0, burnDmg: 4, mode: 'idle', abT: 3.5, n: 0, face: 0, walk: rand(0, 6), spitT: rand(1, 2.2), kb: { x: 0, y: 0 }
       };
@@ -621,13 +636,15 @@
       const wt = { walker: 10, runner: (w >= 2 || li >= 1) ? 4 + w : 0, spitter: (w >= 3 || li >= 2) ? 2 + w / 2 : 0, brute: (w >= 4 || (li >= 2 && w >= 3)) ? 1.2 + li * 0.4 : 0 };
       const keys = Object.keys(wt); const tot = keys.reduce((s, k) => s + wt[k], 0);
       const q = [];
-      const n = w === N ? Math.round(count * 0.6) : count;
+      const n = !endless && w === N ? Math.round(count * 0.6) : count;
       for (let i = 0; i < n; i++) { let r = Math.random() * tot; let t = 'walker'; for (const k of keys) { r -= wt[k]; if (r <= 0) { t = k; break; } } q.push(t); }
       if (w === N) q.splice(Math.min(3, q.length), 0, lv.boss);
+      if (endless && w % 5 === 0) q.splice(Math.min(3, q.length), 0, lv.boss);
       return q;
     }
     function startWave() {
       G.wave++; G.waveState = 'fight'; G.spawnQ = composeWave(G.wave); G.spawnT = 0.5;
+      if (endless) { msg('Onda ' + G.wave + (G.wave % 5 === 0 ? ' — CHEFE!' : ''), G.wave % 5 === 0 ? '#ff5a5a' : '#fff'); sfx('wave'); return; }
       msg(G.wave === lv.waves ? 'ONDA FINAL!' : 'Onda ' + G.wave + ' de ' + lv.waves, G.wave === lv.waves ? '#ff5a5a' : '#fff'); sfx('wave');
     }
     function killZombie(z) {
@@ -942,7 +959,7 @@
       }
       // ondas
       if (G.state === 'play') {
-        if (!mission && G.bossDead && (G.bossLootT <= 0 || !G.loot.some((l) => l.boss))) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); }
+        if (!mission && !endless && G.bossDead && (G.bossLootT <= 0 || !G.loot.some((l) => l.boss))) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); }
         else if (mission) { updateMission(dt); }
         else if (G.waveState === 'break') {
           G.breakT -= dt; if (G.breakT <= 0) startWave();
@@ -952,8 +969,8 @@
             spawnZombie(G.spawnQ.shift()); G.spawnT = Math.max(0.35, 1.15 - G.wave * 0.09) * rand(0.7, 1.2);
           }
           if (!G.spawnQ.length && G.zombies.length === 0) {
-            if (G.wave >= lv.waves) { if (!G.bossDead || G.bossLootT <= 0 || !G.loot.some((l) => l.boss)) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); } }
-            else { G.waveState = 'break'; G.breakT = 12; const bonus = 12 + 4 * G.wave; P.scrap += bonus; G.scrapGained += bonus; msg('Onda ' + G.wave + ' concluída! +' + bonus + ' sucata', '#7be07a'); sfx('wavedone'); }
+            if (!endless && G.wave >= lv.waves) { if (!G.bossDead || G.bossLootT <= 0 || !G.loot.some((l) => l.boss)) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); } }
+            else { G.waveState = 'break'; G.breakT = endless ? 8 : 12; const bonus = 12 + 4 * G.wave; P.scrap += bonus; G.scrapGained += bonus; msg('Onda ' + G.wave + ' concluída! +' + bonus + ' sucata', '#7be07a'); sfx('wavedone'); }
           }
         }
         // loot
@@ -1051,6 +1068,7 @@
       const stars = win ? (hpPct >= 0.85 ? 3 : hpPct >= 0.5 ? 2 : 1) : 0;
       const waveProg = Math.max(0, G.wave - (win ? 0 : 1));
       const coins = Math.round(20 + 12 * li + G.kills * 0.5 + (win ? 70 + 40 * li + stars * 25 : waveProg * (6 + 3 * li))) + G.bonusCoins;
+      if (endless) { if (opts.onEnd) opts.onEnd({ win: false, endless: true, time: Math.floor(G.time), kills: G.kills, coins: Math.round(Math.floor(G.time) / 6 + G.kills * 0.5) + G.bonusCoins, wave: G.wave, level: li }); return; }
       if (opts.onEnd) opts.onEnd({ win, stars, kills: G.kills, coins, wave: G.wave, waves: lv.waves, level: li });
     }
 
@@ -1066,7 +1084,7 @@
         wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.TOWER_ORDER[P.towerI]) ? DF.TOWER_ORDER[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: DF.TOWERS[id].cost, count: G.towers.length, max: DF.TOWER_MAX }; })(),
         gren: { id: DF.GRENADE_ORDER[P.grenI], name: DF.GRENADES[DF.GRENADE_ORDER[P.grenI]].name, count: P.gren[DF.GRENADE_ORDER[P.grenI]], all: P.gren },
         outside: G.outside, bossTimer: !mission && G.bossDead && G.state === 'play' ? Math.ceil(Math.max(0, G.bossLootT)) : 0, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
-        msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
+        msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door || (endless && !!ammoBox && Math.hypot(P.x - ammoBox.x, P.y - ammoBox.y) < 70), endless, time: Math.floor(G.time), record: endless ? ((save.records || {})[lv.id] || 0) : 0, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
       };
     };
 
@@ -1162,6 +1180,15 @@
         if (!z.boss || z.mode !== 'wind') continue;
         if (z.kind === 'stomp') { const k = 1 - z.abT / (z.windMax || 0.75); ctx.fillStyle = 'rgba(255,60,40,0.18)'; ctx.beginPath(); ctx.arc(z.x, z.y, 140, 0, 6.283); ctx.fill(); ctx.strokeStyle = 'rgba(255,60,40,0.8)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(z.x, z.y, 140 * k, 0, 6.283); ctx.stroke(); }
         else if (z.kind === 'charge') { ctx.strokeStyle = 'rgba(255,60,40,0.55)'; ctx.lineWidth = z.r * 1.6; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(z.x, z.y); ctx.lineTo(z.x + Math.cos(z.aim) * 520, z.y + Math.sin(z.aim) * 520); ctx.stroke(); ctx.lineCap = 'butt'; }
+      }
+      if (ammoBox) {
+        const near = Math.hypot(P.x - ammoBox.x, P.y - ammoBox.y) < 70;
+        ctx.save(); ctx.translate(ammoBox.x, ammoBox.y);
+        if (near) { ctx.strokeStyle = 'rgba(255,216,107,0.9)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(0, 0, 30, 0, 6.283); ctx.stroke(); }
+        ctx.fillStyle = '#3d4a2c'; rrect(ctx, -17, -13, 34, 26, 4); ctx.fill(); ctx.strokeStyle = '#161a10'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#d9b36a'; for (let i = -2; i <= 2; i++) ctx.fillRect(i * 6 - 1.5, -8, 3, 14);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('MUNIÇÃO ' + AMMO_COST + '🔧', 0, -19);
+        ctx.restore();
       }
       // fogo no chão
       for (const f of G.fires) { const a = Math.min(1, f.t / 1.5); const fg = ctx.createRadialGradient(f.x, f.y, 4, f.x, f.y, f.r); fg.addColorStop(0, 'rgba(255,170,40,' + 0.55 * a + ')'); fg.addColorStop(1, 'rgba(255,60,0,' + 0.12 * a + ')'); ctx.fillStyle = fg; ctx.beginPath(); ctx.arc(f.x, f.y, f.r, 0, 6.283); ctx.fill(); }
