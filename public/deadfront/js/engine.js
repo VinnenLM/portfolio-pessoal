@@ -1436,14 +1436,15 @@
       lctx.clearRect(0, 0, camera.vw, camera.vh);
       lctx.fillStyle = 'rgba(2,4,12,' + Math.max(0.6, lv.theme.dark + 0.18) + ')'; lctx.fillRect(0, 0, camera.vw, camera.vh);
       lctx.globalCompositeOperation = 'destination-out';
-      const N = 72, BASE = 215, CONE = 560, half = 0.5;
+      const N = 120, BASE = 215, CONE = 560, half = 0.5;
       const pts = [];
       for (let i = 0; i < N; i++) {
         const a = (i / N) * 6.283;
         const da = Math.abs(Math.atan2(Math.sin(a - P.angle), Math.cos(a - P.angle)));
         const mr = BASE + (da < half ? (CONE - BASE) * Math.pow(Math.cos(da / half * 1.5708), 0.6) : 0);
         const ca = Math.cos(a), sa = Math.sin(a); let r = 10;
-        for (; r < mr; r += 12) { const ti = tileAt(P.x + ca * r, P.y + sa * r); if (ti < 0 || isBlockType(ti)) { r += 4; break; } }
+        const blk = (rr) => { const ti = tileAt(P.x + ca * rr, P.y + sa * rr); return ti < 0 || isBlockType(ti); };
+        for (; r < mr; r += 12) { if (blk(r)) { let lo = Math.max(10, r - 12), hi = r; for (let k = 0; k < 5; k++) { const mid = (lo + hi) / 2; if (blk(mid)) hi = mid; else lo = mid; } r = hi; break; } }
         r = Math.min(r, mr); pts.push([(P.x + ca * r - camera.x + shx) * s, (P.y + sa * r - camera.y + shy) * s]);
       }
       const lg = lctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s);
