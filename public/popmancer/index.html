@@ -2438,6 +2438,25 @@ function drawShots() {
 }
 
 
+function itemIconC(type, x, y, k, col) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(k, k); ctx.fillStyle = ctx.strokeStyle = col; ctx.lineWidth = 1.7; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  const hl = 'rgba(255,255,255,.4)';
+  switch (type) {
+    case 'twin': for (const dx of [-3.6, 3.6]) { ctx.beginPath(); ctx.moveTo(dx, -8); ctx.lineTo(dx + 2.2, -4); ctx.lineTo(dx + 2.2, 6); ctx.lineTo(dx - 2.2, 6); ctx.lineTo(dx - 2.2, -4); ctx.closePath(); ctx.fill(); } break;
+    case 'sticky': ctx.fillRect(-7, -8, 14, 2.6); ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(0, 4); ctx.stroke(); ctx.beginPath(); ctx.arc(0, 6, 2.3, 0, TAU); ctx.fill(); break;
+    case 'gun': for (const y0 of [-5.5, .5, 6.5]) { ctx.beginPath(); ctx.moveTo(0, y0 - 3.2); ctx.lineTo(2.6, y0 + 1.8); ctx.lineTo(-2.6, y0 + 1.8); ctx.closePath(); ctx.fill(); } break;
+    case 'shotgun': for (const a of [-.8, -.27, .27, .8]) { const ex = Math.sin(a) * 11, ey = 7.5 - Math.cos(a) * 14; ctx.beginPath(); ctx.moveTo(0, 7.5); ctx.lineTo(ex, ey); ctx.stroke(); ctx.beginPath(); ctx.arc(ex, ey, 2, 0, TAU); ctx.fill(); } break;
+    case 'shield': ctx.beginPath(); ctx.moveTo(-6.5, -7); ctx.lineTo(6.5, -7); ctx.lineTo(6.5, 0); ctx.quadraticCurveTo(6.5, 6, 0, 8.5); ctx.quadraticCurveTo(-6.5, 6, -6.5, 0); ctx.closePath(); ctx.fill(); ctx.fillStyle = hl; ctx.fillRect(-4.5, -5, 2.4, 8); break;
+    case 'freeze': ctx.lineWidth = 1.5; for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3, c = Math.cos(a), sn = Math.sin(a); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(c * 8.5, sn * 8.5); ctx.moveTo(c * 5.4, sn * 5.4); ctx.lineTo(c * 5.4 + Math.cos(a + .9) * 3, sn * 5.4 + Math.sin(a + .9) * 3); ctx.moveTo(c * 5.4, sn * 5.4); ctx.lineTo(c * 5.4 + Math.cos(a - .9) * 3, sn * 5.4 + Math.sin(a - .9) * 3); ctx.stroke(); } break;
+    case 'fire': ctx.beginPath(); ctx.moveTo(0, -9); ctx.quadraticCurveTo(7.5, -1, 5.5, 3.5); ctx.quadraticCurveTo(4.5, 8.5, 0, 8.5); ctx.quadraticCurveTo(-5.5, 8.5, -5.5, 3.5); ctx.quadraticCurveTo(-5.5, -1, -2.2, -3.5); ctx.quadraticCurveTo(-2, -6, 0, -9); ctx.fill(); ctx.fillStyle = 'rgba(255,240,170,.85)'; ctx.beginPath(); ctx.ellipse(0, 4.5, 2.4, 3.2, 0, 0, TAU); ctx.fill(); break;
+    case 'bolt': ctx.beginPath(); ctx.moveTo(2.5, -9); ctx.lineTo(-5.5, 1); ctx.lineTo(-.6, 1); ctx.lineTo(-3, 9); ctx.lineTo(5.5, -2); ctx.lineTo(.8, -2); ctx.closePath(); ctx.fill(); break;
+    case 'meteor': ctx.lineWidth = 2.6; ctx.beginPath(); ctx.moveTo(-8, -8); ctx.lineTo(-2, -2); ctx.moveTo(-8, -2.5); ctx.lineTo(-3.5, 1.5); ctx.moveTo(-2.5, -8); ctx.lineTo(1.5, -4); ctx.stroke(); ctx.beginPath(); ctx.arc(2.5, 2.5, 5.6, 0, TAU); ctx.fill(); ctx.fillStyle = hl; ctx.beginPath(); ctx.arc(1, 1, 1.5, 0, TAU); ctx.arc(4.5, 4.5, 1.1, 0, TAU); ctx.fill(); break;
+    case 'clock': ctx.beginPath(); ctx.moveTo(-5, -6.5); ctx.lineTo(5, -6.5); ctx.lineTo(.8, 0); ctx.lineTo(5, 6.5); ctx.lineTo(-5, 6.5); ctx.lineTo(-.8, 0); ctx.closePath(); ctx.fill(); ctx.fillRect(-6.5, -8.5, 13, 2); ctx.fillRect(-6.5, 6.5, 13, 2); break;
+    case 'life': ctx.beginPath(); ctx.moveTo(0, 7.5); ctx.bezierCurveTo(-10, 1, -7.5, -7, 0, -3); ctx.bezierCurveTo(7.5, -7, 10, 1, 0, 7.5); ctx.fill(); break;
+    default: txt(ITEMS[type].label, 0, 1, 11, col, 'center', null);
+  }
+  ctx.restore();
+}
 function drawItems() {
   for (const it of items) {
     if (it.t > 560 && (S.tick >> 2) % 2) continue;
@@ -2453,9 +2472,9 @@ function drawItems() {
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .45 + .2 * Math.sin(S.tick * .2);
     ctx.fillStyle = d.color; ctx.shadowColor = d.color; ctx.shadowBlur = SB * (14); circle(it.x, y, 13); ctx.restore();
     ctx.fillStyle = d.color; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(it.x, y, 9, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = 'rgba(255,255,255,.45)'; circle(it.x - 3, y - 3.5, 2.6);
-    txt(d.label, it.x, y + 1, 11, '#000', 'center', null);
+    ctx.beginPath(); ctx.arc(it.x, y, 10.5, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.4)'; circle(it.x - 4, y - 5, 2.2);
+    itemIconC(it.type, it.x, y + .5, .98, '#1b1740');
   }
 }
 
@@ -2602,7 +2621,7 @@ function drawTip() {
   const d = ITEMS[S.tip], ls = TIPS[S.tip]; overlay(.55);
   const w = 520, h = 190, x = (W - w) / 2, y = (H - h) / 2 - 10;
   ctx.fillStyle = 'rgba(25,20,50,.97)'; ctx.strokeStyle = d.color; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(x + 46, y + 48, 24, 0, TAU); ctx.fill(); txt(d.label, x + 46, y + 50, 26, '#1b1740', 'center', null);
+  ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(x + 46, y + 48, 26, 0, TAU); ctx.fill(); itemIconC(S.tip, x + 46, y + 49, 2.4, '#1b1740');
   txt('NOVO: ' + d.name, x + 86, y + 48, 22, d.color, 'left', null);
   ls.forEach((l, i) => txt(l, W / 2, y + 100 + i * 22, 15, '#ffffff', 'center', null));
   if (S.tipT > 40 && (S.tick >> 4) % 2) txt('toque / ESPAÇO para continuar', W / 2, y + h - 22, 13, '#cfe', 'center', null);
@@ -3423,7 +3442,12 @@ const ICON = {
   bolt: ['....XX.', '...XX..', '..XX...', '.XXXXX.', '...XX..', '..XX...', '..X....'],
   meteor: ['.....XX', '....XX.', '..XXXX.', '.XXXXX.', 'XXXXXX.', 'XXXXX..', '.XXX...'],
   freeze: ['X..X..X', '.X.X.X.', '..XXX..', 'XXXXXXX', '..XXX..', '.X.X.X.', 'X..X..X'],
+  twin: ['.X...X.', 'XXX.XXX', '.X...X.', '.X...X.', '.X...X.', '.X...X.', '.X...X.'],
+  sticky: ['XXXXXXX', '...X...', '...X...', '...X...', '...X...', '..XXX..', '..XXX..'],
+  gun: ['..X..', '.XXX.', '..X..', '.XXX.', '..X..', '.XXX.'],
+  shotgun: ['X.X.X.X', 'X.X.X.X', '.X.X.X.', '.X.X.X.', '..XXX..', '...X...', '...X...'],
 };
+function sprS(rows, col, x, y, k) { ctx.fillStyle = col; rows.forEach((row, j) => { for (let i = 0; i < row.length; i++) if (row[i] === 'X') ctx.fillRect(x + i * k, y + j * k, k, k); }); }
 function heartPx(x, y, full) {
   const rows = ICON.life;
   if (!full) { spr(rows, { X: '#3a2a4a' }, x, y); return; }
@@ -3561,7 +3585,7 @@ function drawTip() {
   const d = ITEMS[S.tip], ls = TIPS[S.tip]; overlay(.55);
   const w = 660, h = 190, x = (W - w) / 2, y = (H - h) / 2 - 10;
   panel(x / 2, y / 2, w / 2, h / 2, '#241c48', d.color);
-  rc(Math.round((x + 22) / 2), Math.round((y + 24) / 2), 24, 24, d.color); txt(d.label, x + 46, y + 50, 28, '#1b1740', 'center', null);
+  rc(Math.round((x + 22) / 2), Math.round((y + 24) / 2), 24, 24, d.color); { const rows = ICON[S.tip], k = 2; if (rows) sprS(rows, '#1b1740', Math.round((x + 22) / 2) + 12 - rows[0].length * k / 2 | 0, Math.round((y + 24) / 2) + 12 - rows.length * k / 2 | 0, k); else txt(d.label, x + 46, y + 50, 28, '#1b1740', 'center', null); }
   txt('NOVO: ' + d.name, x + 86, y + 48, 16, d.color, 'left', '#000');
   ls.forEach((l, i) => txt(l, W / 2, y + 100 + i * 22, 14, '#ffffff', 'center', null));
   if (S.tipT > 40 && (S.tick >> 4) % 2) txt('TOQUE / ESPAÇO PARA CONTINUAR', W / 2, y + h - 22, 14, '#ccffee', 'center', null);
