@@ -25,7 +25,7 @@
   #ctl button.fire{width:62px;height:62px;background:rgba(255,90,90,.38);border-color:rgba(255,160,160,.75)}
   #ctl button.jump{width:52px;height:52px;background:rgba(90,170,255,.34);border-color:rgba(160,200,255,.75);margin-bottom:6px}
   /* analógico flutuante (igual ao Deadfront): toque e arraste na metade esquerda */
-  #fsb{position:absolute;right:1.2%;top:11.5%;width:6%;max-width:34px;min-width:22px;aspect-ratio:1;display:none;align-items:center;justify-content:center;padding:0;
+  #fsb{position:absolute;right:1.6%;top:1.4%;width:4%;max-width:34px;min-width:24px;aspect-ratio:1;display:none;align-items:center;justify-content:center;padding:0;
     background:rgba(10,8,25,.55);border:1px solid rgba(255,255,255,.4);border-radius:6px;z-index:6;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
   body.fsok #fsb{display:flex}
   #fsb svg{width:68%;height:68%;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
@@ -2158,7 +2158,6 @@ function drawHUD() {
   coinIcon(cx0, 18); txt(String(S.coins), cx0 + 12, 19, 15, '#ffe27a', 'left');
   txt(`FASE ${levelTag(S.level)} · ${S.cur.name}`, W / 2, 19, 16, '#fff', 'center');
   txt(String(S.score).padStart(6, '0'), W - 48, 19, 18, '#ffe27a', 'right');
-  drawMuteIcon(W - 38, 8);
   const frac = clamp(S.timeLeft / (S.cur.time * 60), 0, 1), flash = S.timeFlash > 0 && (S.tick >> 2) % 2;
   ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, TOP - 6, W, 6);
   const tg = ctx.createLinearGradient(0, TOP - 6, 0, TOP); const low = frac <= .25;
@@ -2354,13 +2353,13 @@ function draw() {
   ctx = scr; scr.imageSmoothingEnabled = true;
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   ctx.clearRect(0, 0, W, H);
-  if (S.state === 'shop') { drawShop(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  if (S.state === 'settings') { drawSettings(); drawMuteIcon(W - 38, 8); drawFade(); return; }
+  if (S.state === 'shop') { drawShop(); drawFade(); return; }
+  if (S.state === 'maps') { drawMaps(); drawFade(); return; }
+  if (S.state === 'settings') { drawSettings(); drawFade(); return; }
   if (S.shake > 0) ctx.translate(rnd(-1, 1) * Math.min(6, S.shake * .6), rnd(-1, 1) * Math.min(6, S.shake * .6));
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
-  if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 100); drawFade();
+  if (S.state === 'menu') { drawMenu(); drawFade(); return; }
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 50); drawFade();
 
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 48); txt('toque / tecla para continuar', W / 2, H / 2 + 44, 16); return; }
   switch (S.state) {
@@ -3017,7 +3016,6 @@ function drawHUD() {
   const cx0 = 14 + nh * 10; coinPx(cx0, 9); txt(String(S.coins), (cx0 + 7) * 2, 19, 15, '#ffe27a', 'left', null);
   txt(`FASE ${levelTag(S.level)} · ${S.cur.name}`, W / 2, 19, 16, '#ffffff', 'center', null);
   txt(String(S.score).padStart(6, '0'), W - 52, 19, 18, '#ffe27a', 'right', null);
-  drawMuteIcon(W - 38, 8);
   const frac = clamp(S.timeLeft / (S.cur.time * 60), 0, 1), flash = S.timeFlash > 0 && (S.tick >> 2) % 2, low = frac <= .25;
   rc(0, 19, LW, 3, '#0c0818'); const bw = Math.round((LW - 2) * frac);
   const c1 = flash ? '#fff' : low ? ((S.tick >> 3) % 2 ? '#ff5555' : '#ffaaaa') : '#7bf08f', c2 = flash ? '#cfe' : low ? '#a02020' : '#2fa04f';
@@ -3281,12 +3279,12 @@ function drawFade() {
 }
 function render() {
   ctx = lctx; lctx.setTransform(1, 0, 0, 1, 0, 0); lctx.clearRect(0, 0, LW, LH);
-  if (S.state === 'shop') { drawShop(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  if (S.state === 'maps') { drawMaps(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  if (S.state === 'settings') { drawSettings(); drawMuteIcon(W - 38, 8); drawFade(); return; }
+  if (S.state === 'shop') { drawShop(); drawFade(); return; }
+  if (S.state === 'maps') { drawMaps(); drawFade(); return; }
+  if (S.state === 'settings') { drawSettings(); drawFade(); return; }
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
-  if (S.state === 'menu') { drawMenu(); drawMuteIcon(W - 38, 8); drawFade(); return; }
-  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 100); drawFade();
+  if (S.state === 'menu') { drawMenu(); drawFade(); return; }
+  drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 50); drawFade();
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 56, '#ffffff'); txt('TOQUE / TECLA PARA CONTINUAR', W / 2, H / 2 + 50, 16, '#ffffff', 'center', '#000'); return; }
   switch (S.state) {
     case 'ready': {
@@ -3363,7 +3361,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) Music
 cv.addEventListener('pointerdown', e => {
   Music.unlock();
   const r = cv.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * W, y = (e.clientY - r.top) / r.height * H;
-  if (x >= muteBtn.x && x <= muteBtn.x + muteBtn.w && y >= muteBtn.y && y <= muteBtn.y + muteBtn.h) { setMuted(!S.muted); return; }
+  if (muteBtn.w && x >= muteBtn.x && x <= muteBtn.x + muteBtn.w && y >= muteBtn.y && y <= muteBtn.y + muteBtn.h) { setMuted(!S.muted); return; }
   if (gearBtn.w && x >= gearBtn.x && x <= gearBtn.x + gearBtn.w && y >= gearBtn.y && y <= gearBtn.y + gearBtn.h) { openSettings(); return; }
   if ((S.state === 'menu' || S.state === 'shop') && y >= 6 && y <= 40 && x >= W - 200 && x <= W - 46) { // truque de teste: toques rápidos nas moedas
     const now = performance.now(); coinTaps = coinTaps.filter(t => now - t < 1800); coinTaps.push(now);
