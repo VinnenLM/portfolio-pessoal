@@ -733,7 +733,7 @@ const UPS = [
   { id: 'move',   name: 'Pés Ligeiros',    lb: 'M', col: '#b2f2bb', d: ['+10% de velocidade ao andar.'] },
   { id: 'jump',   name: 'Salto Alto',      lb: 'J', col: '#d0bfff', d: ['Pula 8% mais alto.'] },
   { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Ataque de tela cheia no início', 'da onda; +1 passada por nível.'] },
-  { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca', '(dura mais a cada nível).'] },
+  { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca:', '5 s, +2 s a cada nível.'] },
   { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
 ];
 const UPS_BY = Object.fromEntries(UPS.map(u => [u.id, u]));
@@ -1542,7 +1542,7 @@ function step() {
     case 'ready':
       S.timer--;
       if (S.timer <= 0 || (wasPressed && S.timer < 140)) { S.state = 'play'; if (S.openN > 0) { startStrike(['fire', 'bolt', 'meteor'][Math.floor(Math.random() * 3)], S.openN); S.openN = 0; }
-    if (S.frostN > 0) { startFreeze(120 + 60 * S.frostN); S.frostN = 0; } }
+    if (S.frostN > 0) { startFreeze(180 + 120 * S.frostN); S.frostN = 0; } }
       updateParts();
       break;
     case 'play':
