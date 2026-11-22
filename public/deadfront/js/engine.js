@@ -478,8 +478,8 @@
       const w = curW(); const d = DF.WEAPONS[w.id];
       if (P.fireCd > 0 || P.reloadT > 0) return;
       if (w.mag <= 0) { startReload(); return; }
-      w.mag--; P.fireCd = d.rate * (G.furyT > 0 ? 0.5 : 1); P.flash = 0.06;
-      const dmg = d.dmg * (1 + 0.12 * wLvl(w.id)) * (cls === 'fighter' ? 1.2 : 1) * (G.furyT > 0 ? 1.3 : 1);
+      if (G.furyT <= 0) w.mag--; P.fireCd = d.rate * (G.furyT > 0 ? 0.5 : 1); P.flash = 0.06;
+      const dmg = d.dmg * (1 + 0.12 * wLvl(w.id)) * (cls === 'fighter' ? 1.2 : 1) * (G.furyT > 0 ? 1.8 : 1);
       if (d.kind === 'flame') {
         const ox = P.x + Math.cos(angle) * 22, oy = P.y + Math.sin(angle) * 22;
         for (const z of G.zombies.slice()) {
