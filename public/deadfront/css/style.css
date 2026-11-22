@@ -143,3 +143,4 @@ body.touch .s-key { display: none; }
 .card .wbig, .card .tbig { height: 44px; display: flex; align-items: center; }
 .card .wbig svg { height: 44px; width: auto; max-width: 100%; }
 .card .tbig svg { height: 48px; width: 48px; } .card .tbig { height: 50px; }
+#fps { position: fixed; top: max(4px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 60; font: 700 12px monospace; color: #9dff8a; background: rgba(0,0,0,.55); padding: 2px 8px; border-radius: 8px; pointer-events: none; }

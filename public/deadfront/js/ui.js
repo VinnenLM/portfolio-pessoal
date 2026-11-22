@@ -95,6 +95,7 @@
     $('m-sound').textContent = 'SOM: ' + (save.sound ? 'ON' : 'OFF');
     $('p-sound').textContent = 'SOM: ' + (save.sound ? 'ON' : 'OFF');
     $('p-auto').textContent = 'MIRA AUTOMÁTICA: ' + (save.auto ? 'ON' : 'OFF');
+    $('m-fps').textContent = 'MOSTRAR FPS: ' + (save.fps ? 'ON' : 'OFF'); $('fps').classList.toggle('hidden', !save.fps);
     $('p-light').textContent = 'LUZ DINÂMICA: ' + (save.light !== false ? 'ON' : 'OFF');
     $('p-laser').classList.toggle('hidden', !save.laser); $('p-laser').textContent = 'MIRA LASER: ' + (save.laserOn !== false ? 'ON' : 'OFF');
   }
@@ -127,6 +128,17 @@
   $('m-help').onclick = () => { click(); show('help'); };
   const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; if (DF.applyMute) DF.applyMute(); persist(); refreshCoins(); click(); };
   $('m-sound').onclick = toggleSound; $('p-sound').onclick = toggleSound;
+  $('m-fps').onclick = () => { click(); save.fps = !save.fps; persist(); refreshCoins(); };
+  { // contador de FPS + redução automática de detalhes se o aparelho estiver lento
+    let n = 0, t0 = performance.now(), slow = 0;
+    (function loop() { n++; const now = performance.now();
+      if (now - t0 >= 1000) {
+        const fps = Math.round(n * 1000 / (now - t0)); n = 0; t0 = now;
+        if (save.fps) $('fps').textContent = fps + ' FPS' + (DF.flatSprites ? ' (leve)' : '');
+        if (inGame && !paused) { if (fps < 40) slow++; else slow = 0; if (slow >= 3 && !DF.flatSprites) { DF.flatSprites = true; } }
+      }
+      requestAnimationFrame(loop); })();
+  }
   $('p-light').onclick = () => { save.light = save.light === false; persist(); refreshCoins(); };
   $('p-laser').onclick = () => { save.laserOn = save.laserOn === false; persist(); refreshCoins(); };
   $('p-auto').onclick = () => { save.auto = !save.auto; input.auto = save.auto; persist(); refreshCoins(); };

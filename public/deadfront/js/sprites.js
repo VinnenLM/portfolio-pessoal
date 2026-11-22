@@ -21,7 +21,7 @@
   function ell(c, x, y, rx, ry, fill, stroke, rot) {
     c.beginPath(); c.ellipse(x, y, rx, ry, rot || 0, 0, TAU);
     if (fill) {
-      const pc = rx >= 3 && ry >= 3 ? parseC(fill) : null;
+      const pc = rx >= 3 && ry >= 3 && !DF.flatSprites ? parseC(fill) : null;
       if (pc) { const g = c.createRadialGradient(x - rx * 0.38, y - ry * 0.38, 0, x, y, Math.max(rx, ry) * 1.08); g.addColorStop(0, mixc(pc, 38)); g.addColorStop(0.6, fill); g.addColorStop(1, mixc(pc, -34)); c.fillStyle = g; }
       else c.fillStyle = fill;
       c.fill();
@@ -32,7 +32,7 @@
     c.beginPath();
     if (c.roundRect) c.roundRect(x, y, w, h, r || 0); else c.rect(x, y, w, h);
     if (fill) {
-      const pc = w >= 3 && h >= 3 ? parseC(fill) : null;
+      const pc = w >= 3 && h >= 3 && !DF.flatSprites ? parseC(fill) : null;
       if (pc) { const g = c.createLinearGradient(x, y, x, y + h); g.addColorStop(0, mixc(pc, 34)); g.addColorStop(0.45, fill); g.addColorStop(1, mixc(pc, -32)); c.fillStyle = g; }
       else c.fillStyle = fill;
       c.fill();
