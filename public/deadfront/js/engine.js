@@ -157,6 +157,27 @@
     for (const [x, y, ww, hh, type] of lv.obst) {
       const [c1, c2] = OBST_STYLE[type] || ['#777', '#444'];
       const px = x * TILE + 3, py = y * TILE + 3, pw = ww * TILE - 6, ph = hh * TILE - 6;
+      if (type === 'plane') {
+        const cx = px + pw / 2, cy = py + ph / 2, L = pw, Wd = ph;
+        ctx.save(); ctx.translate(cx, cy);
+        ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(5, 7, L * 0.46, Wd * 0.13, 0, 0, 6.283); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-L * 0.02 + 5, -Wd * 0.1 + 7); ctx.lineTo(-L * 0.2 + 5, -Wd * 0.5 + 7); ctx.lineTo(-L * 0.08 + 5, -Wd * 0.5 + 7); ctx.lineTo(L * 0.14 + 5, -Wd * 0.1 + 7); ctx.moveTo(-L * 0.02 + 5, Wd * 0.1 + 7); ctx.lineTo(-L * 0.2 + 5, Wd * 0.5 + 7); ctx.lineTo(-L * 0.08 + 5, Wd * 0.5 + 7); ctx.lineTo(L * 0.14 + 5, Wd * 0.1 + 7); ctx.fill();
+        const wing = (sg) => { ctx.beginPath(); ctx.moveTo(L * 0.14, sg * Wd * 0.09); ctx.lineTo(-L * 0.08, sg * Wd * 0.5); ctx.lineTo(-L * 0.2, sg * Wd * 0.5); ctx.lineTo(-L * 0.02, sg * Wd * 0.09); ctx.closePath(); ctx.fillStyle = '#c3ccd3'; ctx.fill(); ctx.strokeStyle = '#7a848c'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#6b7680'; ctx.beginPath(); ctx.ellipse(-L * 0.03, sg * Wd * 0.3, L * 0.05, Wd * 0.05, 0, 0, 6.283); ctx.fill(); };
+        wing(-1); wing(1);
+        const tail = (sg) => { ctx.beginPath(); ctx.moveTo(-L * 0.36, sg * Wd * 0.05); ctx.lineTo(-L * 0.46, sg * Wd * 0.26); ctx.lineTo(-L * 0.41, sg * Wd * 0.26); ctx.lineTo(-L * 0.3, sg * Wd * 0.05); ctx.closePath(); ctx.fillStyle = '#c3ccd3'; ctx.fill(); ctx.stroke(); };
+        tail(-1); tail(1);
+        const fg = ctx.createLinearGradient(0, -Wd * 0.12, 0, Wd * 0.12); fg.addColorStop(0, '#ffffff'); fg.addColorStop(0.55, '#e3e9ee'); fg.addColorStop(1, '#a9b4bd');
+        ctx.fillStyle = fg; ctx.beginPath(); ctx.moveTo(-L * 0.47, 0); ctx.quadraticCurveTo(-L * 0.46, -Wd * 0.1, -L * 0.3, -Wd * 0.11); ctx.lineTo(L * 0.3, -Wd * 0.11); ctx.quadraticCurveTo(L * 0.5, -Wd * 0.08, L * 0.5, 0); ctx.quadraticCurveTo(L * 0.5, Wd * 0.08, L * 0.3, Wd * 0.11); ctx.lineTo(-L * 0.3, Wd * 0.11); ctx.quadraticCurveTo(-L * 0.46, Wd * 0.1, -L * 0.47, 0); ctx.closePath(); ctx.fill(); ctx.strokeStyle = '#7a848c'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#d4141c'; ctx.fillRect(-L * 0.4, -2, L * 0.7, 4);
+        ctx.fillStyle = '#5a89b5'; for (let i = 0; i < 14; i++) ctx.fillRect(-L * 0.28 + i * (L * 0.5 / 14), -Wd * 0.07, 3, 3);
+        ctx.fillStyle = '#34536f'; ctx.beginPath(); ctx.moveTo(L * 0.42, -Wd * 0.04); ctx.lineTo(L * 0.34, -Wd * 0.07); ctx.lineTo(L * 0.34, Wd * 0.07); ctx.lineTo(L * 0.42, Wd * 0.04); ctx.closePath(); ctx.fill();
+        ctx.restore(); continue;
+      }
+      if (type === 'gate') {
+        const cx = px + pw / 2; ctx.fillStyle = '#2a2d31'; ctx.fillRect(px - 2, py, pw + 4, ph);
+        ctx.fillStyle = '#8a2a2a'; ctx.fillRect(px + 4, py + 2, pw - 8, ph - 4); ctx.strokeStyle = '#d9a0a0'; ctx.lineWidth = 2; for (let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(px + 6, py + 8 + i * (ph / 4)); ctx.lineTo(px + pw - 6, py + 8 + i * (ph / 4)); ctx.stroke(); }
+        ctx.fillStyle = '#e6c13a'; ctx.beginPath(); ctx.arc(cx, py + ph / 2, 7, 0, 6.283); ctx.fill(); ctx.fillStyle = '#222'; ctx.fillRect(cx - 2, py + ph / 2 - 1, 4, 8); continue;
+      }
       ctx.fillStyle = 'rgba(0,0,0,0.35)'; rrect(ctx, px + 3, py + 4, pw, ph, 6); ctx.fill();
       ctx.fillStyle = c1; rrect(ctx, px, py, pw, ph, 6); ctx.fill();
       ctx.strokeStyle = c2; ctx.lineWidth = 3; rrect(ctx, px + 1.5, py + 1.5, pw - 3, ph - 3, 5); ctx.stroke();
@@ -205,7 +226,7 @@
     const canvas = opts.canvas;
     const ctx = canvas.getContext('2d');
     const map = buildMap(lv);
-    const staticLayer = renderStatic(lv, map);
+    let staticLayer = renderStatic(lv, map);
     const { w: MW, h: MH, tiles } = map;
     const decalLayer = document.createElement('canvas'); decalLayer.width = Math.ceil(MW * TILE / 2); decalLayer.height = Math.ceil(MH * TILE / 2);
     const dctx = decalLayer.getContext('2d');
@@ -267,7 +288,7 @@
     P.weapons[0].reserve = P.weapons[0].reserve === Infinity ? Infinity : P.weapons[0].reserve;
     P.gren = { frag: 2 + U('gfrag') + (cls === 'grenadier' ? 2 : 0), fire: U('gfire') + (cls === 'grenadier' ? 1 : 0), holy: U('gholy') + (cls === 'grenadier' ? 1 : 0) };
     if (cls === 'medic') P.inv.medkit += 2; P.grenI = 0; P.grenCd = 0;
-    const mission = lv.mission ? { idx: 0, groups: lv.groups.map((g) => Object.assign({ done: false }, g)), ambT: 4, bossSpawned: false } : null;
+    const mission = lv.mission ? { idx: 0, keysGot: [], opened: [], groups: lv.groups.map((g) => Object.assign({ done: false }, g)), ambT: 4, bossSpawned: false } : null;
     G.mission = mission;
     if (mission) { G.waveState = 'mission'; G.wave = 1; }
     const camera = { x: 0, y: 0, s: 1, vw: 800, vh: 600, dpr: 1 };
@@ -280,7 +301,7 @@
     const tileAt = (x, y) => { const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE); return tx < 0 || ty < 0 || tx >= MW || ty >= MH ? -1 : ty * MW + tx; };
     const isBlockType = (i) => tiles[i] === T.WALL || tiles[i] === T.OBST;
     // sistema de altura: obstáculos baixos (mesas, sofás, caixotes...) deixam passar tiros e granadas; paredes e coisas altas não
-    const HIGH = new Set(['plane', 'tank', 'truck', 'shelf']);
+    const HIGH = new Set(['plane', 'tank', 'truck', 'shelf', 'gate']);
     const isHigh = (i) => tiles[i] === T.WALL || (tiles[i] === T.OBST && HIGH.has(map.obst[i]));
     function losShot(x0, y0, x1, y1) {
       const d = Math.hypot(x1 - x0, y1 - y0); const n = Math.ceil(d / 12);
@@ -742,7 +763,7 @@
         const door = pick(map.doors); const sp = pick(door.spawns);
         x = (sp.x + 0.5) * TILE + rand(-10, 10); y = (sp.y + 0.5) * TILE + rand(-10, 10);
       }
-      const waveMul = mission ? 1 + 0.08 * mission.idx : endless ? 1 + 0.07 * (Math.max(1, G.wave) - 1) + G.time / 300 : 1 + 0.06 * (Math.max(1, G.wave) - 1);
+      const waveMul = mission ? 1 + 0.055 * mission.idx : endless ? 1 + 0.07 * (Math.max(1, G.wave) - 1) + G.time / 300 : 1 + 0.06 * (Math.max(1, G.wave) - 1);
       const hp = d.boss ? d.hp : Math.round(d.hp * lv.hpScale * waveMul);
       const z = {
         id: G.idc++, type: typeId, def: d, x, y, r: d.r, hp, max: hp, speed: d.speed * rand(0.92, 1.1) * (endless && !d.boss ? 1 + Math.min(0.35, G.time / 900) : 1),
@@ -992,7 +1013,7 @@
       return null;
     }
     function missionType() {
-      const p = mission.idx; const wt = { walker: 10, runner: 3 + p, spitter: 1 + p * 0.8, brute: 0.3 + p * 0.5, bomber: p * 0.9, carrier: p * 0.6 };
+      const p = mission.idx * 0.7; const wt = { walker: 10, runner: 3 + p, spitter: 1 + p * 0.8, brute: 0.3 + p * 0.5, bomber: p * 0.9, carrier: p * 0.6 };
       const keys = Object.keys(wt); let r = Math.random() * keys.reduce((a, k) => a + wt[k], 0);
       for (const k of keys) { r -= wt[k]; if (r <= 0) return k; }
       return 'walker';
@@ -1002,7 +1023,79 @@
       if (o.type === 'boss' && G.boss) return { x: G.boss.x, y: G.boss.y };
       return { x: o.x * TILE, y: o.y * TILE };
     }
+    function openGate(i) {
+      const g = (lv.gates || [])[i]; if (!g || mission.opened[i]) return; mission.opened[i] = true;
+      for (let j = 0; j < g.h; j++) { const idx = (g.y + j) * MW + g.x; tiles[idx] = T.OUT; map.obst[idx] = undefined; }
+      staticLayer = renderStatic(Object.assign({}, lv, { obst: lv.obst.filter((o) => !(o[4] === 'gate' && (lv.gates || []).some((q, k) => mission.opened[k] && q.x === o[0] && q.y === o[1]))) }), map);
+      G.flowDirty = true; G.shake = Math.max(G.shake, 5); msg('Portão aberto!', '#7be07a'); sfx('build');
+    }
+    // helicóptero de resgate: desce quando o portão da pista abre, esmaga o que estiver embaixo e um atirador (invulnerável) ajuda
+    const heli = lv.heli ? { x: lv.heli.x * TILE, y: lv.heli.y * TILE, alt: 1, state: 'wait', rot: 0, shotT: 0, gunA: 0, shots: 0, washT: 0 } : null;
+    G.heli = heli; G.tracers = [];
+    function updateHeli(dt) {
+      if (!heli) return;
+      heli.rot += dt * (heli.state === 'wait' ? 0 : 30);
+      if (heli.state === 'wait' && mission.idx >= lv.heli.call) { heli.state = 'down'; msg('O helicóptero está chegando!', '#9fd0ff'); sfx('wavedone'); }
+      if (heli.state === 'down') {
+        heli.alt = Math.max(0, heli.alt - dt / 7);
+        if (heli.alt < 0.35) heli.crush = true;
+        if (heli.alt <= 0) { heli.state = 'landed'; G.shake = Math.max(G.shake, 8); }
+      }
+      if (heli.state === 'wait') return;
+      // lava tudo que estiver embaixo
+      if (heli.alt < 0.35) {
+        heli.washT -= dt;
+        for (const z of G.zombies.slice()) {
+          if (Math.hypot(z.x - heli.x, z.y - heli.y) < TILE * 2.7 + z.r) {
+            if (!z.boss) hurtZ(z, 1e6, 0, 0, 0, true);
+            else if (heli.washT <= 0) hurtZ(z, z.max ? z.max * 0.04 : 40, 0, 0, 0, true);
+          }
+        }
+        if (heli.washT <= 0) heli.washT = 0.5;
+      }
+      // atirador
+      heli.shotT -= dt; heli.gunA += dt * 2;
+      if (heli.shotT <= 0) {
+        let best = null, bd = 520 * 520;
+        for (const z of G.zombies) { if (z.born > 0.3) continue; const dd = (z.x - heli.x) ** 2 + (z.y - heli.y) ** 2; if (dd < bd) { bd = dd; best = z; } }
+        if (best) {
+          heli.shotT = 0.16; heli.shots++; heli.gunA = Math.atan2(best.y - heli.y, best.x - heli.x);
+          G.tracers.push({ x0: heli.x + Math.cos(heli.gunA) * 34, y0: heli.y + Math.sin(heli.gunA) * 34 - heli.alt * 30, x1: best.x, y1: best.y, t: 0.08 });
+          hurtZ(best, best.boss ? 14 : 26, Math.cos(heli.gunA), Math.sin(heli.gunA), 40, true);
+          if (heli.shots % 4 === 0) sfx('shoot');
+        } else heli.shotT = 0.2;
+      }
+      for (let i = G.tracers.length - 1; i >= 0; i--) { G.tracers[i].t -= dt; if (G.tracers[i].t <= 0) G.tracers.splice(i, 1); }
+    }
+    function drawHeli() {
+      if (!heli || heli.state === 'wait') return;
+      const a = heli.alt, sc = 1 + a * 0.35, x = heli.x, y = heli.y;
+      ctx.save(); ctx.translate(x + a * 26, y + a * 46); ctx.scale(sc, sc * 0.9); ctx.fillStyle = 'rgba(0,0,0,' + (0.38 - a * 0.14) + ')'; ctx.beginPath(); ctx.ellipse(0, 0, 70, 24, 0, 0, 6.283); ctx.fill(); ctx.restore();
+      ctx.save(); ctx.translate(x, y - a * 34); ctx.scale(sc, sc);
+      // cauda e rotor de cauda
+      ctx.fillStyle = '#3d4a3a'; ctx.fillRect(-92, -4, 62, 8); ctx.fillStyle = '#2f3a2d'; ctx.beginPath(); ctx.moveTo(-92, -4); ctx.lineTo(-100, -16); ctx.lineTo(-84, -4); ctx.fill();
+      ctx.strokeStyle = 'rgba(200,200,200,0.55)'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-96, -10, 11, 0, 6.283); ctx.stroke();
+      // corpo
+      const bg = ctx.createLinearGradient(0, -26, 0, 26); bg.addColorStop(0, '#6b7c5a'); bg.addColorStop(0.5, '#4d5a3f'); bg.addColorStop(1, '#313b2a');
+      ctx.fillStyle = bg; ctx.beginPath(); ctx.ellipse(0, 0, 46, 24, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = '#1d241a'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = 'rgba(150,200,235,0.8)'; ctx.beginPath(); ctx.ellipse(24, 0, 17, 15, 0, 0, 6.283); ctx.fill(); ctx.strokeStyle = '#223'; ctx.stroke();
+      // porta aberta com atirador
+      ctx.fillStyle = '#20281c'; ctx.fillRect(-14, 14, 28, 9);
+      ctx.save(); ctx.translate(0, 18); ctx.fillStyle = '#c9a227'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, 6.283); ctx.fill(); ctx.fillStyle = '#2f5f9a'; ctx.beginPath(); ctx.arc(0, -2, 4, 0, 6.283); ctx.fill();
+      ctx.rotate(heli.gunA * 0); ctx.fillStyle = '#222'; ctx.fillRect(2, 2, 18, 3); ctx.restore();
+      // skids
+      ctx.strokeStyle = '#1b1f18'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-34, -28); ctx.lineTo(34, -28); ctx.moveTo(-34, 28); ctx.lineTo(34, 28); ctx.stroke();
+      // rotor
+      ctx.save(); ctx.rotate(heli.rot);
+      const spin = heli.state === 'landed' ? 0.6 : 1;
+      ctx.fillStyle = 'rgba(210,215,220,' + (0.16 * spin) + ')'; ctx.beginPath(); ctx.arc(0, 0, 100, 0, 6.283); ctx.fill();
+      ctx.fillStyle = 'rgba(40,44,38,0.85)'; for (let k = 0; k < 4; k++) { ctx.rotate(1.5708); ctx.fillRect(0, -3, 100, 6); }
+      ctx.restore(); ctx.fillStyle = '#222'; ctx.beginPath(); ctx.arc(0, 0, 7, 0, 6.283); ctx.fill();
+      ctx.restore();
+      for (const t of G.tracers) { ctx.strokeStyle = 'rgba(255,230,140,' + Math.min(1, t.t / 0.05) + ')'; ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(t.x0, t.y0); ctx.lineTo(t.x1, t.y1); ctx.stroke(); }
+    }
     function updateMission(dt) {
+      updateHeli(dt);
       for (const g of mission.groups) {
         if (g.done) continue;
         if (Math.hypot(P.x - g.x * TILE, P.y - g.y * TILE) < g.trig * TILE) {
@@ -1014,7 +1107,8 @@
       if (mission.ambT <= 0) {
         mission.ambT = rand(5, 8);
         if (G.zombies.filter((z) => !z.boss).length < 22) {
-          for (let k = 0; k < 2; k++) { const a = rand(0, 6.283), d2 = rand(650, 850); const sp = freeSpot(P.x + Math.cos(a) * d2, P.y + Math.sin(a) * d2, 60); if (sp) spawnZombie(missionType(), sp); }
+          const gi = (lv.gates || []).findIndex((q, k) => !mission.opened[k]), gx = gi >= 0 ? lv.gates[gi].x * TILE : 1e9;
+          for (let k = 0; k < 2; k++) { const a = rand(0, 6.283), d2 = rand(650, 850); const sp = freeSpot(P.x + Math.cos(a) * d2, P.y + Math.sin(a) * d2, 60); if (sp && sp.x < gx - 30) spawnZombie(missionType(), sp); }
         }
       }
       const o = lv.objectives[mission.idx]; if (!o) return;
@@ -1022,8 +1116,10 @@
       if (o.type === 'reach') {
         if (dist < 2.2 * TILE) {
           if (o.win) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); }
-          else { mission.idx++; msg('Objetivo concluído!', '#7be07a'); sfx('wavedone'); }
+          else { if (o.gate !== undefined) openGate(o.gate); mission.idx++; msg('Objetivo concluído!', '#7be07a'); sfx('wavedone'); }
         }
+      } else if (o.type === 'pickup') {
+        if (Math.hypot(P.x - o.x * TILE, P.y - o.y * TILE) < 38) { mission.keysGot[o.key] = true; mission.idx++; msg('Cartão de acesso obtido!', '#ffd27a'); sfx('pickup'); }
       } else if (o.type === 'boss') {
         if (!mission.bossSpawned) { if (dist < o.r * TILE) { mission.bossSpawned = true; spawnZombie(lv.boss, { x: o.x * TILE, y: o.y * TILE }); } }
         else if (G.bossDead) { mission.idx++; msg('Chefe derrotado! Pegue o loot e corra para o helicóptero!', '#7be07a'); }
@@ -1282,6 +1378,14 @@
         { const af = t.ammo / DF.TOWERS[t.type].mag; if (af < 0.999) drawBar(t.x - 18, t.y - 24, 36, 3, af, af <= 0 ? '#ff5a4a' : '#ffd27a', 0.85); }
       }
       // loot
+      if (mission && lv.keys) lv.keys.forEach((k, i) => {
+        if (mission.keysGot[i]) return; const bob = Math.sin(G.time * 3 + i) * 2;
+        ctx.save(); ctx.translate(k.x * TILE, k.y * TILE + bob);
+        const gl = ctx.createRadialGradient(0, 0, 3, 0, 0, 36); gl.addColorStop(0, 'rgba(255,210,90,0.55)'); gl.addColorStop(1, 'rgba(255,210,90,0)'); ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(0, 0, 36, 0, 6.283); ctx.fill();
+        ctx.fillStyle = '#e8ecef'; rrect(ctx, -15, -10, 30, 20, 3); ctx.fill(); ctx.strokeStyle = '#334'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#d4141c'; ctx.fillRect(-12, -7, 24, 5); ctx.fillStyle = '#334'; ctx.fillRect(-12, 1, 11, 3); ctx.fillRect(-12, 6, 17, 2);
+        ctx.fillStyle = '#e6c13a'; ctx.fillRect(6, 1, 7, 6); ctx.restore();
+      });
       for (const L of G.loot) {
         if (L.ttl < 6 && Math.floor(G.time * 6) % 2) continue;
         const bob = Math.sin(G.time * 4 + L.bob) * 2;
@@ -1374,6 +1478,7 @@
       if (P.reloadT > 0 && P.reloadMax > 0) { const k = 1 - P.reloadT / P.reloadMax; ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(P.x - 19, P.y - P.r - 17, 38, 7); ctx.fillStyle = '#5ac8ff'; ctx.fillRect(P.x - 18, P.y - P.r - 16, 36 * k, 5); ctx.fillStyle = '#fff'; ctx.font = 'bold 9px sans-serif'; ctx.textAlign = 'center'; ctx.fillText('RECARREGANDO', P.x, P.y - P.r - 22); }
       // balas
       for (const b of G.bullets) { ctx.strokeStyle = b.color || '#ffe9a0'; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(b.x - b.vx * 0.022, b.y - b.vy * 0.022); ctx.stroke(); }
+      drawHeli();
       // partículas
       for (const p of G.parts) { ctx.globalAlpha = clamp(p.life / p.max, 0, 1); ctx.fillStyle = p.color; ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); }
       ctx.globalAlpha = 1;

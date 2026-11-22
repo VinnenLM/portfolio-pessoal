@@ -119,8 +119,12 @@
       { x: 56, y: 9, w: 36, h: 22, doors: [['W', 9, 3], ['E', 9, 3]] },
       { x: 105, y: 10, w: 22, h: 20, doors: [['W', 8, 3], ['E', 8, 3]] }
     ],
-    walls: [],
+    walls: [[53, 1, 1, 17], [53, 21, 1, 18], [102, 1, 1, 17], [102, 21, 1, 18], [130, 1, 1, 17], [130, 21, 1, 18]],
+    gates: [{ x: 53, y: 18, h: 3 }, { x: 102, y: 18, h: 3 }, { x: 130, y: 18, h: 3 }],
+    heli: { x: 144.5, y: 19.5, call: 6 },
+    keys: [{ x: 26.5, y: 12.5 }, { x: 80.5, y: 24.5 }, { x: 110.5, y: 23.5 }],
     obst: [
+      [53, 18, 1, 3, 'gate'], [102, 18, 1, 3, 'gate'], [130, 18, 1, 3, 'gate'],
       [6, 10, 10, 1, 'counter'], [24, 10, 10, 1, 'counter'], [6, 29, 10, 1, 'counter'], [24, 29, 10, 1, 'counter'],
       [8, 14, 4, 1, 'seats'], [16, 14, 4, 1, 'seats'], [28, 14, 4, 1, 'seats'], [8, 25, 4, 1, 'seats'], [18, 25, 4, 1, 'seats'], [30, 25, 4, 1, 'seats'],
       [20, 27, 6, 2, 'belt'], [37, 11, 2, 2, 'crate'], [37, 27, 2, 2, 'crate'],
@@ -132,11 +136,13 @@
     ],
     decor: [['pad', 144.5, 19.5], ['dash', 129, 19, 12, 0.18, '#e8e8e8'], ['dash', 4, 19, 38, 0.1, '#e6c13a']],
     objectives: [
-      { type: 'reach', x: 41.5, y: 19.5, text: 'Atravesse o terminal até a saída leste' },
-      { type: 'reach', x: 74.5, y: 19.5, text: 'Cruze o hangar' },
-      { type: 'reach', x: 115.5, y: 19.5, text: 'Passe pela torre de controle' },
-      { type: 'reach', x: 130.5, y: 19.5, text: 'Siga pela pista de decolagem' },
-      { type: 'boss', x: 137.5, y: 19.5, r: 9, text: 'Derrote o chefe!' },
+      { type: 'pickup', key: 0, x: 26.5, y: 12.5, text: 'Pegue o cartão de acesso no terminal' },
+      { type: 'reach', gate: 0, x: 51.5, y: 19.5, text: 'Abra o portão leste com o cartão' },
+      { type: 'pickup', key: 1, x: 80.5, y: 24.5, text: 'Pegue o cartão no hangar' },
+      { type: 'reach', gate: 1, x: 100.5, y: 19.5, text: 'Abra o portão do pátio' },
+      { type: 'pickup', key: 2, x: 110.5, y: 23.5, text: 'Pegue o cartão na torre de controle' },
+      { type: 'reach', gate: 2, x: 128.5, y: 19.5, text: 'Abra o portão da pista' },
+      { type: 'boss', x: 138.5, y: 19.5, r: 9, text: 'Derrote o chefe!' },
       { type: 'reach', x: 144.5, y: 19.5, text: 'Embarque no helicóptero!', win: true }
     ],
     groups: [
