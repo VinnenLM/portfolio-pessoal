@@ -97,6 +97,20 @@ const WEAPONS = {
   gun:     { name: 'Mísseis Mágicos',  kind: 'bullet', max: 8, speed: 11, stick: 0,   cd: 7, pierce: false, dmg: 0.5, color: '#ffa94d' },
 };
 
+// Aviso na primeira vez que o jogador pega cada item
+const TIPS = {
+  twin:    ['Dispara dois raios ao mesmo tempo.', 'Vale até você perder uma vida.'],
+  sticky:  ['O raio fica preso no teto por um tempo', 'e atravessa os slimes que encostarem nele.'],
+  gun:     ['Dispara mísseis rápidos em sequência.', 'Cada míssil dá meio de dano.'],
+  shotgun: ['Atira 4 mísseis mágicos em leque, em arco.', 'Ótima para acertar vários alvos de uma vez.'],
+  shield:  ['Bloqueia um golpe de slime ou projétil.', 'Dura alguns segundos.'],
+  freeze:  ['Congela os inimigos na tela e eles', 'não causam dano enquanto estiverem congelados.'],
+  fire:    ['Uma onda de fogo cruza a tela e', 'dá dano em todos os inimigos.'],
+  bolt:    ['Raios caem do céu e dão dano em', 'todos os inimigos da tela.'],
+  meteor:  ['Uma chuva de meteoros dá dano', 'em todos os inimigos da tela.'],
+  clock:   ['Acrescenta 20 segundos ao tempo da fase.'],
+  life:    ['Ganha uma vida extra (máximo de 5).'],
+};
 // Itens que caem dos slimes. Magias trocam a magia atual; os demais têm efeito (ver pickItem)
 const ITEMS = {
   twin:   { label: '2', color: '#ff9ee8', name: 'Raio Duplo' },
@@ -414,7 +428,7 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], seen: {}, tip: null, tipT: 0, tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
@@ -438,13 +452,13 @@ function load() {
     S.skin = S.ownedSkins.includes(o.skin) ? o.skin : 'hero';
     S.rope = S.ownedRopes.includes(o.rope) ? o.rope : 'padrao';
     artStyle = o.style === 'pixel' ? 'pixel' : 'classic'; fitCanvas(true);
-    S.musicOn = o.music !== false; S.sfxOn = o.sfx !== false; S.tutDone = !!o.tut;
+    S.musicOn = o.music !== false; S.sfxOn = o.sfx !== false; S.tutDone = !!o.tut; S.seen = o.seen && typeof o.seen === 'object' ? o.seen : {};
   } catch (e) {}
 }
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({ level: S.savedLevel, best: S.best, coins: S.coins, unlocked: S.unlocked,
-      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn, tut: S.tutDone }));
+      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn, tut: S.tutDone, seen: S.seen }));
   } catch (e) {}
 }
 const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
@@ -679,7 +693,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; S.tut = null; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
+  S.state = 'menu'; S.tut = null; S.tip = null; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -1132,6 +1146,7 @@ function updateFx() {
 function pickItem(it) {
   if (it.type === 'coin') { if (S.tut) return; S.coins += it.val; sfx.coin(); save(); emit({ kind: 'star', x: it.x, y: it.y, vy: -.8, g: 0, life: 20, r: 3, c: '#ffe27a' }); return; }
   const d = ITEMS[it.type]; if (S.tut) S.tut.got = it.type;
+  if (!S.tut && TIPS[it.type] && !S.seen[it.type]) { S.seen[it.type] = 1; S.tip = it.type; S.tipT = 0; save(); }
   sfx.item(); S.score += 50; sparks(it.x, it.y, d.color, 12, 4); ring(it.x, it.y, 26, d.color, 16, 2);
   popup(P.x + P.w / 2, P.y - 8, d.name, d.color, 13);
   if (WEAPONS[it.type]) S.weapon = it.type;
@@ -1365,6 +1380,7 @@ function step() {
 
   if (S.state === 'menu') { slimes.forEach(updateSlime); return; }
   if (S.state === 'shop' || S.state === 'maps' || S.state === 'settings') return;
+  if (S.tip) { S.tipT++; if (S.tipT > 40 && (wasPressed || jumpBuf > 0)) { S.tip = null; jumpBuf = 0; } return; }
   if (S.paused) { if (wasPressed) S.paused = false; return; }
 
   switch (S.state) {
@@ -1437,11 +1453,12 @@ function openSettings() {
   S.setFrom = S.state === 'menu' ? 'menu' : 'play'; S.prevState = S.state; if (S.setFrom === 'play') S.paused = true;
   S.state = 'settings'; S.resetAsk = false; S.msg = ''; S.msgT = 0;
 }
+function leaveToMenu() { S.resetAsk = false; S.paused = false; S.tip = null; S.tut = null; goMenu(); }
 function closeSettings() { S.resetAsk = false; S.state = S.setFrom === 'menu' ? 'menu' : S.prevState; }
 function resetData() {
   try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {}
   S.savedLevel = 0; S.best = 0; S.coins = 0; S.score = 0; S.unlocked = 1; S.ownedSkins = ['hero']; S.ownedRopes = ['padrao']; S.skin = 'hero'; S.rope = 'padrao';
-  S.resetAsk = false; S.paused = false; save(); goMenu(); flash('Dados apagados');
+  S.seen = {}; S.tutDone = false; S.resetAsk = false; S.paused = false; save(); goMenu(); flash('Dados apagados');
 }
 function openShop() { S.confirm = null; S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); S.ropePage = Math.floor(Math.max(0, ROPES.findIndex(k => k.id === S.rope)) / 6); }
 function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
@@ -2253,6 +2270,15 @@ function button(x, y, w, h, label, col, fn) {
   txt(label, x + w / 2, y + h / 2 + 1, Math.min(22, h * .5), '#fff', 'center', null);
 }
 
+function drawTip() {
+  const d = ITEMS[S.tip], ls = TIPS[S.tip]; overlay(.55);
+  const w = 520, h = 190, x = (W - w) / 2, y = (H - h) / 2 - 10;
+  ctx.fillStyle = 'rgba(25,20,50,.97)'; ctx.strokeStyle = d.color; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = d.color; ctx.beginPath(); ctx.arc(x + 46, y + 48, 24, 0, TAU); ctx.fill(); txt(d.label, x + 46, y + 50, 26, '#1b1740', 'center', null);
+  txt('NOVO: ' + d.name, x + 86, y + 48, 22, d.color, 'left', null);
+  ls.forEach((l, i) => txt(l, W / 2, y + 100 + i * 22, 15, '#ffffff', 'center', null));
+  if (S.tipT > 40 && (S.tick >> 4) % 2) txt('toque / ESPAÇO para continuar', W / 2, y + h - 22, 13, '#cfe', 'center', null);
+}
 function drawTut() {
   const t = S.tut, st = t && TUT_STEPS[t.step]; if (!st) return;
   const bw = 600, bx = W / 2 - bw / 2, by = 52, lines = st.s();
@@ -2295,6 +2321,7 @@ function drawSettings() {
   if (FS_OK) { const fsOn = !!(document.fullscreenElement || document.webkitFullscreenElement); row('Tela cheia: ' + (fsOn ? 'sim' : 'não'), toggleFS, fsOn ? on : off); }
   row('Visual: ' + (artStyle === 'pixel' ? 'Pixel' : 'Clássico'), toggleStyle, '#6741d9');
   row('Resetar dados', () => { S.resetAsk = true; }, '#c92a2a');
+  if (S.setFrom === 'play') row('Voltar ao menu', () => { S.resetAsk = 'menu'; }, '#e8590c');
   row('Voltar', closeSettings, '#495057');
   if (S.msgT > 0) txt(S.msg, W / 2, y + 12, 15, '#ffe27a', 'center', '#000');
 }
@@ -2302,10 +2329,11 @@ function drawResetAsk() {
   menuBtns = []; overlay(.6);
   const w = 500, h = 210, x = (W - w) / 2, y = (H - h) / 2;
   ctx.fillStyle = 'rgba(25,20,50,.97)'; ctx.strokeStyle = '#ff8787'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.fill(); ctx.stroke();
-  txt('Apagar todos os dados?', W / 2, y + 34, 22, '#ff8787', 'center', null);
-  txt('Moedas, personagens, fases e recorde', W / 2, y + 78, 14, '#ffffff', 'center', null);
-  txt('serão perdidos. Não dá para desfazer.', W / 2, y + 100, 14, '#ffffff', 'center', null);
-  button(x + 14, y + h - 54, 230, 40, 'Apagar', '#c92a2a', resetData);
+  const mq = S.resetAsk === 'menu';
+  txt(mq ? 'Voltar ao menu?' : 'Apagar todos os dados?', W / 2, y + 34, 22, '#ff8787', 'center', null);
+  txt(mq ? 'O progresso da fase atual será perdido.' : 'Moedas, personagens, fases e recorde', W / 2, y + 78, 14, '#ffffff', 'center', null);
+  txt(mq ? 'Fases já concluídas continuam salvas.' : 'serão perdidos. Não dá para desfazer.', W / 2, y + 100, 14, '#ffffff', 'center', null);
+  button(x + 14, y + h - 54, 230, 40, mq ? 'Sair' : 'Apagar', '#c92a2a', mq ? leaveToMenu : resetData);
   button(x + w - 244, y + h - 54, 230, 40, 'Cancelar', '#495057', () => { S.resetAsk = false; });
 }
 function drawGear(x, y) {
@@ -2434,6 +2462,7 @@ function draw() {
   if (S.state === 'menu') { drawMenu(); drawFade(); return; }
   drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 50); drawFade();
 
+  if (S.tip) { drawTip(); return; }
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 48); txt('toque / tecla para continuar', W / 2, H / 2 + 44, 16); return; }
   switch (S.state) {
     case 'ready': {
@@ -3129,6 +3158,15 @@ function drawTitle() {
   glyphs(s, px, py, sc, 'rgba(255,255,255,0)'); rc(px + 4, py + 2, 8, 2, '#d8ffd0');
   txt('MAGOS VS SLIMES', W / 2, 146, 34, '#ffe27a', 'center', '#5a3b00');
 }
+function drawTip() {
+  const d = ITEMS[S.tip], ls = TIPS[S.tip]; overlay(.55);
+  const w = 660, h = 190, x = (W - w) / 2, y = (H - h) / 2 - 10;
+  panel(x / 2, y / 2, w / 2, h / 2, '#241c48', d.color);
+  rc(Math.round((x + 22) / 2), Math.round((y + 24) / 2), 24, 24, d.color); txt(d.label, x + 46, y + 50, 28, '#1b1740', 'center', null);
+  txt('NOVO: ' + d.name, x + 86, y + 48, 16, d.color, 'left', '#000');
+  ls.forEach((l, i) => txt(l, W / 2, y + 100 + i * 22, 14, '#ffffff', 'center', null));
+  if (S.tipT > 40 && (S.tick >> 4) % 2) txt('TOQUE / ESPAÇO PARA CONTINUAR', W / 2, y + h - 22, 14, '#ccffee', 'center', null);
+}
 function drawTut() {
   const t = S.tut, st = t && TUT_STEPS[t.step]; if (!st) return;
   const bw = 700, bx = W / 2 - bw / 2, by = 50, lines = st.s();
@@ -3169,6 +3207,7 @@ function drawSettings() {
   if (FS_OK) { const fsOn = !!(document.fullscreenElement || document.webkitFullscreenElement); row('Tela cheia: ' + (fsOn ? 'sim' : 'não'), toggleFS, fsOn ? on : off); }
   row('Visual: ' + (artStyle === 'pixel' ? 'Pixel' : 'Clássico'), toggleStyle, '#6741d9');
   row('Resetar dados', () => { S.resetAsk = true; }, '#c92a2a');
+  if (S.setFrom === 'play') row('Voltar ao menu', () => { S.resetAsk = 'menu'; }, '#e8590c');
   row('Voltar', closeSettings, '#495057');
   if (S.msgT > 0) txt(S.msg, W / 2, y + 12, 15, '#ffe27a', 'center', '#000');
 }
@@ -3176,10 +3215,11 @@ function drawResetAsk() {
   menuBtns = []; overlay(.6);
   const w = 500, h = 210, x = (W - w) / 2, y = (H - h) / 2;
   panel(x / 2, y / 2, w / 2, h / 2, '#241c48', '#ff8787');
-  txt('Apagar todos os dados?', W / 2, y + 34, 22, '#ff8787', 'center', '#000');
-  txt('Moedas, personagens, fases e recorde', W / 2, y + 78, 14, '#ffffff', 'center', null);
-  txt('serão perdidos. Não dá para desfazer.', W / 2, y + 100, 14, '#ffffff', 'center', null);
-  button(x + 14, y + h - 54, 230, 40, 'Apagar', '#c92a2a', resetData);
+  const mq = S.resetAsk === 'menu';
+  txt(mq ? 'Voltar ao menu?' : 'Apagar todos os dados?', W / 2, y + 34, 22, '#ff8787', 'center', '#000');
+  txt(mq ? 'O progresso da fase atual será perdido.' : 'Moedas, personagens, fases e recorde', W / 2, y + 78, 14, '#ffffff', 'center', null);
+  txt(mq ? 'Fases já concluídas continuam salvas.' : 'serão perdidos. Não dá para desfazer.', W / 2, y + 100, 14, '#ffffff', 'center', null);
+  button(x + 14, y + h - 54, 230, 40, mq ? 'Sair' : 'Apagar', '#c92a2a', mq ? leaveToMenu : resetData);
   button(x + w - 244, y + h - 54, 230, 40, 'Cancelar', '#495057', () => { S.resetAsk = false; });
 }
 const GEAR = ['....X....', '.X.XXX.X.', '..XXXXX..', '.XXXXXXX.', 'XXXX.XXXX', '.XXXXXXX.', '..XXXXX..', '.X.XXX.X.', '....X....'];
@@ -3373,6 +3413,7 @@ function render() {
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawFade(); return; }
   drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 50); drawFade();
+  if (S.tip) { drawTip(); return; }
   if (S.paused) { overlay(); txt('PAUSADO', W / 2, H / 2, 56, '#ffffff'); txt('TOQUE / TECLA PARA CONTINUAR', W / 2, H / 2 + 50, 16, '#ffffff', 'center', '#000'); return; }
   switch (S.state) {
     case 'ready': {
@@ -3488,7 +3529,7 @@ document.querySelectorAll('#ctl button').forEach(btn => {
       Music.unlock(); if (st.id !== -1) return; st.id = e.pointerId; zone.setPointerCapture(e.pointerId);
       const r = zone.getBoundingClientRect(); st.cx = e.clientX; st.cy = e.clientY;
       base.style.left = (e.clientX - r.left) + 'px'; base.style.top = (e.clientY - r.top) + 'px'; knob.style.transform = 'translate(0,0)'; zone.classList.add('active');
-      if (S.state !== 'play') pressed = true; e.preventDefault();
+      if (S.state !== 'play' || S.tip || S.paused) pressed = true; e.preventDefault();
     });
     zone.addEventListener('pointermove', e => {
       if (e.pointerId !== st.id) return;
@@ -3545,7 +3586,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  startTutorial, endTutorial, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  startTutorial, endTutorial, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
