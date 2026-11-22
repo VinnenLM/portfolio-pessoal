@@ -157,24 +157,24 @@ const SKINS = [
   { id: 'hero',   name: 'Aprendiz',   price: 0,   body: '#3b5bdb', legs: '#3b2a1a', hat: '#4c6ef5', style: 'wizard',   skin: '#ffd1a1', perk: { name: 'Equilibrado', lines: ['Sem bônus especial.', 'Ótimo para aprender o jogo.'] } },
   { id: 'fogo',   name: 'Mago de Fogo',  price: 100, body: '#e8590c', legs: '#3b2a1a', hat: '#c92a2a', style: 'wizard',   sn: 'Mago Fogo', skin: '#ffd1a1', perk: { name: 'Brasas', lines: ['Ao estourar um slime, brasas', 'estouram slimes pequenos por perto.', 'Fogo e Meteoros causam 2 de dano.'] } },
   { id: 'bruxa',  name: 'Bruxa',      price: 200, body: '#862e9c', legs: '#1a1a1a', hat: '#2b1b33', style: 'witch',    skin: '#c5f6a8', perk: { name: 'Poções Duradouras', lines: ['Escudo, nevasca e relógio', 'duram 50% mais tempo.'] } },
-  { id: 'druida', name: 'Druida',     price: 300, body: '#2b8a3e', legs: '#4a3520', hat: '#8ce99a', style: 'druid',    skin: '#ffd1a1', start: 'sticky', perk: { name: 'Pés de Raiz', lines: ['A gosma te deixa lento', 'pela metade do tempo.', 'Começa com Raio Persistente.'] } },
+  { id: 'druida', name: 'Druida',     price: 300, body: '#2b8a3e', legs: '#4a3520', hat: '#8ce99a', style: 'druid',    skin: '#ffd1a1', perk: { name: 'Pés de Raiz', lines: ['Imune à gosma: ela nunca', 'te deixa lento.'] } },
   { id: 'necro',  name: 'Necromante', price: 400, body: '#343a40', legs: '#15151a', hat: '#212529', style: 'hood',     skin: '#ced4da', perk: { name: 'Pacto Sombrio', lines: ['Começa cada fase com escudo de 5s', 'e revive 1 vez por fase.'] } },
-  { id: 'arqui',  name: 'Arquimago',  price: 700, body: '#f1f3f5', legs: '#7a5a1a', hat: '#ffd43b', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Arcano Veloz', lines: ['Magias 25% mais rápidas', 'e recarga 20% menor.'] } },
+  { id: 'arqui',  name: 'Arquimago',  price: 800, body: '#f1f3f5', legs: '#7a5a1a', hat: '#ffd43b', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Arcano Veloz', lines: ['Magias 25% mais rápidas', 'e recarga 20% menor.'] } },
   { id: 'crio', name: 'Mago do Gelo', price: 350, body: '#4dabf7', legs: '#2b3a55', hat: '#a5d8ff', style: 'wizard', sn: 'Mago Gelo', skin: '#e7f5ff', perk: { name: 'Toque Congelante', lines: ['Slimes atingidos ficam 30% mais', 'lentos por 2 segundos.', 'Nevasca dura 50% a mais.'] } },
   { id: 'eletro', name: 'Mago do Raio', price: 550, body: '#fcc419', legs: '#3b2a1a', hat: '#e8590c', style: 'wizard', sn: 'Mago Raio', skin: '#ffd1a1', perk: { name: 'Choque em Cadeia', lines: ['15% de chance do disparo atingir', 'também um slime próximo.', 'Tempestade causa 2 de dano.'] } },
-  { id: 'invoc', name: 'Invocador', price: 900, body: '#7048e8', legs: '#1d1538', hat: '#b197fc', style: 'hood', skin: '#ffd1a1', perk: { name: 'Familiar Mágico', lines: ['Um familiar dispara sozinho contra', 'os slimes a cada 5 segundos.'] } },
-  { id: 'geo', name: 'Mago de Pedra', price: 350, body: '#8d6e63', legs: '#4a3520', hat: '#c9a227', style: 'druid', sn: 'Mago Pedra', skin: '#ffd1a1', start: 'twin', perk: { name: 'Pele de Pedra', lines: ['Reduz em 30% o tempo de lentidão', 'depois de ser atingido.', 'Começa com Raio Duplo.'] } },
+  { id: 'invoc', name: 'Invocador', price: 950, body: '#7048e8', legs: '#1d1538', hat: '#b197fc', style: 'hood', skin: '#ffd1a1', perk: { name: 'Familiar Mágico', lines: ['Um familiar dispara sozinho contra', 'os slimes a cada 5 segundos.'] } },
+  { id: 'geo', name: 'Mago de Pedra', price: 450, body: '#8d6e63', legs: '#4a3520', hat: '#c9a227', style: 'druid', sn: 'Mago Pedra', skin: '#ffd1a1', start: 'twin', perk: { name: 'Pele de Pedra', lines: ['Reduz em 30% o tempo de lentidão', 'depois de ser atingido.', 'Começa com Raio Duplo.'] } },
   { id: 'ilu', name: 'Ilusionista', price: 450, body: '#e599f7', legs: '#4a2a5a', hat: '#9c36b5', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Reflexo Arcano', lines: ['15% de chance de evitar um golpe', 'sem perder a vida.', 'Visitantes ficam 50% mais tempo.'] } },
-  { id: 'crono', name: 'Cronomago', price: 600, body: '#12b886', legs: '#14302a', hat: '#63e6be', style: 'wizard', skin: '#ffd1a1', start: 'twin', perk: { name: 'Tempo Distorcido', lines: ['O efeito do relógio dura', '50% mais tempo.', 'Começa com Raio Duplo.'] } },
+  { id: 'crono', name: 'Cronomago', price: 500, body: '#12b886', legs: '#14302a', hat: '#63e6be', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Tempo Distorcido', lines: ['Começa cada fase com +15 s de tempo.', 'O efeito do relógio dura 50% mais.'] } },
   { id: 'alqui', name: 'Alquimista', price: 650, body: '#fd7e14', legs: '#2b1b33', hat: '#5f3dc4', style: 'witch', skin: '#ffd1a1', perk: { name: 'Mistura Explosiva', lines: ['Explosões de slimes laranja estouram', 'os slimes num raio 25% maior.', 'Visitantes dão o dobro de moedas.'] } },
-  { id: 'sombra', name: 'Mago Sombra', price: 450, body: '#3b2f63', legs: '#15101f', hat: '#1a1330', style: 'hood', skin: '#b8b8d0', start: 'sticky', perk: { name: 'Passo das Sombras', lines: ['Aumenta em 20% a velocidade', 'de movimentação.', 'Começa com Raio Persistente.'] } },
+  { id: 'sombra', name: 'Mago Sombra', price: 600, body: '#3b2f63', legs: '#15101f', hat: '#1a1330', style: 'hood', skin: '#b8b8d0', start: 'sticky', perk: { name: 'Passo das Sombras', lines: ['Aumenta em 20% a velocidade', 'de movimentação.', 'Começa com Raio Persistente.'] } },
   { id: 'lumi', name: 'Clérigo da Luz', price: 650, body: '#fff3bf', legs: '#7a5a1a', hat: '#fab005', style: 'wizard', sn: 'Clérigo Luz', skin: '#ffe8cc', perk: { name: 'Luz Purificadora', lines: ['Ao estourar um slime, 10% de chance', 'de explosão de luz nos próximos.', 'Visitantes chegam 10 s mais cedo.'] } },
   { id: 'xama', name: 'Xamã', price: 250, body: '#d9480f', legs: '#4a3520', hat: '#66a80f', style: 'druid', skin: '#e0a878', perk: { name: 'Espírito Guardião', lines: ['Começa cada fase com uma proteção', 'que bloqueia um golpe.'] } },
-  { id: 'runo', name: 'Mago Rúnico', price: 550, body: '#364fc7', legs: '#1a2255', hat: '#91a7ff', style: 'archmage', skin: '#ffd1a1', start: 'shotgun', perk: { name: 'Runas Antigas', lines: ['Aumenta em 15% a duração', 'de todos os itens de poder.', 'Começa com Espingarda Arcana.'] } },
+  { id: 'runo', name: 'Mago Rúnico', price: 400, body: '#364fc7', legs: '#1a2255', hat: '#91a7ff', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Runas Antigas', lines: ['Aumenta em 30% a duração', 'de todos os itens de poder.'] } },
   { id: 'magmaista', name: 'Mago Vulcão', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.', 'Meteoros deixam fogo no chão.'] } },
-  { id: 'aero', name: 'Mago do Vento', price: 500, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', sn: 'Mago Vento', skin: '#ffe8d0', start: 'gun', perk: { name: 'Corrente de Vento', lines: ['Aumenta em 20% a velocidade', 'dos disparos.', 'Começa com Mísseis Mágicos.'] } },
-  { id: 'sangue', name: 'Cultista', price: 800, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', start: 'gun', perk: { name: 'Último Sacrifício', lines: ['Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.', 'Começa com Mísseis Mágicos.'] } },
-  { id: 'demo', name: 'Mago Infernal', price: 1000, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', sn: 'Infernal', skin: '#ff8787', start: 'shotgun', perk: { name: 'Pacto Demoníaco', lines: ['Começa cada fase com um disparo', 'especial: a Espingarda Arcana.'] } },
+  { id: 'aero', name: 'Mago do Vento', price: 850, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', sn: 'Mago Vento', skin: '#ffe8d0', start: 'gun', perk: { name: 'Passos de Vento', lines: ['Pula 25% mais alto.', 'Começa com Mísseis Mágicos.'] } },
+  { id: 'sangue', name: 'Cultista', price: 500, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', perk: { name: 'Último Sacrifício', lines: ['Começa o jogo com 4 vidas.', 'Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.'] } },
+  { id: 'demo', name: 'Mago Infernal', price: 1200, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', sn: 'Infernal', skin: '#ff8787', start: 'shotgun', perk: { name: 'Pacto Demoníaco', lines: ['Começa cada fase com um disparo', 'especial: a Espingarda Arcana.'] } },
 ];
 SKINS.sort((a, b) => a.price - b.price);
 // Cores da magia (raio principal)
@@ -465,11 +465,11 @@ const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
 const ropeNow = () => ROPES.find(k => k.id === S.rope) || ROPES[0];
 // bônus passivos dos magos
 const is = id => S.skin === id;
-const durMul = () => (is('bruxa') ? 1.5 : 1) * (is('runo') ? 1.15 : 1);
+const durMul = () => (is('bruxa') ? 1.5 : 1) * (is('runo') ? 1.3 : 1);
 const freezeMul = () => durMul() * (is('crio') ? 1.5 : 1);     // Criomante: nevasca +50%          // duração de escudo/nevasca/relógio
 const clockMul = () => durMul() * (is('crono') ? 1.5 : 1);
-const slowMul = () => (is('druida') ? .5 : 1) * (is('geo') ? .7 : 1);            // tempo de lentidão
-const shotMul = () => (is('arqui') ? 1.25 : 1) * (is('aero') ? 1.2 : 1);         // velocidade dos disparos
+const slowMul = () => (is('druida') ? 0 : 1) * (is('geo') ? .7 : 1);            // tempo de lentidão
+const shotMul = () => (is('arqui') ? 1.25 : 1);         // velocidade dos disparos
 function chill(s) { if (s.slowT > 0) { s.slowT = 120; return; } s.slowT = 120; s.vx *= .7; s.spd *= .7; }
 
 // ---------- Áudio (tudo gerado por código, sem arquivos) ----------
@@ -679,6 +679,7 @@ function startLevel(i) {
   S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0; S.lvT = 0;
   S.shield = 0; S.freeze = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
   S.revUsed = false; if (S.skin === 'necro') S.shield = 300;
+  if (is('crono') && !S.tut) S.timeLeft += 900;                // Tempo Distorcido: +15 s
   if (is('xama')) S.shield = 99999;                            // Espírito Guardião: bloqueia 1 golpe
   { const sw = skinNow().start; if (sw && S.weapon === 'harpoon') S.weapon = sw; }  // arma inicial do mago
   fires = []; famShots = []; fam = is('invoc') ? { x: P.x + P.w / 2, y: P.y - 36, t: 150 } : null;
@@ -688,7 +689,7 @@ function startLevel(i) {
 }
 
 function newGame(fromLevel) {
-  S.lives = 3; S.score = 0; S.weapon = 'harpoon';
+  S.lives = is('sangue') ? 4 : 3; S.score = 0; S.weapon = 'harpoon';
   startLevel(fromLevel);
 }
 
@@ -763,7 +764,7 @@ function updatePlayer() {
   }
 
   // pulo
-  if (jumpBuf > 0 && P.onGround) { P.vy = -(slow ? JUMP_V * 0.82 : JUMP_V); P.onGround = false; jumpBuf = 0; sfx.jump(); P.sq = -0.22; smoke(P.x + P.w / 2, P.y + P.h, '#c9b99a', 3, .2); }
+  if (jumpBuf > 0 && P.onGround) { P.vy = -(slow ? JUMP_V * 0.82 : JUMP_V) * (is('aero') ? 1.12 : 1); P.onGround = false; jumpBuf = 0; sfx.jump(); P.sq = -0.22; smoke(P.x + P.w / 2, P.y + P.h, '#c9b99a', 3, .2); }
 
   // gravidade + pouso (chão e topo de blocos)
   P.vy = Math.min(P.vy + PG, 12); P.y += P.vy;
@@ -779,7 +780,7 @@ function updatePlayer() {
   // poças de gosma deixam o jogador lento
   if (P.onGround) {
     const f = P.y + P.h;
-    for (const p of puddles) if (Math.abs(f - p.y) < 4 && P.x + P.w > p.x - p.w / 2 && P.x < p.x + p.w / 2) S.slow = Math.max(S.slow, Math.max(3, Math.round(12 * slowMul())));
+    for (const p of puddles) if (Math.abs(f - p.y) < 4 && P.x + P.w > p.x - p.w / 2 && P.x < p.x + p.w / 2 && slowMul() > 0) S.slow = Math.max(S.slow, Math.max(3, Math.round(12 * slowMul())));
   }
 }
 
