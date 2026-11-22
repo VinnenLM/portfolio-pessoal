@@ -127,6 +127,8 @@
   };
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) { /* ignora */ }
   $('m-help').onclick = () => { click(); show('help'); };
+  $('m-tut').onclick = () => { click(); save.tut = false; startGame(0, false); };
+  $('p-tut').onclick = () => { click(); $('pause').classList.add('hidden'); tutI = -1; tutFromPause = true; openTut(); };
   const toggleSound = () => { save.sound = !save.sound; DF.muted = !save.sound; if (DF.applyMute) DF.applyMute(); persist(); refreshCoins(); click(); };
   $('m-sound').onclick = toggleSound; $('p-sound').onclick = toggleSound;
   if (save.lite) { DF.flatSprites = true; DF.lowRes = true; }
@@ -277,12 +279,74 @@
     for (const k in keys) keys[k] = false; input.mx = input.my = 0; input.actions.length = 0; input.stick.active = false; input.keyFire = false; input.mouseDown = false;
     inGame = true; paused = false; lastHud = 0;
     engine = DF.Engine.create({ level, endless: curEndless, canvas: cv, save, onHud: updateHud, onEnd: onEnd });
+    tutI = -1; const tw = $('tut'); if (tw) tw.style.display = 'none';
+    if (!save.tut) setTimeout(() => { if (engine && inGame) openTut(); }, 500);
   }
   function stopGame() { if (engine) engine.stop(); engine = null; inGame = false; if (DF.musicMode) DF.musicMode('menu'); $('hud').classList.add('hidden'); }
   function togglePause() {
     if (!engine || engine.G.state !== 'play') return;
     paused = !paused; engine.pause(paused); $('pause').classList.toggle('hidden', !paused); if (paused) refreshCoins();
   }
+
+  // ---------- Tutorial guiado ----------
+  const TUT = [
+    { t: 'Bem-vindo ao Deadfront!', x: 'Sobreviva às ondas de zumbis. Entre elas há uma pausa para você montar a defesa. Este tour rápido mostra como tudo funciona.' },
+    { t: 'Mover', x: 'Use <b>W A S D</b> (ou as setas). No celular, use o joystick esquerdo.' },
+    { t: 'Mirar e atirar', x: 'Mire com o <b>mouse</b> e atire com o <b>clique esquerdo</b> (ou segure Espaço). No celular, arraste o lado direito da tela. A mira automática pode ser ligada na pausa. Paredes e objetos altos bloqueiam tiros; mesas e caixas baixas não.' },
+    { t: 'Vida', x: 'Se a barra chegar a zero, a fase acaba. Zumbis te acertam de perto, e os cuspidores atacam de longe.', sel: '.bar.hp' },
+    { t: 'Armas', x: '<b>Q</b> troca de arma (ou números 1–9). <b>R</b> recarrega e mostra uma barrinha. A munição reserva é limitada; compre armas novas na loja e pegue drops no chão.', sel: '#slot-weapon' },
+    { t: 'Barricadas', x: '<b>E</b> constrói uma barricada na porta ou à sua frente. <b>Z</b> troca o material. Zumbis quebram barricadas, então reforce sempre. Sucata (🔧) vem de zumbis mortos.', sel: '#slot-build' },
+    { t: 'Curar', x: '<b>F</b> usa um kit médico e recupera vida. Os kits são limitados por fase.', sel: '#slot-heal' },
+    { t: 'Armadilhas', x: '<b>T</b> coloca a armadilha selecionada e <b>X</b> troca o tipo (espinhos, mina, urso). Ótimas nas portas.', sel: '#slot-trap' },
+    { t: 'Granadas', x: '<b>B</b> lança e <b>C</b> troca entre comum, de fogo e Santa. Granadas passam por cima de mesas, mas não de paredes.', sel: '#slot-gren' },
+    { t: 'Torres', x: '<b>G</b> instala a torre e <b>V</b> troca o tipo. Compre torres na loja. Elas têm munição limitada: chegue perto para reabastecer.', sel: '#slot-tower' },
+    { t: 'Habilidade da classe', x: '<b>H</b> usa a habilidade da sua classe (Fúria, Caixa de cura, Caixa de munição ou Bombardeio). Ela recarrega com o tempo.', sel: '#slot-skill' },
+    { t: 'Ondas e chefe', x: 'Entre as ondas, <b>N</b> ou Enter pula a espera e dá bônus de sucata. Na última onda vem um chefe: ao derrubá-lo, pegue o loot antes do tempo acabar. No modo infinito, o objetivo é bater o recorde de tempo vivo.', sel: '#wave-info' },
+    { t: 'Boa sorte!', x: 'Gaste suas moedas na loja entre as fases: armas, torres, melhorias e visuais. Você pode rever este tutorial na pausa ou nas opções.' }
+  ];
+  let tutI = -1, tutFromPause = false;
+  function tutEls() {
+    let w = $('tut'); if (w) return w;
+    w = document.createElement('div'); w.id = 'tut';
+    w.innerHTML = '<div id="tut-hole"></div><div id="tut-card"><div id="tut-n"></div><h3 id="tut-t"></h3><p id="tut-x"></p><div class="tut-btns"><button class="btn ghost" id="tut-skip">PULAR</button><button class="btn" id="tut-prev">‹</button><button class="btn primary" id="tut-next">PRÓXIMO</button></div></div>';
+    document.body.appendChild(w);
+    $('tut-next').onclick = () => tutGo(1); $('tut-prev').onclick = () => tutGo(-1); $('tut-skip').onclick = closeTut;
+    return w;
+  }
+  function tutShow() {
+    const st = TUT[tutI], w = tutEls(), hole = $('tut-hole'), card = $('tut-card');
+    $('tut-n').textContent = (tutI + 1) + ' / ' + TUT.length; $('tut-t').textContent = st.t; $('tut-x').innerHTML = st.x;
+    $('tut-next').textContent = tutI === TUT.length - 1 ? 'JOGAR' : 'PRÓXIMO'; $('tut-prev').style.visibility = tutI === 0 ? 'hidden' : 'visible';
+    const el = st.sel ? document.querySelector(st.sel) : null; const r = el ? el.getBoundingClientRect() : null;
+    if (r && r.width > 0) {
+      const pad = 6; hole.style.display = 'block';
+      hole.style.left = (r.left - pad) + 'px'; hole.style.top = (r.top - pad) + 'px'; hole.style.width = (r.width + pad * 2) + 'px'; hole.style.height = (r.height + pad * 2) + 'px';
+      w.classList.remove('dim');
+      card.style.top = r.top > innerHeight / 2 ? '14%' : 'auto'; card.style.bottom = r.top > innerHeight / 2 ? 'auto' : '12%';
+    } else { hole.style.display = 'none'; w.classList.add('dim'); card.style.top = '50%'; card.style.bottom = 'auto'; }
+    card.style.transform = (r && r.width > 0) ? 'translateX(-50%)' : 'translate(-50%,-50%)';
+  }
+  function tutGo(d) {
+    let n = tutI + d;
+    while (n >= 0 && n < TUT.length && TUT[n].sel) { const e = document.querySelector(TUT[n].sel); if (e && e.getBoundingClientRect().width > 0) break; n += d || 1; }
+    if (n >= TUT.length) { closeTut(); return; }
+    if (n < 0) return; tutI = n; tutShow();
+  }
+  function openTut() {
+    if (!engine || tutI >= 0) return; tutEls().classList.remove('hidden');
+    if (!paused) { paused = true; engine.pause(true); } tutI = 0; tutShow(); $('tut').style.display = 'block';
+  }
+  function closeTut() {
+    tutI = -1; const w = $('tut'); if (w) w.style.display = 'none';
+    save.tut = true; persist();
+    if (tutFromPause) { tutFromPause = false; $('pause').classList.remove('hidden'); return; }
+    if (paused && engine) { paused = false; engine.pause(false); }
+  }
+  window.addEventListener('keydown', (e) => {
+    if (tutI < 0) return; const k = e.key.toLowerCase();
+    if (k === 'enter' || k === ' ' || k === 'arrowright') tutGo(1); else if (k === 'arrowleft') tutGo(-1); else if (k === 'escape') closeTut();
+    e.stopPropagation(); e.preventDefault();
+  }, true);
   function onEnd(r) {
     lastResult = r; const lv = DF.LEVELS[r.level];
     save.coins += r.coins;
