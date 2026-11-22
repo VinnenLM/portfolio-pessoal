@@ -734,15 +734,16 @@ const UPS = [
   { id: 'score',  name: 'Pontuação Dobrada', lb: 'P', col: '#ffd43b', d: ['+25% de pontos em tudo.'] },
   { id: 'move',   name: 'Pés Ligeiros',    lb: 'M', col: '#b2f2bb', d: ['+10% de velocidade ao andar.'] },
   { id: 'jump',   name: 'Salto Alto',      lb: 'J', col: '#d0bfff', d: ['Pula 8% mais alto.'] },
-  { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Ataque de tela cheia no início', 'da onda; +1 passada por nível.'] },
+  { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Ataque de tela cheia no início', 'da onda; +1 passada por nível (máx. 3).'] },
   { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca:', '5 s, +2 s a cada nível.'] },
   { id: 'bfrost', name: 'Gelo de Chefe',   lb: 'G', col: '#74c0fc', d: ['Chefes ficam congelados por mais', 'tempo na Nevasca (50% +15% por nível).'] },
   { id: 'magnet', name: 'Ímã de Moedas',   lb: 'I', col: '#f06595', d: ['Atrai moedas do chão até você;', 'alcance maior a cada nível.'] },
   { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
 ];
 const UPS_BY = Object.fromEntries(UPS.map(u => [u.id, u]));
+const UP_MAX = { open: 3 };                                   // Abertura Arcana para no nível 3 (acima disso limpava qualquer onda)
 function rollPicks() {
-  const pool = UPS.filter(u => !(u.id === 'life' && S.lives >= 5)).map(u => u.id);
+  const pool = UPS.filter(u => !(u.id === 'life' && S.lives >= 5) && !(UP_MAX[u.id] && up(u.id) >= UP_MAX[u.id])).map(u => u.id);
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
   return pool.slice(0, 3);
 }
@@ -777,7 +778,7 @@ function recordRun() {
 }
 function pickBonus(id) {
   if (S.state !== 'pick' || !S.picks.includes(id)) return;
-  S.up[id] = (S.up[id] || 0) + 1;
+  S.up[id] = Math.min(UP_MAX[id] || 99, (S.up[id] || 0) + 1);
   if (id === 'life') S.lives = Math.min(5, S.lives + 1);
   if (id === 'arma') { const cur = S.runWeapon || (skinNow().start || ''); const o = ['twin', 'sticky', 'gun', 'shotgun'].filter(k => k !== cur); S.runWeapon = o[Math.floor(Math.random() * o.length)]; S.weapon = S.runWeapon; }
   sfx.item && sfx.item(); S.wave++; S.picks = []; startLevel(waveFor(S.wave));
