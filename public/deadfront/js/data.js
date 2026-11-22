@@ -187,7 +187,7 @@
   DF.CLASSES = {
     fighter:   { name: 'Combatente', desc: '+20% de dano com todas as armas. Habilidade: Fúria (8s com +80% de dano, tiro 2x mais rápido e munição infinita).', skill: 'Fúria', cd: 35, cost: 0, color: '#d4541c' },
     medic:     { name: 'Médico', desc: '+2 kits médicos e cura mais forte. Habilidade: Caixa de cura em área (cura quem estiver perto).', skill: 'Caixa de cura', cd: 18, cost: 30, color: '#3ddc84' },
-    engineer:  { name: 'Engenheiro', desc: 'Torres mais baratas e fortes, +2 torres, torres exclusivas (Tesla, Sniper). Habilidade: Caixa de munição.', skill: 'Caixa de munição', cd: 15, cost: 40, color: '#4d9fff' },
+    engineer:  { name: 'Engenheiro', desc: 'Torres mais baratas e fortes, +2 torres, torres exclusivas (Tesla, Sniper). Habilidade: Caixa de munição (reabastece em área você e as torres).', skill: 'Caixa de munição', cd: 15, cost: 40, color: '#4d9fff' },
     grenadier: { name: 'Granadeiro', desc: 'Granadas 50% mais fortes e maiores, gera granadas sozinho (a cada 8s sem nenhuma) e zumbis dropam mais granadas. Habilidade: Bombardeio.', skill: 'Bombardeio', cd: 25, cost: 0, color: '#c9a227' }
   };
   DF.CLASS_ORDER = ['fighter', 'medic', 'engineer', 'grenadier'];

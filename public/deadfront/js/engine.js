@@ -647,7 +647,7 @@
         const ti = tileAt(fx, fy); if (ti < 0 || solid(ti % MW, (ti / MW) | 0, true)) { msg('Não dá para colocar aqui', '#ffb347'); return; }
         const kind = cls === 'medic' ? 'heal' : 'ammo';
         if (G.boxes.filter((b) => b.kind === kind).length >= 2) G.boxes.splice(G.boxes.findIndex((b) => b.kind === kind), 1);
-        G.boxes.push({ kind, x: fx, y: fy, t: kind === 'heal' ? 22 : 90, uses: 3 }); sfx('build');
+        G.boxes.push({ kind, x: fx, y: fy, t: kind === 'heal' ? 22 : 25, uses: 99 }); sfx('build');
         msg(kind === 'heal' ? 'Caixa de cura colocada' : 'Caixa de munição colocada', '#7be07a');
       } else if (cls === 'grenadier') {
         if (P.gren.frag <= 0) { msg('Precisa de 1 granada comum', '#ff6b6b'); return; }
@@ -664,10 +664,12 @@
       for (let i = G.boxes.length - 1; i >= 0; i--) {
         const b = G.boxes[i]; b.t -= dt; const d = Math.hypot(P.x - b.x, P.y - b.y);
         if (b.kind === 'heal') { if (d < 105 && P.hp < P.maxHp) { P.hp = Math.min(P.maxHp, P.hp + 11 * dt); if (Math.random() < 0.15) G.parts.push({ x: P.x + rand(-8, 8), y: P.y + rand(-8, 8), vx: 0, vy: -40, life: 0.5, max: 0.5, size: 3, color: '#6ee07a' }); } }
-        else if (b.kind === 'ammo') { for (const t of G.towers) if (Math.hypot(t.x - b.x, t.y - b.y) < 130) t.ammo = Math.min(DF.TOWERS[t.type].mag, t.ammo + DF.TOWERS[t.type].mag * 0.25 * dt); }
-        if (b.kind !== 'heal' && d < 34) {
-          const own = P.weapons.filter((x) => x.id !== 'pistol');
-          if (own.length && own.some((x) => x.reserve < DF.WEAPONS[x.id].reserve * 1.2)) { for (const w2 of own) w2.reserve += Math.round(DF.WEAPONS[w2.id].reserve * 0.35); b.uses--; msg('Munição reabastecida', '#d6c27a'); sfx('pickup'); }
+        else if (b.kind === 'ammo') {
+          for (const t of G.towers) if (Math.hypot(t.x - b.x, t.y - b.y) < 105) t.ammo = Math.min(DF.TOWERS[t.type].mag, t.ammo + DF.TOWERS[t.type].mag * 0.3 * dt);
+          if (d < 105) for (const w2 of P.weapons) {
+            if (w2.id === 'pistol') continue; const cap = DF.WEAPONS[w2.id].reserve * 1.2;
+            if (w2.reserve < cap) { w2.acc = (w2.acc || 0) + DF.WEAPONS[w2.id].reserve * 0.09 * dt; if (w2.acc >= 1) { const n = Math.floor(w2.acc); w2.acc -= n; w2.reserve = Math.min(cap, w2.reserve + n); if (Math.random() < 0.2) G.parts.push({ x: P.x + rand(-8, 8), y: P.y + rand(-8, 8), vx: 0, vy: -40, life: 0.5, max: 0.5, size: 3, color: '#ffd27a' }); } }
+          }
         }
         if (b.t <= 0 || b.uses <= 0) G.boxes.splice(i, 1);
       }
@@ -1337,6 +1339,8 @@
           const hg = ctx.createRadialGradient(0, 0, 10, 0, 0, 105); hg.addColorStop(0, 'rgba(110,224,122,0.18)'); hg.addColorStop(1, 'rgba(110,224,122,0)'); ctx.fillStyle = hg; ctx.beginPath(); ctx.arc(0, 0, 105, 0, 6.283); ctx.fill();
           ctx.fillStyle = '#e8f5ec'; rrect(ctx, -13, -13, 26, 26, 4); ctx.fill(); ctx.strokeStyle = '#2a3a2a'; ctx.lineWidth = 2; ctx.stroke(); ctx.fillStyle = '#d4141c'; ctx.fillRect(-3.5, -9, 7, 18); ctx.fillRect(-9, -3.5, 18, 7);
         } else {
+          const p = 0.5 + 0.5 * Math.sin(G.time * 4); ctx.strokeStyle = 'rgba(255,210,122,' + (0.25 + 0.25 * p) + ')'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 105, 0, 6.283); ctx.stroke();
+          const ag = ctx.createRadialGradient(0, 0, 10, 0, 0, 105); ag.addColorStop(0, 'rgba(255,210,122,0.16)'); ag.addColorStop(1, 'rgba(255,210,122,0)'); ctx.fillStyle = ag; ctx.beginPath(); ctx.arc(0, 0, 105, 0, 6.283); ctx.fill();
           ctx.fillStyle = '#3d4a2c'; rrect(ctx, -15, -11, 30, 22, 4); ctx.fill(); ctx.strokeStyle = '#161a10'; ctx.lineWidth = 2; ctx.stroke();
           ctx.fillStyle = '#d9b36a'; for (let i = -2; i <= 2; i++) ctx.fillRect(i * 5 - 1.5, -6, 3, 11);
         }
