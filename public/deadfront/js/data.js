@@ -119,36 +119,36 @@
       { x: 56, y: 9, w: 36, h: 22, doors: [['W', 9, 3], ['E', 9, 3]] },
       { x: 105, y: 10, w: 22, h: 20, doors: [['W', 8, 3], ['E', 8, 3]] }
     ],
-    walls: [[53, 1, 1, 17], [53, 21, 1, 18], [102, 1, 1, 17], [102, 21, 1, 18], [130, 1, 1, 17], [130, 21, 1, 18]],
-    gates: [{ x: 53, y: 18, h: 3 }, { x: 102, y: 18, h: 3 }, { x: 130, y: 18, h: 3 }],
+    walls: [[49, 1, 1, 17], [49, 21, 1, 18], [98, 1, 1, 17], [98, 21, 1, 18], [132, 1, 1, 17], [132, 21, 1, 18]],
+    gates: [{ x: 49, y: 18, h: 3 }, { x: 98, y: 18, h: 3 }, { x: 132, y: 18, h: 3 }],
     heli: { x: 144.5, y: 19.5, call: 6 },
     keys: [{ x: 26.5, y: 12.5 }, { x: 80.5, y: 24.5 }, { x: 110.5, y: 23.5 }],
     obst: [
-      [53, 18, 1, 3, 'gate'], [102, 18, 1, 3, 'gate'], [130, 18, 1, 3, 'gate'],
+      [49, 18, 1, 3, 'gate'], [98, 18, 1, 3, 'gate'], [132, 18, 1, 3, 'gate'],
       [6, 10, 10, 1, 'counter'], [24, 10, 10, 1, 'counter'], [6, 29, 10, 1, 'counter'], [24, 29, 10, 1, 'counter'],
       [8, 14, 4, 1, 'seats'], [16, 14, 4, 1, 'seats'], [28, 14, 4, 1, 'seats'], [8, 25, 4, 1, 'seats'], [18, 25, 4, 1, 'seats'], [30, 25, 4, 1, 'seats'],
       [20, 27, 6, 2, 'belt'], [37, 11, 2, 2, 'crate'], [37, 27, 2, 2, 'crate'],
       [60, 11, 10, 4, 'plane'], [76, 11, 8, 3, 'plane'], [60, 26, 10, 4, 'plane'], [76, 27, 9, 3, 'plane'], [87, 14, 2, 2, 'crate'], [87, 24, 2, 2, 'crate'], [72, 15, 2, 1, 'crate'], [72, 25, 2, 1, 'crate'],
       [108, 12, 4, 1, 'counter'], [118, 12, 4, 1, 'counter'], [108, 27, 4, 1, 'counter'], [118, 27, 4, 1, 'counter'], [113, 15, 2, 2, 'crate'], [113, 23, 2, 2, 'crate'],
-      [46, 12, 4, 2, 'truck'], [46, 26, 4, 2, 'truck'], [50, 16, 1, 2, 'barrier'], [50, 23, 1, 2, 'barrier'],
-      [96, 13, 3, 3, 'tank'], [96, 26, 4, 2, 'truck'], [100, 16, 1, 2, 'barrier'], [100, 23, 1, 2, 'barrier'],
-      [132, 9, 9, 3, 'plane'], [132, 28, 9, 3, 'plane'], [129, 15, 1, 2, 'barrier'], [129, 23, 1, 2, 'barrier'], [136, 14, 2, 1, 'crate'], [136, 25, 2, 1, 'crate']
+      [45, 12, 3, 2, 'truck'], [45, 26, 3, 2, 'truck'], [52, 16, 1, 2, 'barrier'], [52, 23, 1, 2, 'barrier'],
+      [94, 13, 3, 3, 'tank'], [94, 26, 3, 2, 'truck'], [101, 16, 1, 2, 'barrier'], [101, 23, 1, 2, 'barrier'],
+      [136, 9, 9, 3, 'plane'], [136, 28, 9, 3, 'plane'], [129, 15, 1, 2, 'barrier'], [129, 23, 1, 2, 'barrier'], [139, 14, 2, 1, 'crate'], [139, 25, 2, 1, 'crate']
     ],
     decor: [['pad', 144.5, 19.5], ['dash', 129, 19, 12, 0.18, '#e8e8e8'], ['dash', 4, 19, 38, 0.1, '#e6c13a']],
     objectives: [
       { type: 'pickup', key: 0, x: 26.5, y: 12.5, text: 'Pegue o cartão de acesso no terminal' },
-      { type: 'reach', gate: 0, x: 51.5, y: 19.5, text: 'Abra o portão leste com o cartão' },
+      { type: 'reach', gate: 0, x: 47.5, y: 19.5, text: 'Abra o portão leste com o cartão' },
       { type: 'pickup', key: 1, x: 80.5, y: 24.5, text: 'Pegue o cartão no hangar' },
-      { type: 'reach', gate: 1, x: 100.5, y: 19.5, text: 'Abra o portão do pátio' },
+      { type: 'reach', gate: 1, x: 96.5, y: 19.5, text: 'Abra o portão do pátio' },
       { type: 'pickup', key: 2, x: 110.5, y: 23.5, text: 'Pegue o cartão na torre de controle' },
-      { type: 'reach', gate: 2, x: 128.5, y: 19.5, text: 'Abra o portão da pista' },
+      { type: 'reach', gate: 2, x: 130.5, y: 19.5, text: 'Abra o portão da pista' },
       { type: 'boss', x: 138.5, y: 19.5, r: 9, text: 'Derrote o chefe!' },
       { type: 'reach', x: 144.5, y: 19.5, text: 'Embarque no helicóptero!', win: true }
     ],
     groups: [
       { x: 18, y: 19, n: 8, trig: 15 }, { x: 30, y: 21, n: 9, trig: 14 }, { x: 40, y: 19, n: 7, trig: 13 },
-      { x: 52, y: 19, n: 10, trig: 14 }, { x: 66, y: 19, n: 9, trig: 14 }, { x: 80, y: 20, n: 11, trig: 14 }, { x: 90, y: 19, n: 8, trig: 13 },
-      { x: 98, y: 20, n: 10, trig: 14 }, { x: 110, y: 19, n: 10, trig: 14 }, { x: 120, y: 20, n: 9, trig: 13 }, { x: 126, y: 19, n: 8, trig: 13 },
+      { x: 46, y: 21, n: 10, trig: 14 }, { x: 66, y: 19, n: 9, trig: 14 }, { x: 80, y: 20, n: 11, trig: 14 }, { x: 90, y: 19, n: 8, trig: 13 },
+      { x: 94, y: 20, n: 10, trig: 14 }, { x: 110, y: 19, n: 10, trig: 14 }, { x: 120, y: 20, n: 9, trig: 13 }, { x: 126, y: 19, n: 8, trig: 13 },
       { x: 134, y: 17, n: 9, trig: 13 }, { x: 134, y: 22, n: 9, trig: 13 }
     ]
   });
