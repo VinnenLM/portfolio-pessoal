@@ -142,7 +142,7 @@ const SKINS = [
   { id: 'arqui',  name: 'Arquimago',  price: 700, body: '#f1f3f5', legs: '#7a5a1a', hat: '#ffd43b', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Arcano Veloz', lines: ['Magias 25% mais rápidas', 'e recarga 20% menor.'] } },
   { id: 'crio', name: 'Mago do Gelo', price: 350, body: '#4dabf7', legs: '#2b3a55', hat: '#a5d8ff', style: 'wizard', sn: 'Mago Gelo', skin: '#e7f5ff', perk: { name: 'Toque Congelante', lines: ['Slimes atingidos ficam 30% mais', 'lentos por 2 segundos.', 'Nevasca dura 50% a mais.'] } },
   { id: 'eletro', name: 'Mago do Raio', price: 550, body: '#fcc419', legs: '#3b2a1a', hat: '#e8590c', style: 'wizard', sn: 'Mago Raio', skin: '#ffd1a1', perk: { name: 'Choque em Cadeia', lines: ['15% de chance do disparo atingir', 'também um slime próximo.', 'Tempestade causa 2 de dano.'] } },
-  { id: 'invoc', name: 'Conjurador', price: 900, body: '#7048e8', legs: '#1d1538', hat: '#b197fc', style: 'hood', skin: '#ffd1a1', perk: { name: 'Familiar Mágico', lines: ['Um familiar dispara sozinho contra', 'os slimes a cada 5 segundos.'] } },
+  { id: 'invoc', name: 'Invocador', price: 900, body: '#7048e8', legs: '#1d1538', hat: '#b197fc', style: 'hood', skin: '#ffd1a1', perk: { name: 'Familiar Mágico', lines: ['Um familiar dispara sozinho contra', 'os slimes a cada 5 segundos.'] } },
   { id: 'geo', name: 'Mago de Pedra', price: 350, body: '#8d6e63', legs: '#4a3520', hat: '#c9a227', style: 'druid', sn: 'Mago Pedra', skin: '#ffd1a1', perk: { name: 'Pele de Pedra', lines: ['Reduz em 30% o tempo de lentidão', 'depois de ser atingido.'] } },
   { id: 'ilu', name: 'Ilusionista', price: 450, body: '#e599f7', legs: '#4a2a5a', hat: '#9c36b5', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Reflexo Arcano', lines: ['15% de chance de evitar um golpe', 'sem perder a vida.', 'Visitantes ficam 50% mais tempo.'] } },
   { id: 'crono', name: 'Cronomago', price: 600, body: '#12b886', legs: '#14302a', hat: '#63e6be', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Tempo Distorcido', lines: ['O efeito do relógio dura', '50% mais tempo.'] } },
@@ -352,7 +352,7 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
@@ -613,7 +613,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; S.perk = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
+  S.state = 'menu'; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -1346,13 +1346,14 @@ function step() {
    Loja
    ===================================================================== */
 function flash(msg) { S.msg = msg; S.msgT = 120; }
-function buyOrEquip(kind, item) {
+function buyOrEquip(kind, item, confirmed) {
   const owned = kind === 'skin' ? S.ownedSkins : S.ownedRopes;
   if (owned.includes(item.id)) { S[kind] = item.id; save(); flash(item.name + ' equipado!'); }
+  else if (S.coins >= item.price && !confirmed) { S.confirm = { kind, item }; S.perk = null; }   // pede confirmação antes de gastar moedas
   else if (S.coins >= item.price) { S.coins -= item.price; owned.push(item.id); S[kind] = item.id; save(); flash(item.name + ' comprado!'); }
   else flash('Moedas insuficientes');
 }
-function openShop() { S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); }
+function openShop() { S.confirm = null; S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); }
 function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
 function pickMap(m) { if (m < S.unlocked) newGame(m * 3); else flash('Vença o chefe do mapa anterior!'); }
 const levelTag = i => `${LEVELS[i].map + 1}-${LEVELS[i].f + 1}`;
@@ -2221,6 +2222,21 @@ function drawShop() {
   button(W / 2 - 90, H - 46, 180, 36, 'Voltar', '#495057', goMenu);
   txt('Moedas caem dos slimes e ao completar fases', W - 14, H - 14, 11, '#ddd', 'right', null);
   if (S.perk) drawPerk();
+  if (S.confirm) drawConfirm();
+}
+function drawConfirm() {
+  const { kind, item } = S.confirm; if (S.state !== 'shop') { S.confirm = null; return; }
+  menuBtns = []; overlay(.7);
+  const w = 460, h = 200, x = (W - w) / 2, y = (H - h) / 2;
+  ctx.fillStyle = 'rgba(25,20,50,.97)'; ctx.strokeStyle = '#ffe27a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 14); ctx.fill(); ctx.stroke();
+  txt('Comprar ' + (kind === 'skin' ? 'personagem' : 'magia') + '?', W / 2, y + 30, 20, '#ffe27a');
+  txt(item.name, W / 2, y + 66, 26, '#fff');
+  const v = String(item.price); ctx.font = '800 20px system-ui, sans-serif'; const tw = ctx.measureText(v).width;
+  txt(v, W / 2 + 12, y + 104, 20, '#ffe27a', 'center'); coinIcon(W / 2 - tw / 2 - 4, y + 104);
+  txt('Você ficará com ' + (S.coins - item.price) + ' moedas', W / 2, y + 128, 13, '#cfd8ff', 'center', null);
+  button(x + 24, y + h - 54, 190, 40, 'Comprar', '#2f9e44', () => { S.confirm = null; buyOrEquip(kind, item, true); });
+  button(x + w - 214, y + h - 54, 190, 40, 'Cancelar', '#495057', () => { S.confirm = null; });
+  menuBtns.push({ x: 0, y: 0, w: W, h: H, fn: () => { S.confirm = null; } });
 }
 function drawPerk() {
   const k = SKINS.find(z => z.id === S.perk); if (!k) { S.perk = null; return; }
@@ -3027,6 +3043,21 @@ function drawShop() {
   button(W / 2 - 90, H - 54, 180, 44, 'Voltar', '#5c677d', goMenu);
   txt('MOEDAS CAEM DOS SLIMES', W - 14, H - 26, 11, '#dddddd', 'right', null);
   if (S.perk) drawPerk();
+  if (S.confirm) drawConfirm();
+}
+function drawConfirm() {
+  const { kind, item } = S.confirm; if (S.state !== 'shop') { S.confirm = null; return; }
+  menuBtns = []; overlay(.7);
+  const w = 480, h = 200, x = (W - w) / 2, y = (H - h) / 2;
+  panel(x / 2, y / 2, w / 2, h / 2, '#241c48', '#ffe27a');
+  txt('COMPRAR ' + (kind === 'skin' ? 'PERSONAGEM' : 'MAGIA') + '?', W / 2, y + 30, 14, '#ffe27a', 'center', '#000');
+  txt(item.name, W / 2, y + 66, 24, '#ffffff', 'center', '#000');
+  const v = String(item.price), tw = (v.length * 6 - 1) * txtScale(19);
+  txt(v, W / 2 + 8, y + 104, 19, '#ffe27a', 'center', '#000'); coinPx(Math.round((W / 2 + 8) / 2 - tw / 2 - 9), Math.round((y + 104) / 2));
+  txt('VOCÊ FICARÁ COM ' + (S.coins - item.price) + ' MOEDAS', W / 2, y + 130, 11, '#cfd8ff', 'center', null);
+  button(x + 14, y + h - 54, 220, 40, 'Comprar', '#2f9e44', () => { S.confirm = null; buyOrEquip(kind, item, true); });
+  button(x + w - 234, y + h - 54, 220, 40, 'Cancelar', '#495057', () => { S.confirm = null; });
+  menuBtns.push({ x: 0, y: 0, w: W, h: H, fn: () => { S.confirm = null; } });
 }
 function drawPerk() {
   const k = SKINS.find(z => z.id === S.perk); if (!k) { S.perk = null; return; }
