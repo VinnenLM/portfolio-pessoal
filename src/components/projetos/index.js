@@ -7,6 +7,7 @@ const img = (arquivo) => `${process.env.PUBLIC_URL}/projetos/${arquivo}`;
 const FILTROS = [
   ["todos", "Todos"],
   ["app", "Aplicações"],
+  ["jogo", "Jogos"],
   ["ferramenta", "Ferramentas"],
   ["curso", "Cursos e sites"],
 ];
@@ -25,7 +26,7 @@ const FILTROS = [
 const projetos = [
   {
     titulo: "Blockify",
-    categoria: "app",
+    categoria: "jogo",
     descricao:
       "Jogo de encaixar blocos para Android, feito em Kotlin sem bibliotecas externas, com versão online que roda até no iPhone: 1000 fases, modo infinito e difícil, bônus, blocos especiais, loja de skins com efeitos de quebra, tutorial e música própria.",
     link: `${process.env.PUBLIC_URL}/blockify/`,
@@ -42,7 +43,7 @@ const projetos = [
   },
   {
     titulo: "Deadfront",
-    categoria: "app",
+    categoria: "jogo",
     descricao:
       "Jogo de defesa contra zumbis com visão de cima, feito em JavaScript puro (Canvas) e empacotado para Android com Capacitor. 4 mapas grandes (mansão, aeroporto, quartel e hospital) mais uma missão de fuga pelo aeroporto, 4 classes com habilidades, modo infinito, chefes, barricadas, torres, loot, armadilhas, loja, melhorias, skins e tutorial.",
     link: `${process.env.PUBLIC_URL}/deadfront/`,
@@ -59,7 +60,7 @@ const projetos = [
   },
   {
     titulo: "Popmancer",
-    categoria: "app",
+    categoria: "jogo",
     descricao:
       "Jogo estilo Super Pang em que um mago estoura slimes bravos com magias, feito em JavaScript puro (Canvas) e empacotado para Android com Capacitor. 33 fases em 11 mapas, chefes, escadas, plataformas, pulo, power-ups e ataques que atingem a tela toda, visitantes mágicos, slimes explosivos e cuspidores, 21 magos com poderes próprios, cores de magia, dois estilos visuais, tutorial e música gerada por código.",
     link: `${process.env.PUBLIC_URL}/popmancer/`,

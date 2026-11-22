@@ -2,6 +2,7 @@ import React from "react";
 
 const ROTULOS = {
   app: "Aplicação",
+  jogo: "Jogo",
   ferramenta: "Ferramenta",
   curso: "Curso / site",
 };
