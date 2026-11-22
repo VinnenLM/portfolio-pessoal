@@ -398,6 +398,7 @@ function tutUpdate() {
   }
 }
 function startTutorial() {
+  S.inf = false;
   S.lives = 3; S.score = 0; S.weapon = 'harpoon';
   startLevel('tut');
 }
@@ -428,7 +429,7 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], seen: {}, tip: null, tipT: 0, tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], inf: false, wave: 1, up: {}, runWeapon: null, picks: [], curL: null, infBest: { score: 0, wave: 0 }, infTop: [], runRec: false, openN: 0, seen: {}, tip: null, tipT: 0, tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
@@ -453,23 +454,26 @@ function load() {
     S.rope = S.ownedRopes.includes(o.rope) ? o.rope : 'padrao';
     artStyle = o.style === 'pixel' ? 'pixel' : 'classic'; fitCanvas(true);
     S.musicOn = o.music !== false; S.sfxOn = o.sfx !== false; S.tutDone = !!o.tut; S.seen = o.seen && typeof o.seen === 'object' ? o.seen : {};
+    if (o.inf && Array.isArray(o.inf.top)) { S.infTop = o.inf.top.filter(r => r && r.score > 0).slice(0, 5); S.infBest = o.inf.best && o.inf.best.score ? o.inf.best : (S.infTop[0] || { score: 0, wave: 0 }); }
   } catch (e) {}
 }
 function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({ level: S.savedLevel, best: S.best, coins: S.coins, unlocked: S.unlocked,
-      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn, tut: S.tutDone, seen: S.seen }));
+      skins: S.ownedSkins, ropes: S.ownedRopes, skin: S.skin, rope: S.rope, style: artStyle, music: S.musicOn, sfx: S.sfxOn, tut: S.tutDone, seen: S.seen, inf: { best: S.infBest, top: S.infTop } }));
   } catch (e) {}
 }
 const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
 const ropeNow = () => ROPES.find(k => k.id === S.rope) || ROPES[0];
 // bônus passivos dos magos
 const is = id => S.skin === id;
+const up = id => (S.inf && S.up && S.up[id]) || 0;                               // nível de um bônus do modo infinito
+function addScore(n) { S.score += Math.round(n * (1 + .25 * up('score'))); }
 const durMul = () => (is('bruxa') ? 1.5 : 1);
 const freezeMul = () => durMul() * (is('crio') ? 1.5 : 1);     // Criomante: nevasca +50%          // duração de escudo/nevasca/relógio
 const clockMul = () => durMul() * (is('crono') ? 1.5 : 1);
 const slowMul = () => (is('druida') ? 0 : 1) * (is('geo') ? .7 : 1);            // tempo de lentidão
-const shotMul = () => (is('arqui') ? 1.25 : 1);         // velocidade dos disparos
+const shotMul = () => (is('arqui') ? 1.25 : 1) * (1 + .15 * up('speed'));         // velocidade dos disparos
 function chill(s) { if (s.slowT > 0) { s.slowT = 120; return; } s.slowT = 120; s.vx *= .7; s.spd *= .7; }
 
 // ---------- Áudio (tudo gerado por código, sem arquivos) ----------
@@ -663,12 +667,72 @@ function mkSlime(x, y, size, dir, spd, color, type) {
            boss: null, hp: 0, maxhp: 0, enraged: false };
 }
 
+/* =====================================================================
+   Modo infinito: ondas geradas, com escolha de 1 entre 3 bônus a cada onda
+   ===================================================================== */
+const BOSS_LV = LEVELS.filter(l => l.slimes.some(d => d.boss));
+const NORMAL_LAY = OLD.map((o, i) => i).filter(i => !BOSS_LV.some(b => b.blocks === OLD[i].blocks && b.ladders === OLD[i].ladders));
+const UPS = [
+  { id: 'speed',  name: 'Tiro Veloz',      lb: 'V', col: '#74c0fc', d: ['Magias 15% mais rápidas.'] },
+  { id: 'cool',   name: 'Recarga Rápida',  lb: 'R', col: '#63e6be', d: ['Recarga entre disparos 12% menor.'] },
+  { id: 'life',   name: 'Vida Extra',      lb: '+', col: '#ff6b81', d: ['+1 vida agora (máximo 5).'] },
+  { id: 'shield', name: 'Barreira Inicial', lb: 'B', col: '#4dabf7', d: ['Começa cada onda com escudo', 'de 5 s (acumula).'] },
+  { id: 'time',   name: 'Tempo Extra',     lb: 'A', col: '#ffffff', d: ['+10 s de tempo em cada onda.'] },
+  { id: 'drop',   name: 'Sorte do Mago',   lb: 'S', col: '#ffe27a', d: ['+30% de chance de itens caírem.'] },
+  { id: 'score',  name: 'Pontuação Dobrada', lb: 'P', col: '#ffd43b', d: ['+25% de pontos em tudo.'] },
+  { id: 'move',   name: 'Pés Ligeiros',    lb: 'M', col: '#b2f2bb', d: ['+10% de velocidade ao andar.'] },
+  { id: 'jump',   name: 'Salto Alto',      lb: 'J', col: '#d0bfff', d: ['Pula 8% mais alto.'] },
+  { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Começa cada onda com um', 'ataque de tela cheia.'] },
+  { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
+];
+const UPS_BY = Object.fromEntries(UPS.map(u => [u.id, u]));
+function rollPicks() {
+  const pool = UPS.filter(u => !(u.id === 'life' && S.lives >= 5)).map(u => u.id);
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  return pool.slice(0, 3);
+}
+function genWave(n) {
+  if (n % 5 === 0) {                                                            // a cada 5 ondas: chefe (cada vez mais forte)
+    const k = n / 5 - 1, b = BOSS_LV[k % BOSS_LV.length], cyc = Math.floor(k / BOSS_LV.length), bk = b.slimes.find(d => d.boss);
+    return { blocks: b.blocks, ladders: b.ladders, map: b.map, theme: b.theme, f: 0, i: 0, name: BOSSES[bk.boss].name, time: 130, spd: b.spd || 1.2,
+      brief: 'CHEFE! Cada golpe chama capangas.', slimes: [Object.assign({}, bk, { hpMul: 1 + .35 * cyc })], flyers: b.flyers || [] };
+  }
+  const map = Math.floor((n - 1) / 3) % MAPS.length, lay = NORMAL_LAY[(n * 7 + 3) % NORMAL_LAY.length];
+  const count = Math.min(6, 1 + Math.floor((n + 1) / 3)), spd = 1.3 + Math.min(.9, n * .04), slimes = [];
+  for (let i = 0; i < count; i++) {
+    const x = Math.round(count === 1 ? 400 : 120 + i * (560 / (count - 1)));
+    let size = 3; if (n >= 6 && i === 0) size = 4; if (n >= 12 && i === 1) size = 4;
+    let type; if (i > 0 && n >= 4 && Math.random() < .3) type = 'explosive'; else if (i > 0 && n >= 7 && Math.random() < .25) type = 'spitter';
+    slimes.push({ x, y: 110, size, dir: i % 2 ? -1 : 1, type });
+  }
+  const flyers = []; if (n >= 6) { const nf = Math.min(3, 1 + Math.floor((n - 6) / 5)); const kinds = n >= 16 ? ['bat', 'ghost', 'phoenix'] : n >= 11 ? ['bat', 'ghost'] : ['bat'];
+    for (let i = 0; i < nf; i++) flyers.push({ k: kinds[i % kinds.length], x: 100 + Math.random() * 600, y: 120 + Math.random() * 80 }); }
+  return { blocks: OLD[lay].blocks, ladders: OLD[lay].ladders, map, theme: MAPS[map].theme, f: 0, i: 0, name: MAPS[map].name, time: 55 + count * 8, spd,
+    brief: 'Sobreviva! Ao final, escolha um bônus.', slimes, flyers };
+}
+function startInfinite() {
+  S.inf = true; S.wave = 1; S.up = {}; S.runWeapon = null; S.runRec = false; S.picks = [];
+  S.lives = is('sangue') ? 4 : 3; S.score = 0; S.weapon = 'harpoon';
+  startLevel(genWave(1));
+}
+function recordRun() {
+  if (!S.inf || S.runRec || S.score <= 0) return; S.runRec = true;
+  S.infTop.push({ score: S.score, wave: S.wave }); S.infTop.sort((a, b) => b.score - a.score || b.wave - a.wave); S.infTop = S.infTop.slice(0, 5);
+  S.infBest = S.infTop[0]; save();
+}
+function pickBonus(id) {
+  if (S.state !== 'pick' || !S.picks.includes(id)) return;
+  S.up[id] = (S.up[id] || 0) + 1;
+  if (id === 'life') S.lives = Math.min(5, S.lives + 1);
+  if (id === 'arma') { const cur = S.runWeapon || (skinNow().start || ''); const o = ['twin', 'sticky', 'gun', 'shotgun'].filter(k => k !== cur); S.runWeapon = o[Math.floor(Math.random() * o.length)]; S.weapon = S.runWeapon; }
+  sfx.item && sfx.item(); S.wave++; S.picks = []; startLevel(genWave(S.wave));
+}
 function startLevel(i) {
-  const isTut = i === 'tut'; S.level = isTut ? 0 : i; const L = isTut ? TUT : LEVELS[i]; S.cur = L; S.tut = isTut ? { step: 0, t: 0, mv: 0, px: 0, jumped: false, n: 0, ps: 0, got: null, climbed: false } : null;
+  const isTut = i === 'tut', isObj = !!i && typeof i === 'object'; if (isObj) S.curL = i; S.level = isTut || isObj ? 0 : i; const L = isTut ? TUT : isObj ? i : LEVELS[i]; S.cur = L; S.tut = isTut ? { step: 0, t: 0, mv: 0, px: 0, jumped: false, n: 0, ps: 0, got: null, climbed: false } : null;
   const spd = L.spd || 1.4;
   slimes = L.slimes.map(d => {
     const s = mkSlime(d.x, d.y, d.size, d.dir, spd, d.color || TYPE_COLOR[d.type] || L.color || '#5fd35f', d.type);
-    if (d.boss) { const B = BOSSES[d.boss]; s.boss = B; s.hp = s.maxhp = B.hp; s.color = B.color; }
+    if (d.boss) { const B = BOSSES[d.boss]; s.boss = B; s.hp = s.maxhp = Math.round(B.hp * (d.hpMul || 1)); s.color = B.color; }
     return s;
   });
   flyers = (L.flyers || []).map(d => mkFlyer(d.k, d.x, d.y));
@@ -681,7 +745,8 @@ function startLevel(i) {
   S.revUsed = false; if (S.skin === 'necro') S.shield = 300;
   if (is('crono') && !S.tut) S.timeLeft += 900;                // Tempo Distorcido: +15 s
   if (is('xama')) S.shield = 99999;                            // Espírito Guardião: bloqueia 1 golpe
-  { const sw = skinNow().start; if (sw && S.weapon === 'harpoon') S.weapon = sw; }  // arma inicial do mago
+  { const sw = (S.inf && S.runWeapon) || skinNow().start; if (sw && S.weapon === 'harpoon') S.weapon = sw; }
+  S.openN = 0; if (S.inf) { S.timeLeft += 600 * up('time'); S.shield = Math.max(S.shield, 300 * up('shield')); S.openN = up('open'); }  // arma inicial do mago
   fires = []; famShots = []; fam = is('invoc') ? { x: P.x + P.w / 2, y: P.y - 36, t: 150 } : null;
   initAmb(L.theme); Music.setIntense(false);
   Music.play(L.slimes.some(d => d.boss) ? 'boss' : 'stage' + L.theme);
@@ -689,12 +754,13 @@ function startLevel(i) {
 }
 
 function newGame(fromLevel) {
+  S.inf = false;
   S.lives = is('sangue') ? 4 : 3; S.score = 0; S.weapon = 'harpoon';
   startLevel(fromLevel);
 }
 
 function goMenu() {
-  S.state = 'menu'; S.tut = null; S.tip = null; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
+  S.state = 'menu'; S.tut = null; S.tip = null; S.inf = false; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -743,7 +809,7 @@ function updatePlayer() {
     }
   }
 
-  if (mv) { P.x += mv * (slow ? 1.4 : 3.1) * (is('sombra') ? 1.2 : 1); P.face = mv; P.anim += slow ? 0.12 : 0.28; }
+  if (mv) { P.x += mv * (slow ? 1.4 : 3.1) * (is('sombra') ? 1.2 : 1) * (1 + .1 * up('move')); P.face = mv; P.anim += slow ? 0.12 : 0.28; }
   P.walking = mv !== 0;
   P.x = clamp(P.x, 0, W - P.w);
 
@@ -764,7 +830,7 @@ function updatePlayer() {
   }
 
   // pulo
-  if (jumpBuf > 0 && P.onGround) { P.vy = -(slow ? JUMP_V * 0.82 : JUMP_V) * (is('aero') ? 1.12 : 1); P.onGround = false; jumpBuf = 0; sfx.jump(); P.sq = -0.22; smoke(P.x + P.w / 2, P.y + P.h, '#c9b99a', 3, .2); }
+  if (jumpBuf > 0 && P.onGround) { P.vy = -(slow ? JUMP_V * 0.82 : JUMP_V) * (is('aero') ? 1.12 : 1) * Math.pow(1.04, up('jump')); P.onGround = false; jumpBuf = 0; sfx.jump(); P.sq = -0.22; smoke(P.x + P.w / 2, P.y + P.h, '#c9b99a', 3, .2); }
 
   // gravidade + pouso (chão e topo de blocos)
   P.vy = Math.min(P.vy + PG, 12); P.y += P.vy;
@@ -799,7 +865,7 @@ function handleFire() {
   } else
   shots.push({ id: ++S.uid, x, anchor, top: anchor - 8, bottom: w.kind === 'rope' ? anchor : anchor - 8 + 14,
                kind: w.kind, wk: S.weapon, state: 'fly', t: 0, ceil: ceilingFor(x, anchor) });
-  S.fireCd = Math.round(w.cd * (S.skin === 'arqui' ? .8 : 1)); P.shoot = 12; if (w.kind !== 'pellet') sfx.shoot();
+  S.fireCd = Math.round(w.cd * (S.skin === 'arqui' ? .8 : 1) * Math.pow(.88, up('cool'))); P.shoot = 12; if (w.kind !== 'pellet') sfx.shoot();
   if (is('magmaista') && Math.random() < .1) { const gy = groundBelow(x, feet); fires.push({ x, y: gy, life: 240, w: 60, cd: 0 }); sparks(x, gy, '#ff7a1a', 10, 4); }
   { const c = spellColor(S.weapon), ox = x + P.face * 12, oy = P.y - 6; sparks(ox, oy, c, 8, 3.5); ring(ox, oy, 22, c, 14, 2); }
 }
@@ -862,7 +928,7 @@ function weightedDrop() {
 }
 
 function dropLoot(s) {
-  if (Math.random() < (s.size >= 2 ? 0.13 : 0.04))
+  if (Math.random() < (s.size >= 2 ? 0.13 : 0.04) * (1 + .3 * up('drop')))
     items.push({ x: s.x, y: s.y, vy: -3, vx: 0, type: weightedDrop(), t: 0 });
   if (Math.random() < 0.45)
     items.push({ x: s.x, y: s.y, vy: -4, vx: rnd(-1.5, 1.5), type: 'coin', val: s.size >= 4 ? 3 : s.size >= 2 ? 2 : 1, t: 0 });
@@ -890,7 +956,7 @@ function ring(x, y, r, color, life = 18, w = 3) { fx.push({ kind: 'ring', x, y, 
 function popSlime(s, sh) {
   const idx = slimes.indexOf(s); if (idx < 0) return;
   slimes.splice(idx, 1);
-  const pts = 100 + (5 - Math.min(s.size, 5)) * 50; S.score += pts;
+  const pts = 100 + (5 - Math.min(s.size, 5)) * 50; addScore(pts);
   sfx.pop(s.size);
   burst(s.x, s.y, s.color, 8 + s.size * 2);
   sparks(s.x, s.y, sh ? spellColor(sh.wk) : '#fff', 8, 4); ring(s.x, s.y, s.r * 1.5, sh ? spellColor(sh.wk) : '#fff', 14, 2);
@@ -937,7 +1003,7 @@ function explode(s) {
 }
 
 function hitBoss(s, dmg) {
-  s.hp -= dmg; s.hitCd = 8; s.flash = 8; S.score += 50; sfx.boss(); if (is('crio')) chill(s);
+  s.hp -= dmg; s.hitCd = 8; s.flash = 8; addScore(50); sfx.boss(); if (is('crio')) chill(s);
   burst(s.x, s.y - s.r * 0.3, '#fff', 6); sparks(s.x, s.y, '#fff', 10, 5); ring(s.x, s.y, s.r * 1.2, '#fff', 12, 3); S.shake = Math.max(S.shake, 6);
   if (s.hp <= 0) { killBoss(s); return; }
   if (!s.enraged && s.hp <= s.maxhp / 2) { s.enraged = true; s.vx *= 1.4; s.spd *= 1.4; S.shake = 14; Music.setIntense(true); popup(s.x, s.y - s.r - 10, 'FÚRIA!', '#ff6b6b', 22); }
@@ -956,7 +1022,7 @@ function spawnMinion(s) {
 }
 
 function killBoss(s) {
-  S.score += 5000; S.shake = 40; sfx.boom(); sfx.clear(); S.slowmo = 45; S.flashA = 0.7; S.flashC = '255,255,255'; ring(s.x, s.y, 220, '#fff', 40, 6); sparks(s.x, s.y, '#fff', 40, 9);
+  addScore(5000); S.shake = 40; sfx.boom(); sfx.clear(); S.slowmo = 45; S.flashA = 0.7; S.flashC = '255,255,255'; ring(s.x, s.y, 220, '#fff', 40, 6); sparks(s.x, s.y, '#fff', 40, 9);
   fx.push({ x: s.x, y: s.y, r: 140, t: 0, life: 40 });
   burst(s.x, s.y, s.color, 50, 7);
   for (let i = 0; i < 10; i++) items.push({ x: s.x, y: s.y, vy: rnd(-7, -3), vx: rnd(-3, 3), type: 'coin', val: 3, t: 0 });
@@ -1018,7 +1084,7 @@ function hitFlyer(f, dmg, sh) {
 function popFlyer(f, sh) {
   const i = flyers.indexOf(f); if (i < 0) return; flyers.splice(i, 1);
   const c = f.k === 'phoenix' ? '#ff9a2e' : f.k === 'ghost' ? '#dfe8ff' : '#7a5aa8', d = FLY[f.k], sc = sh ? spellColor(sh.wk) : '#fff';
-  S.score += d.pts; sfx.pop(2);
+  addScore(d.pts); sfx.pop(2);
   burst(f.x, f.y, c, 14); sparks(f.x, f.y, sc, 8, 4); ring(f.x, f.y, f.r * 1.7, sc, 14, 2);
   popup(f.x, f.y - f.r, '+' + d.pts, '#ffe27a', 12);
   dropLoot({ x: f.x, y: f.y, size: f.k === 'phoenix' ? 4 : 2 });
@@ -1150,7 +1216,7 @@ function pickItem(it) {
   if (it.type === 'coin') { if (S.tut) return; S.coins += it.val; sfx.coin(); save(); emit({ kind: 'star', x: it.x, y: it.y, vy: -.8, g: 0, life: 20, r: 3, c: '#ffe27a' }); return; }
   const d = ITEMS[it.type]; if (S.tut) S.tut.got = it.type;
   if (!S.tut && TIPS[it.type] && !S.seen[it.type]) { S.seen[it.type] = 1; S.tip = it.type; S.tipT = 0; save(); }
-  sfx.item(); S.score += 50; sparks(it.x, it.y, d.color, 12, 4); ring(it.x, it.y, 26, d.color, 16, 2);
+  sfx.item(); addScore(50); sparks(it.x, it.y, d.color, 12, 4); ring(it.x, it.y, 26, d.color, 16, 2);
   popup(P.x + P.w / 2, P.y - 8, d.name, d.color, 13);
   if (WEAPONS[it.type]) S.weapon = it.type;
   else if (it.type === 'shield') S.shield = Math.round(600 * durMul());
@@ -1195,7 +1261,7 @@ function updateWisp() {
 }
 function wispY() { return wisp.y + (wisp.k === 'cometa' ? 0 : Math.sin(wisp.p) * 3); }
 function killWisp(sh) {
-  const w = wisp, y = wispY(), cm = is('alqui') ? 2 : 1; wisp = null; S.score += 500; sfx.pop(3); sfx.chime();
+  const w = wisp, y = wispY(), cm = is('alqui') ? 2 : 1; wisp = null; addScore(500); sfx.pop(3); sfx.chime();
   burst(w.x, y, '#ffe27a', 16); sparks(w.x, y, '#fff3a0', 18, 6); ring(w.x, y, 46, '#ffe27a', 22, 3); S.flashA = Math.max(S.flashA, .25); S.flashC = VIS[w.k].col;
   const item = t => items.push({ x: w.x, y, vy: -4, vx: rnd(-1, 1), type: t, t: 0 });
   const coins = n => { for (let i = 0; i < n * cm; i++) items.push({ x: w.x, y, vy: rnd(-6, -3), vx: rnd(-2.5, 2.5), type: 'coin', val: 2, t: 0 }); };
@@ -1382,14 +1448,14 @@ function step() {
   if (S.freeze > 0 && S.state === 'play' && !S.paused) updateWind();
 
   if (S.state === 'menu') { slimes.forEach(updateSlime); return; }
-  if (S.state === 'shop' || S.state === 'maps' || S.state === 'settings') return;
+  if (S.state === 'shop' || S.state === 'maps' || S.state === 'settings' || S.state === 'pick') return;
   if (S.tip) { S.tipT++; if (S.tipT > 40 && (wasPressed || jumpBuf > 0)) { S.tip = null; jumpBuf = 0; } return; }
   if (S.paused) { if (wasPressed) S.paused = false; return; }
 
   switch (S.state) {
     case 'ready':
       S.timer--;
-      if (S.timer <= 0 || (wasPressed && S.timer < 140)) S.state = 'play';
+      if (S.timer <= 0 || (wasPressed && S.timer < 140)) { S.state = 'play'; if (S.openN > 0) { for (let k = 0; k < S.openN; k++) startStrike(['fire', 'bolt', 'meteor'][Math.floor(Math.random() * 3)]); S.openN = 0; } }
       updateParts();
       break;
     case 'play':
@@ -1405,23 +1471,24 @@ function step() {
       if (playerHit()) { hurt(); if (S.state !== 'play') break; }
       if (!S.tut && !slimes.length && !flyers.length) {
         S.state = 'clear'; S.timer = 200; sfx.clear();
-        S.bonus = Math.floor(Math.max(0, S.timeLeft) / 60) * 10; S.score += S.bonus;
+        S.bonus = Math.floor(Math.max(0, S.timeLeft) / 60) * 10; addScore(S.bonus);
         const boss = S.cur.slimes.some(d => d.boss);
-        S.gained = boss ? 40 : 10; S.coins += S.gained;
+        S.gained = S.inf ? (boss ? 25 : 5) : (boss ? 40 : 10); S.coins += S.gained;
         globs = []; puddles = [];
         const last = S.level >= LEVELS.length - 1;
-        S.savedLevel = last ? 0 : S.level + 1;
+        if (!S.inf) S.savedLevel = last ? 0 : S.level + 1;
         S.unlockMsg = '';
-        if (S.cur.f === 2 && S.cur.map + 2 > S.unlocked && S.cur.map + 1 < MAPS.length) { S.unlocked = S.cur.map + 2; S.unlockMsg = 'Novo mapa: ' + MAPS[S.cur.map + 1].name + '!'; }
-        S.best = Math.max(S.best, S.score); save();
+        if (!S.inf && S.cur.f === 2 && S.cur.map + 2 > S.unlocked && S.cur.map + 1 < MAPS.length) { S.unlocked = S.cur.map + 2; S.unlockMsg = 'Novo mapa: ' + MAPS[S.cur.map + 1].name + '!'; }
+        if (S.inf) { if (S.score > S.infBest.score) S.infBest = { score: S.score, wave: S.wave }; } else S.best = Math.max(S.best, S.score);
+        save();
       }
       break;
     case 'dead':
       S.timer--; updateParts(); updateFx(); updateGlobs();
       if (P.dead) { const d = P.dead; d.vy += 0.45; d.x += d.vx; d.y += d.vy; d.rot += 0.28 * d.dir; }
       if (S.timer <= 0) {
-        if (S.lives <= 0) { S.state = 'over'; S.best = Math.max(S.best, S.score); save(); }
-        else { S.weapon = 'harpoon'; startLevel(S.level); P.inv = is('sangue') ? 300 : 120; }
+        if (S.lives <= 0) { S.state = 'over'; if (S.inf) recordRun(); else { S.best = Math.max(S.best, S.score); save(); } }
+        else { S.weapon = 'harpoon'; startLevel(S.inf ? S.curL : S.level); P.inv = is('sangue') ? 300 : 120; }
       }
       break;
     case 'clear':
@@ -1430,7 +1497,8 @@ function step() {
       if (P.onGround && S.timer % 40 === 0) jumpBuf = 3;
       if (S.tick % 2 === 0) emit({ kind: 'confetti', x: rnd(0, W), y: TOP, vx: rnd(-.6, .6), vy: rnd(1, 2.2), g: .02, life: 190, r: rnd(2.5, 4), c: ['#ff6b81', '#ffd34d', '#6cf08a', '#74d7ff', '#c9a6ff'][Math.floor(rnd(0, 5))], rot: rnd(0, TAU) });
       if (S.timer <= 0 || (wasPressed && S.timer < 150)) {
-        if (S.level >= LEVELS.length - 1) S.state = 'win'; else startLevel(S.level + 1);
+        if (S.inf) { S.state = 'pick'; S.picks = rollPicks(); S.fade = 0; }
+        else if (S.level >= LEVELS.length - 1) S.state = 'win'; else startLevel(S.level + 1);
       }
       break;
     case 'over': case 'win':
@@ -1456,16 +1524,17 @@ function openSettings() {
   S.setFrom = S.state === 'menu' ? 'menu' : 'play'; S.prevState = S.state; if (S.setFrom === 'play') S.paused = true;
   S.state = 'settings'; S.resetAsk = false; S.msg = ''; S.msgT = 0;
 }
-function leaveToMenu() { S.resetAsk = false; S.paused = false; S.tip = null; S.tut = null; goMenu(); }
+function leaveToMenu() { recordRun(); S.resetAsk = false; S.paused = false; S.tip = null; S.tut = null; goMenu(); }
 function closeSettings() { S.resetAsk = false; S.state = S.setFrom === 'menu' ? 'menu' : S.prevState; }
 function resetData() {
   try { localStorage.removeItem(KEY); localStorage.removeItem(OLD_KEY); } catch (e) {}
   S.savedLevel = 0; S.best = 0; S.coins = 0; S.score = 0; S.unlocked = 1; S.ownedSkins = ['hero']; S.ownedRopes = ['padrao']; S.skin = 'hero'; S.rope = 'padrao';
-  S.seen = {}; S.tutDone = false; S.resetAsk = false; S.paused = false; save(); goMenu(); flash('Dados apagados');
+  S.seen = {}; S.tutDone = false; S.infBest = { score: 0, wave: 0 }; S.infTop = []; S.resetAsk = false; S.paused = false; save(); goMenu(); flash('Dados apagados');
 }
 function openShop() { S.confirm = null; S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); S.ropePage = Math.floor(Math.max(0, ROPES.findIndex(k => k.id === S.rope)) / 6); }
 function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
 function pickMap(m) { if (m < S.unlocked) newGame(m * 3); else flash('Vença o chefe do mapa anterior!'); }
+const lvLabel = () => S.inf ? 'ONDA ' + S.wave : 'FASE ' + levelTag(S.level);
 const levelTag = i => `${LEVELS[i].map + 1}-${LEVELS[i].f + 1}`;
 
 /* =====================================================================
@@ -2234,7 +2303,7 @@ function drawHUD() {
   for (let i = 0; i < Math.max(3, S.lives); i++) heart(20 + i * 22, 18, 1.15, i < S.lives);
   const cx0 = 30 + Math.max(3, S.lives) * 22;
   coinIcon(cx0, 18); txt(String(S.coins), cx0 + 12, 19, 15, '#ffe27a', 'left');
-  txt(`FASE ${levelTag(S.level)} · ${S.cur.name}`, W / 2, 19, 16, '#fff', 'center');
+  txt(`${lvLabel()} · ${S.cur.name}`, W / 2, 19, 16, '#fff', 'center');
   txt(String(S.score).padStart(6, '0'), W - 48, 19, 18, '#ffe27a', 'right');
   const frac = clamp(S.timeLeft / (S.cur.time * 60), 0, 1), flash = S.timeFlash > 0 && (S.tick >> 2) % 2;
   ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, TOP - 6, W, 6);
@@ -2282,6 +2351,30 @@ function drawTip() {
   ls.forEach((l, i) => txt(l, W / 2, y + 100 + i * 22, 15, '#ffffff', 'center', null));
   if (S.tipT > 40 && (S.tick >> 4) % 2) txt('toque / ESPAÇO para continuar', W / 2, y + h - 22, 13, '#cfe', 'center', null);
 }
+function drawPick() {
+  menuBtns = []; drawBackground(S.cur ? S.cur.theme : 0); overlay(.62);
+  txt(`ONDA ${S.wave} COMPLETA!`, W / 2, 38, 34, '#7dff7d', 'center', '#0b3d12');
+  txt('Escolha um bônus para a próxima onda', W / 2, 72, 16, '#ffffff', 'center', null);
+  S.picks.forEach((id, i) => {
+    const u = UPS_BY[id], x = 80, y = 92 + i * 98, w = 640, h = 86, lv = S.up[id] || 0;
+    ctx.fillStyle = 'rgba(25,20,50,.95)'; ctx.strokeStyle = u.col; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = u.col; ctx.beginPath(); ctx.arc(x + 46, y + h / 2, 26, 0, TAU); ctx.fill(); txt(u.lb, x + 46, y + h / 2 + 2, 28, '#1b1740', 'center', null);
+    txt(u.name + (lv ? `  (nível ${lv} → ${lv + 1})` : ''), x + 90, y + 26, 20, u.col, 'left', null);
+    u.d.forEach((l, j) => txt(l, x + 90, y + 52 + j * 18, 14, '#ffffff', 'left', null));
+    txt(String(i + 1), x + w - 26, y + h / 2, 22, '#8a86a8', 'center', null);
+    menuBtns.push({ x, y, w, h, fn: () => pickBonus(id) });
+  });
+  txt(`Pontos: ${S.score}   ·   Vidas: ${S.lives}`, W / 2, H - 18, 16, '#ffe27a', 'center', null);
+}
+function drawInfOver() {
+  overlay(.72); txt('FIM DA CORRIDA', W / 2, 62, 46, '#ff6b81');
+  txt(`Onda ${S.wave}  ·  ${S.score} pontos`, W / 2, 116, 24, '#ffffff');
+  const mine = r => r.score === S.score && r.wave === S.wave;
+  if (S.infTop[0] && mine(S.infTop[0])) txt('NOVO RECORDE!', W / 2, 150, 22, '#ffe27a');
+  txt('Melhores corridas', W / 2, 188, 16, '#9ae6ff');
+  S.infTop.forEach((r, i) => txt(`${i + 1}.  ${r.score} pts  ·  onda ${r.wave}`, W / 2, 218 + i * 26, 18, mine(r) ? '#ffe27a' : '#ffffff'));
+  txt('toque / ESPAÇO para voltar ao menu', W / 2, H - 22, 14, '#dddddd', 'center', null);
+}
 function drawTut() {
   const t = S.tut, st = t && TUT_STEPS[t.step]; if (!st) return;
   const bw = 600, bx = W / 2 - bw / 2, by = 52, lines = st.s();
@@ -2305,9 +2398,10 @@ function drawMenu() {
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
   button(W / 2 - 170, y, 166, 40, 'Mapas', '#7048e8', openMaps); button(W / 2 + 4, y, 166, 40, 'Loja', '#e67700', openShop); y += 48;
-  add('Tutorial', startTutorial, S.tutDone ? '#0b7285' : '#d6336c');
-  txt(`Recorde: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center');
-  if (S.msgT > 0) { txt(S.msg, W / 2, y + 36, 16, '#ffe27a'); }
+  button(W / 2 - 170, y, 166, 40, 'Tutorial', S.tutDone ? '#0b7285' : '#d6336c', startTutorial); button(W / 2 + 4, y, 166, 40, 'Infinito', '#0ca678', startInfinite); y += 48;
+  txt(`Recorde: ${S.best}`, W / 2, y + 6, 16, '#fff', 'center');
+  if (S.infBest.score > 0) txt(`Infinito: ${S.infBest.score} pts · onda ${S.infBest.wave}`, W / 2, y + 28, 14, '#9ae6ff', 'center');
+  if (S.msgT > 0) { txt(S.msg, W / 2, y + 50, 16, '#ffe27a'); }
   txt('← → mover · ↑ ↓ escada · Z/Shift pular · ESPAÇO lançar magia · P pausa · M som', W / 2, H - 16, 12, '#fff', 'center');
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true, lean: .09 }); // mago de enfeite caminhando no chão
   drawGear(18, 14);
@@ -2460,6 +2554,7 @@ function draw() {
   if (S.state === 'shop') { drawShop(); drawFade(); return; }
   if (S.state === 'maps') { drawMaps(); drawFade(); return; }
   if (S.state === 'settings') { drawSettings(); drawFade(); return; }
+  if (S.state === 'pick') { drawPick(); drawFade(); return; }
   if (S.shake > 0) ctx.translate(rnd(-1, 1) * Math.min(6, S.shake * .6), rnd(-1, 1) * Math.min(6, S.shake * .6));
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawFade(); return; }
@@ -2471,7 +2566,7 @@ function draw() {
     case 'ready': {
       overlay(.35);
       txt(MAPS[S.cur.map].name.toUpperCase(), W / 2, H / 2 - 108, 18, '#9ae6ff');
-      txt(`FASE ${levelTag(S.level)}`, W / 2, H / 2 - 62, 46, '#ffe27a');
+      txt(lvLabel(), W / 2, H / 2 - 62, 46, '#ffe27a');
       txt(S.cur.name, W / 2, H / 2 - 14, 30);
       txt(S.cur.brief, W / 2, H / 2 + 28, 16, '#fff');
       if (S.timer < 140) txt('toque / ESPAÇO para começar', W / 2, H / 2 + 64, 14, '#cfe', 'center', null);
@@ -2479,11 +2574,12 @@ function draw() {
     }
     case 'play': if (S.tut) drawTut(); break;
     case 'clear':
-      overlay(.35); txt('FASE COMPLETA!', W / 2, H / 2 - 30, 48, '#7dff7d');
+      overlay(.35); txt(S.inf ? 'ONDA ' + S.wave + ' COMPLETA!' : 'FASE COMPLETA!', W / 2, H / 2 - 30, 48, '#7dff7d');
       txt(`Bônus de tempo: +${S.bonus}   ·   +${S.gained} moedas`, W / 2, H / 2 + 20, 20); if (S.unlockMsg) txt(S.unlockMsg, W / 2, H / 2 + 64, 22, '#ffe27a'); break;
     case 'dead':
       if (S.timer < 70) overlay(.2); break;
     case 'over':
+      if (S.inf) { drawInfOver(); break; }
       overlay(.65); txt('FIM DE JOGO', W / 2, H / 2 - 30, 54, '#ff6b81');
       txt(`Pontos: ${S.score}   Recorde: ${S.best}`, W / 2, H / 2 + 22, 20);
       txt('toque / ESPAÇO para voltar ao menu', W / 2, H / 2 + 56, 14, '#ddd', 'center', null); break;
@@ -3120,7 +3216,7 @@ function drawHUD() {
   rc(0, 0, LW, 19, '#1a1230'); rc(0, 0, LW, 1, '#3a2c5e'); rc(0, 18, LW, 1, '#0c0818');
   const nh = Math.max(3, S.lives); for (let i = 0; i < nh; i++) heartPx(6 + i * 10, 6, i < S.lives);
   const cx0 = 14 + nh * 10; coinPx(cx0, 9); txt(String(S.coins), (cx0 + 7) * 2, 19, 15, '#ffe27a', 'left', null);
-  txt(`FASE ${levelTag(S.level)} · ${S.cur.name}`, W / 2, 19, 16, '#ffffff', 'center', null);
+  txt(`${lvLabel()} · ${S.cur.name}`, W / 2, 19, 16, '#ffffff', 'center', null);
   txt(String(S.score).padStart(6, '0'), W - 52, 19, 18, '#ffe27a', 'right', null);
   const frac = clamp(S.timeLeft / (S.cur.time * 60), 0, 1), flash = S.timeFlash > 0 && (S.tick >> 2) % 2, low = frac <= .25;
   rc(0, 19, LW, 3, '#0c0818'); const bw = Math.round((LW - 2) * frac);
@@ -3170,6 +3266,30 @@ function drawTip() {
   ls.forEach((l, i) => txt(l, W / 2, y + 100 + i * 22, 14, '#ffffff', 'center', null));
   if (S.tipT > 40 && (S.tick >> 4) % 2) txt('TOQUE / ESPAÇO PARA CONTINUAR', W / 2, y + h - 22, 14, '#ccffee', 'center', null);
 }
+function drawPick() {
+  menuBtns = []; drawBackground(S.cur ? S.cur.theme : 0); overlay(.62);
+  txt(`ONDA ${S.wave} COMPLETA!`, W / 2, 38, 34, '#7dff7d', 'center', '#0b3d12');
+  txt('ESCOLHA UM BÔNUS PARA A PRÓXIMA ONDA', W / 2, 72, 14, '#ffffff', 'center', '#000');
+  S.picks.forEach((id, i) => {
+    const u = UPS_BY[id], x = 80, y = 92 + i * 98, w = 640, h = 86, lv = S.up[id] || 0;
+    panel(x / 2, y / 2, w / 2, h / 2, '#241c48', u.col);
+    rc(Math.round((x + 20) / 2), Math.round((y + h / 2 - 26) / 2), 26, 26, u.col); txt(u.lb, x + 46, y + h / 2 + 2, 28, '#1b1740', 'center', null);
+    txt(u.name + (lv ? ` (NV ${lv} → ${lv + 1})` : ''), x + 90, y + 26, 16, u.col, 'left', '#000');
+    u.d.forEach((l, j) => txt(l, x + 90, y + 52 + j * 18, 14, '#ffffff', 'left', null));
+    txt(String(i + 1), x + w - 26, y + h / 2, 22, '#8a86a8', 'center', null);
+    menuBtns.push({ x, y, w, h, fn: () => pickBonus(id) });
+  });
+  txt(`PONTOS: ${S.score} · VIDAS: ${S.lives}`, W / 2, H - 18, 14, '#ffe27a', 'center', '#000');
+}
+function drawInfOver() {
+  overlay(.72); txt('FIM DA CORRIDA', W / 2, 60, 46, '#ff6b81', 'center', '#4a0a14');
+  txt(`ONDA ${S.wave} · ${S.score} PONTOS`, W / 2, 114, 16, '#ffffff', 'center', '#000');
+  const mine = r => r.score === S.score && r.wave === S.wave;
+  if (S.infTop[0] && mine(S.infTop[0])) txt('NOVO RECORDE!', W / 2, 146, 16, '#ffe27a', 'center', '#000');
+  txt('MELHORES CORRIDAS', W / 2, 184, 14, '#9ae6ff', 'center', '#000');
+  S.infTop.forEach((r, i) => txt(`${i + 1}. ${r.score} PTS · ONDA ${r.wave}`, W / 2, 214 + i * 26, 14, mine(r) ? '#ffe27a' : '#ffffff', 'center', '#000'));
+  txt('TOQUE / ESPAÇO PARA VOLTAR AO MENU', W / 2, H - 20, 14, '#dddddd', 'center', null);
+}
 function drawTut() {
   const t = S.tut, st = t && TUT_STEPS[t.step]; if (!st) return;
   const bw = 700, bx = W / 2 - bw / 2, by = 50, lines = st.s();
@@ -3191,9 +3311,10 @@ function drawMenu() {
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
   button(W / 2 - 170, y, 166, 40, 'Mapas', '#7048e8', openMaps); button(W / 2 + 4, y, 166, 40, 'Loja', '#e67700', openShop); y += 48;
-  add('Tutorial', startTutorial, S.tutDone ? '#0b7285' : '#d6336c');
-  txt(`RECORDE: ${S.best}`, W / 2, y + 10, 16, '#fff', 'center', '#000');
-  if (S.msgT > 0) txt(S.msg, W / 2, y + 34, 16, '#ffe27a', 'center', '#000');
+  button(W / 2 - 170, y, 166, 40, 'Tutorial', S.tutDone ? '#0b7285' : '#d6336c', startTutorial); button(W / 2 + 4, y, 166, 40, 'Infinito', '#0ca678', startInfinite); y += 48;
+  txt(`RECORDE: ${S.best}`, W / 2, y + 8, 16, '#fff', 'center', '#000');
+  if (S.infBest.score > 0) txt(`INFINITO: ${S.infBest.score} PTS · ONDA ${S.infBest.wave}`, W / 2, y + 30, 14, '#9ae6ff', 'center', '#000');
+  if (S.msgT > 0) txt(S.msg, W / 2, y + 52, 16, '#ffe27a', 'center', '#000');
   txt('← → MOVER · ↑ ↓ ESCADA · Z PULAR · ESPAÇO MAGIA · P PAUSA', W / 2, H - 14, 12, '#ffffff', 'center', '#000');
   const mx = 40 + ((S.tick * .4) % 1) * 0; // mago de enfeite caminhando no chão
   const wx = ((S.tick * .6) % (W + 80)) - 40; drawHero(wx, FLOOR - 36, 1, S.tick * .16, 'stand', skinNow(), ropeNow().color, { t: S.tick, walking: true });
@@ -3413,6 +3534,7 @@ function render() {
   if (S.state === 'shop') { drawShop(); drawFade(); return; }
   if (S.state === 'maps') { drawMaps(); drawFade(); return; }
   if (S.state === 'settings') { drawSettings(); drawFade(); return; }
+  if (S.state === 'pick') { drawPick(); drawFade(); return; }
   drawBackground(S.state === 'menu' ? 0 : S.cur.theme);
   if (S.state === 'menu') { drawMenu(); drawFade(); return; }
   drawBlocks(); drawItems(); drawShots(); slimes.forEach(drawSlime); drawFlyers(); drawPerkFx(); drawGlobs(); drawPlayer(); drawFx(); drawParts(); drawWindOverlay(); drawHUD(); if (S.state === 'play' || S.state === 'ready') drawGear(W - 38, 50); drawFade();
@@ -3422,17 +3544,18 @@ function render() {
     case 'ready': {
       overlay(.4);
       txt(MAPS[S.cur.map].name.toUpperCase(), W / 2, H / 2 - 118, 16, '#9ae6ff', 'center', '#000');
-      txt(`FASE ${levelTag(S.level)}`, W / 2, H / 2 - 66, 56, '#ffe27a', 'center', '#5a3b00');
+      txt(lvLabel(), W / 2, H / 2 - 66, 56, '#ffe27a', 'center', '#5a3b00');
       txt(S.cur.name, W / 2, H / 2 - 12, 28, '#ffffff');
       wrapTxt(S.cur.brief, W / 2, H / 2 + 30, 640, 14, '#ffffff', 18);
       if (S.timer < 140 && (S.tick >> 4) % 2) txt('TOQUE / ESPAÇO PARA COMEÇAR', W / 2, H / 2 + 100, 14, '#ccffee', 'center', null);
       break; }
     case 'play': if (S.tut) drawTut(); break;
     case 'clear':
-      overlay(.4); txt('FASE COMPLETA!', W / 2, H / 2 - 30, 56, '#7dff7d', 'center', '#0b3d12');
+      overlay(.4); txt(S.inf ? 'ONDA ' + S.wave + ' COMPLETA!' : 'FASE COMPLETA!', W / 2, H / 2 - 30, 56, '#7dff7d', 'center', '#0b3d12');
       txt(`BÔNUS DE TEMPO: +${S.bonus} · +${S.gained} MOEDAS`, W / 2, H / 2 + 24, 16, '#ffffff'); if (S.unlockMsg) txt(S.unlockMsg, W / 2, H / 2 + 64, 18, '#ffe27a', 'center', '#000'); break;
     case 'dead': if (S.timer < 70) overlay(.2); break;
     case 'over':
+      if (S.inf) { drawInfOver(); break; }
       overlay(.65); txt('FIM DE JOGO', W / 2, H / 2 - 30, 56, '#ff6b81', 'center', '#4a0a14');
       txt(`PONTOS: ${S.score} · RECORDE: ${S.best}`, W / 2, H / 2 + 24, 16, '#ffffff');
       txt('TOQUE / ESPAÇO PARA VOLTAR AO MENU', W / 2, H / 2 + 60, 14, '#dddddd', 'center', null); break;
@@ -3484,6 +3607,7 @@ addEventListener('keydown', e => {
   else if (S.state === 'settings' && (e.key === 'Escape' || e.key === 'o' || e.key === 'O')) { if (S.resetAsk) S.resetAsk = false; else closeSettings(); }
   if ((e.key === 'o' || e.key === 'O') && S.state === 'menu') openSettings();
   if (e.key === 'Escape' && (S.state === 'play' || S.state === 'ready')) openSettings();
+  if (S.state === 'pick' && e.key >= '1' && e.key <= '3' && S.picks[+e.key - 1]) pickBonus(S.picks[+e.key - 1]);
   if (e.key === 'Enter') pressed = true;
 });
 addEventListener('keyup', e => { if (KEYMAP[e.key]) { input[KEYMAP[e.key]] = false; e.preventDefault(); } });
@@ -3502,7 +3626,7 @@ cv.addEventListener('pointerdown', e => {
     if (coinTaps.length >= 5) { coinTaps = []; S.coins += 99999; S.unlocked = MAPS.length; save(); sfx.item && sfx.item(); flash('+99999 moedas e todos os mapas (modo teste)'); }
     return;
   }
-  if (S.state === 'menu' || S.state === 'shop' || S.state === 'maps' || S.state === 'settings') {
+  if (S.state === 'menu' || S.state === 'shop' || S.state === 'maps' || S.state === 'settings' || S.state === 'pick') {
     for (const b of menuBtns) if (x >= b.x && x <= b.x + b.w && y >= b.y && y <= b.y + b.h) { b.fn(); return; }
   } else pressed = true;
 });
@@ -3589,7 +3713,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  startTutorial, endTutorial, weightedDrop, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  startTutorial, endTutorial, weightedDrop, startInfinite, genWave, pickBonus, rollPicks, recordRun, UPS, up, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
