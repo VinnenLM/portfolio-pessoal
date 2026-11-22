@@ -422,4 +422,25 @@
   // debug / testes
   DF._debug = { startGame, fmtT, get engine() { return engine; }, save, input };
   show('menu');
+
+// celular: o jogo é feito para a horizontal
+{
+  const coarse = matchMedia('(pointer: coarse)');
+  
+  function check() {
+    const rot = document.getElementById('rot'); if (!rot) return;
+    const bad = coarse.matches && window.innerHeight > window.innerWidth;
+    rot.classList.toggle('hidden', !bad);
+    if (bad && inGame && !paused && typeof togglePause === 'function') togglePause();
+  }
+  window.addEventListener('resize', check); window.addEventListener('orientationchange', check); window.addEventListener('DOMContentLoaded', check); check();
+  let tried = false;
+  document.addEventListener('pointerdown', () => {
+    if (tried || !coarse.matches) return; tried = true;
+    try {
+      const el = document.documentElement, fs = el.requestFullscreen ? el.requestFullscreen() : null;
+      Promise.resolve(fs).then(() => screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape')).catch(() => {});
+    } catch (e) {}
+  }, { once: false });
+}
 })();

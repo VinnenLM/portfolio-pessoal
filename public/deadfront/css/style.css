@@ -169,3 +169,8 @@ body.touch .s-key { display: none; }
 .perk-card b { display: block; color: #ffd27a; font-size: 17px; margin-bottom: 4px; }
 .perk-card small { display: block; opacity: .85; line-height: 1.35; }
 .perk-card em { display: block; margin-top: 6px; font-style: normal; font-size: 12px; opacity: .6; }
+
+#rot { position: fixed; inset: 0; z-index: 9999; background: #0b0d0b; display: flex; align-items: center; justify-content: center; text-align: center; color: #e8e0cc; font: 600 18px sans-serif; padding: 24px; }
+#rot.hidden { display: none; }
+.rot-ico { font-size: 64px; display: inline-block; animation: rotp 1.8s ease-in-out infinite; }
+@keyframes rotp { 0%, 20% { transform: rotate(0); } 60%, 100% { transform: rotate(-90deg); } }
