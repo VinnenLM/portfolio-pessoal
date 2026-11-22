@@ -741,7 +741,7 @@ const UPS = [
   { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
 ];
 const UPS_BY = Object.fromEntries(UPS.map(u => [u.id, u]));
-const UP_MAX = { open: 3, bfrost: 3 };                                   // Abertura Arcana para no nível 3 (acima disso limpava qualquer onda)
+const UP_MAX = { open: 3, bfrost: 3, speed: 5, cool: 5, shield: 4, drop: 4, move: 5, jump: 5, frost: 5, magnet: 5, time: 5 };                                   // Abertura Arcana para no nível 3 (acima disso limpava qualquer onda)
 function rollPicks() {
   const pool = UPS.filter(u => !(u.id === 'life' && S.lives >= 5) && !(UP_MAX[u.id] && up(u.id) >= UP_MAX[u.id])).map(u => u.id);
   for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
@@ -2657,7 +2657,7 @@ function drawPick() {
     const u = UPS_BY[id], x = 80, y = 92 + i * 98, w = 640, h = 86, lv = S.up[id] || 0;
     ctx.fillStyle = 'rgba(25,20,50,.95)'; ctx.strokeStyle = u.col; ctx.lineWidth = 3; ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill(); ctx.stroke();
     ctx.fillStyle = u.col; ctx.beginPath(); ctx.arc(x + 46, y + h / 2, 26, 0, TAU); ctx.fill(); txt(u.lb, x + 46, y + h / 2 + 2, 28, '#1b1740', 'center', null);
-    txt(u.name + (lv ? `  (nível ${lv} → ${lv + 1})` : ''), x + 90, y + 26, 20, u.col, 'left', null);
+    txt(u.name + (lv ? `  (nível ${lv} → ${lv + 1}${UP_MAX[u.id] ? ' de ' + UP_MAX[u.id] : ''})` : (UP_MAX[u.id] ? `  (máx. ${UP_MAX[u.id]})` : '')), x + 90, y + 26, 20, u.col, 'left', null);
     u.d.forEach((l, j) => txt(l, x + 90, y + 52 + j * 18, 14, '#ffffff', 'left', null));
     txt(String(i + 1), x + w - 26, y + h / 2, 22, '#8a86a8', 'center', null);
     menuBtns.push({ x, y, w, h, fn: () => pickBonus(id) });
@@ -3619,7 +3619,7 @@ function drawPick() {
     const u = UPS_BY[id], x = 80, y = 92 + i * 98, w = 640, h = 86, lv = S.up[id] || 0;
     panel(x / 2, y / 2, w / 2, h / 2, '#241c48', u.col);
     rc(Math.round((x + 20) / 2), Math.round((y + h / 2 - 26) / 2), 26, 26, u.col); txt(u.lb, x + 46, y + h / 2 + 2, 28, '#1b1740', 'center', null);
-    txt(u.name + (lv ? ` (NV ${lv} → ${lv + 1})` : ''), x + 90, y + 26, 16, u.col, 'left', '#000');
+    txt(u.name + (lv ? ` (NV ${lv} → ${lv + 1}${UP_MAX[u.id] ? '/' + UP_MAX[u.id] : ''})` : (UP_MAX[u.id] ? ` (MAX ${UP_MAX[u.id]})` : '')), x + 90, y + 26, 16, u.col, 'left', '#000');
     u.d.forEach((l, j) => txt(l, x + 90, y + 52 + j * 18, 14, '#ffffff', 'left', null));
     txt(String(i + 1), x + w - 26, y + h / 2, 22, '#8a86a8', 'center', null);
     menuBtns.push({ x, y, w, h, fn: () => pickBonus(id) });
@@ -4137,7 +4137,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  startTutorial, endTutorial, hitFlyerFn: (...a) => hitFlyer(...a), startRush, genRush, bossLevel, ROSTER, FLY, startStrike, startLevel, weightedDrop, startInfinite, genWave, pickBonus, rollPicks, recordRun, UPS, up, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  startTutorial, endTutorial, UP_MAX, hitFlyerFn: (...a) => hitFlyer(...a), startRush, genRush, bossLevel, ROSTER, FLY, startStrike, startLevel, weightedDrop, startInfinite, genWave, pickBonus, rollPicks, recordRun, UPS, up, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
