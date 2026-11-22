@@ -1553,6 +1553,23 @@
     }
     // ----- iluminação dinâmica: lanterna em cone + brilho em volta, bloqueada por paredes
     let lightCv = null, lctx = null, grain = null;
+    // silhueta do avião para a luz (segue o formato, não o retângulo)
+    const planeRects = lv.obst.filter((o) => o[4] === 'plane');
+    const inPoly = (pt, x, y) => { let c = false; for (let i = 0, j = pt.length - 1; i < pt.length; j = i++) { const [xi, yi] = pt[i], [xj, yj] = pt[j]; if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) c = !c; } return c; };
+    function planeHit(x, y) {
+      const tx = Math.floor(x / TILE), ty = Math.floor(y / TILE);
+      for (const [rx, ry, rw, rh] of planeRects) {
+        if (tx < rx || tx >= rx + rw || ty < ry || ty >= ry + rh) continue;
+        const L = rw * TILE - 6, W = rh * TILE - 6, dx = x - (rx * TILE + 3 + L / 2), dy = y - (ry * TILE + 3 + W / 2);
+        if (Math.abs(dy) < W * 0.12 && dx > -L * 0.47 && dx < L * 0.5) return true;
+        for (const sg of [-1, 1]) {
+          if (inPoly([[L * 0.14, sg * W * 0.09], [-L * 0.08, sg * W * 0.5], [-L * 0.2, sg * W * 0.5], [-L * 0.02, sg * W * 0.09]], dx, dy)) return true;
+          if (inPoly([[-L * 0.36, sg * W * 0.05], [-L * 0.46, sg * W * 0.26], [-L * 0.41, sg * W * 0.26], [-L * 0.3, sg * W * 0.05]], dx, dy)) return true;
+        }
+        return false;
+      }
+      return false;
+    }
     function drawLighting(psx, psy, shx, shy) {
       const s = camera.s, dpr = camera.dpr;
       const LS = DF.flatSprites ? 0.25 : 0.4, lw = Math.ceil(canvas.width * LS), lh = Math.ceil(canvas.height * LS);
@@ -1568,7 +1585,7 @@
         const da = Math.abs(Math.atan2(Math.sin(a - P.angle), Math.cos(a - P.angle)));
         const mr = BASE + (da < half ? (CONE - BASE) * Math.pow(Math.cos(da / half * 1.5708), 0.6) : 0);
         const ca = Math.cos(a), sa = Math.sin(a); let r = 10;
-        const blk = (rr) => { const ti = tileAt(P.x + ca * rr, P.y + sa * rr); return ti < 0 || isHigh(ti); };
+        const blk = (rr) => { const bx = P.x + ca * rr, by = P.y + sa * rr, ti = tileAt(bx, by); if (ti < 0) return true; if (tiles[ti] === T.OBST && map.obst[ti] === 'plane') return planeHit(bx, by); return isHigh(ti); };
         for (; r < mr; r += 12) { if (blk(r)) { let lo = Math.max(10, r - 12), hi = r; for (let k = 0; k < 5; k++) { const mid = (lo + hi) / 2; if (blk(mid)) hi = mid; else lo = mid; } r = hi; break; } }
         r = Math.min(r, mr); pts.push([(P.x + ca * r - camera.x + shx) * s, (P.y + sa * r - camera.y + shy) * s]);
       }
