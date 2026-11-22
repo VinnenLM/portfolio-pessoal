@@ -76,6 +76,23 @@ const projetos = [
     tema: { c1: "#7dff7d", c2: "#1a1040", on: "#0b3d12", logoBg: "#1a1040" },
   },
   {
+    titulo: "Fortmancer",
+    categoria: "jogo",
+    descricao:
+      "Jogo de defesa de castelo em pixel art em que um mago protege o castelo mágico de ondas de monstros, feito em JavaScript puro (Canvas) e empacotado para Android com Capacitor. Campanha com 5 mapas, modo infinito com cartas de habilidade, boss rush com 8 chefes, habilidades, armadilhas, melhorias do castelo, loja de skins de magos, castelos e pets, e música gerada por código.",
+    link: `${process.env.PUBLIC_URL}/fortmancer/`,
+    jogar: true,
+    extra: {
+      texto: "Baixar APK",
+      icone: "fa-solid fa-download",
+      link: `${process.env.PUBLIC_URL}/downloads/Fortmancer.apk`,
+      download: true,
+    },
+    logo: img("fortmancer.svg"),
+    tags: ["JavaScript", "Canvas", "Capacitor", "Android"],
+    tema: { c1: "#c58bff", c2: "#1a1040", on: "#1a1040", logoBg: "#1a1040" },
+  },
+  {
     titulo: "Enzimando",
     categoria: "app",
     descricao:

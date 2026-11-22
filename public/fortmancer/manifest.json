@@ -1,0 +1,11 @@
+{
+  "name": "Fortmancer",
+  "short_name": "Fortmancer",
+  "description": "Defenda o castelo mágico com seu mago contra hordas de monstros.",
+  "start_url": "./index.html",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#150f22",
+  "theme_color": "#150f22",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

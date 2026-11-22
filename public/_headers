@@ -10,3 +10,7 @@
 # Popmancer também muda a cada atualização
 /popmancer/*
   Cache-Control: no-cache
+
+# Fortmancer também muda a cada atualização
+/fortmancer/*
+  Cache-Control: no-cache
