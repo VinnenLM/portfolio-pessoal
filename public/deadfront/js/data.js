@@ -49,7 +49,20 @@
     boss_smasher: { name: 'Colosso',        hp: 5600, speed: 66, r: 30, dmg: 34, bdmg: 100,  cd: 1.0, color: '#7a4a3a', scrap: 40, boss: 'smasher' },
     boss_charger: { name: 'Alfa Predador',  hp: 6200, speed: 92, r: 26, dmg: 30, bdmg: 90,  cd: 0.9, color: '#a04040', scrap: 40, boss: 'charger' },
     boss_spitter: { name: 'Rainha Ácida',   hp: 7000, speed: 66, r: 28, dmg: 24, bdmg: 70,  cd: 1.0, color: '#3f9a8a', scrap: 40, boss: 'summoner' },
-    boss_mega:    { name: 'Patient Zero',   hp: 11000, speed: 80, r: 32, dmg: 38, bdmg: 120, cd: 0.9, color: '#6a3a7a', scrap: 60, boss: 'mega' }
+    boss_mega:    { name: 'Patient Zero',   hp: 11000, speed: 80, r: 32, dmg: 38, bdmg: 120, cd: 0.9, color: '#6a3a7a', scrap: 60, boss: 'mega' },
+    boss_swat:     { name: 'Comandante SWAT', hp: 7800, speed: 74, r: 23, dmg: 30, bdmg: 90,  cd: 0.9, color: '#2f3b52', scrap: 60, boss: 'swat' },
+    boss_ice:      { name: 'Geada',           hp: 8200, speed: 64, r: 27, dmg: 30, bdmg: 90,  cd: 1.0, color: '#8fd0ee', scrap: 60, boss: 'ice' },
+    boss_fire:     { name: 'Brasa',           hp: 8000, speed: 84, r: 26, dmg: 32, bdmg: 100, cd: 0.9, color: '#e0661c', scrap: 60, boss: 'fire', bomb: true },
+    boss_electric: { name: 'Voltagem',        hp: 7800, speed: 72, r: 25, dmg: 28, bdmg: 80,  cd: 0.9, color: '#ffe14a', scrap: 60, boss: 'electric' },
+    boss_necro:    { name: 'Necromante',      hp: 7000, speed: 58, r: 24, dmg: 26, bdmg: 70,  cd: 1.0, color: '#6a3a8a', scrap: 60, boss: 'necro' },
+    boss_spider:   { name: 'Aranha Rainha',   hp: 8800, speed: 108, r: 30, dmg: 30, bdmg: 600, cd: 0.8, color: '#2a2a30', scrap: 60, boss: 'spider' },
+    boss_twin_a:   { name: 'Gêmeo Rubro',     hp: 4800, speed: 90, r: 22, dmg: 26, bdmg: 80,  cd: 0.8, color: '#c03030', scrap: 40, boss: 'twin' },
+    boss_twin_b:   { name: 'Gêmeo Azul',      hp: 4800, speed: 76, r: 22, dmg: 22, bdmg: 70,  cd: 0.9, color: '#3070d0', scrap: 40, boss: 'twin' },
+    boss_shadow:   { name: 'Sombra',          hp: 7400, speed: 98, r: 22, dmg: 30, bdmg: 80,  cd: 0.8, color: '#1a1030', scrap: 60, boss: 'shadow' },
+    // criaturas dos chefes
+    totem:       { name: 'Totem Sombrio', hp: 520, speed: 0,   r: 16, dmg: 0,  bdmg: 0,  cd: 99,  color: '#4a8a5a', scrap: 6, totem: true },
+    spiderling:  { name: 'Aranhinha',     hp: 36,  speed: 150, r: 8,  dmg: 8,  bdmg: 10, cd: 0.7, color: '#222',    scrap: 1, spider: true },
+    clone:       { name: 'Ilusão',        hp: 25,  speed: 105, r: 18, dmg: 14, bdmg: 20, cd: 0.8, color: '#1a1030', scrap: 0, clone: true }
   };
 
   // ---------- Mapas ----------
@@ -151,6 +164,88 @@
       { x: 94, y: 20, n: 10, trig: 14 }, { x: 110, y: 19, n: 10, trig: 14 }, { x: 120, y: 20, n: 9, trig: 13 }, { x: 126, y: 19, n: 8, trig: 13 },
       { x: 134, y: 17, n: 9, trig: 13 }, { x: 134, y: 22, n: 9, trig: 13 }
     ]
+  });
+
+  // ---------- Mapas de chefes (um chefe especial por mapa) ----------
+  DF.LEVELS.push({
+    id: 'police', after: 'base', name: 'Delegacia Central', blurb: 'Agentes SWAT caídos pelo chão. O Comandante ainda sabe atirar.',
+    w: 64, h: 46, waves: 6, hpScale: 2.1, countScale: 1.7, boss: 'boss_swat', start: [32, 22],
+    theme: { floor: '#6b7078', floor2: '#60666e', wall: '#1c2430', wallTop: '#2f3b4c', out: '#2b3240', out2: '#262d39', dark: 0.5 },
+    rooms: [{ x: 10, y: 9, w: 44, h: 28, doors: [['N', 8, 3], ['N', 32, 3], ['S', 10, 3], ['S', 34, 3], ['W', 12, 3], ['E', 12, 3]] }],
+    walls: [[10, 20, 10, 1], [44, 20, 10, 1]],
+    obst: [[14, 12, 4, 2, 'desk'], [22, 12, 4, 2, 'desk'], [36, 12, 4, 2, 'desk'], [44, 12, 4, 2, 'desk'], [14, 31, 4, 2, 'desk'], [22, 31, 4, 2, 'desk'], [36, 31, 4, 2, 'desk'], [44, 31, 4, 2, 'desk'],
+      [28, 24, 8, 2, 'counter'], [18, 26, 2, 2, 'crate'], [44, 26, 2, 2, 'crate'], [12, 24, 1, 3, 'shelf'], [51, 24, 1, 3, 'shelf'], [12, 16, 6, 1, 'barrier'], [46, 16, 6, 1, 'barrier']],
+    decor: [['body', 20, 15, 0.4], ['body', 30, 17, 2.4], ['body', 40, 15, 5.1], ['body', 17, 28, 1.2], ['body', 32, 29, 3.9], ['body', 48, 28, 0.2], ['body', 26, 21, 4.4], ['body', 38, 22, 2.9]]
+  });
+  DF.LEVELS.push({
+    id: 'snow', after: 'police', name: 'Cabana na Neve', blurb: 'Uma cabana isolada numa tempestade. O frio aqui não perdoa: Geada congela.',
+    w: 64, h: 46, waves: 6, hpScale: 2.3, countScale: 1.8, boss: 'boss_ice', start: [26, 21],
+    theme: { floor: '#a7948a', floor2: '#9a8880', wall: '#3a4450', wallTop: '#566274', out: '#d3dde6', out2: '#c6d2dd', dark: 0.42, snow: true },
+    rooms: [{ x: 9, y: 10, w: 40, h: 24, doors: [['N', 6, 3], ['N', 26, 3], ['W', 10, 3], ['S', 12, 3], ['S', 30, 3], ['E', 10, 3]] }],
+    walls: [[24, 10, 1, 8], [24, 26, 1, 8]],
+    obst: [[12, 13, 4, 2, 'table'], [29, 13, 3, 2, 'sofa'], [12, 29, 3, 2, 'sofa'], [30, 28, 4, 2, 'table'], [18, 20, 2, 2, 'crate'], [36, 21, 2, 2, 'icechunk'], [10, 21, 2, 3, 'shelf'],
+      [44, 14, 2, 2, 'icechunk'], [44, 28, 2, 2, 'crate'], [38, 16, 2, 2, 'icechunk'], [16, 24, 2, 1, 'crate'], [28, 26, 1, 1, 'crate']]
+  });
+  DF.LEVELS.push({
+    id: 'volcano', after: 'snow', name: 'Cratera do Vulcão', blurb: 'Plataforma de rocha entre poças de lava. Brasa deixa fogo por onde passa.',
+    w: 64, h: 46, waves: 6, hpScale: 2.5, countScale: 1.9, boss: 'boss_fire', start: [32, 17],
+    theme: { floor: '#5a463e', floor2: '#4e3b34', wall: '#150d0b', wallTop: '#2a1a15', out: '#2a1b17', out2: '#231714', dark: 0.52 },
+    rooms: [{ x: 9, y: 9, w: 46, h: 28, doors: [['N', 10, 3], ['N', 33, 3], ['S', 12, 3], ['S', 32, 3], ['W', 12, 3], ['E', 12, 3]] }],
+    walls: [],
+    obst: [[14, 12, 6, 3, 'lava'], [44, 12, 6, 3, 'lava'], [14, 30, 6, 3, 'lava'], [44, 30, 6, 3, 'lava'], [28, 20, 8, 5, 'lava'],
+      [22, 15, 3, 3, 'rock'], [39, 15, 3, 3, 'rock'], [22, 28, 3, 3, 'rock'], [39, 28, 3, 3, 'rock'], [12, 21, 2, 3, 'rock'], [50, 21, 2, 3, 'rock']]
+  });
+  DF.LEVELS.push({
+    id: 'power', after: 'volcano', name: 'Usina Elétrica', blurb: 'Geradores e turbinas ainda zumbindo. Voltagem desliga suas torres.',
+    w: 66, h: 46, waves: 7, hpScale: 2.7, countScale: 2.0, boss: 'boss_electric', start: [29, 18],
+    theme: { floor: '#5c6168', floor2: '#52575e', wall: '#1d2125', wallTop: '#3a4047', out: '#3b4045', out2: '#353a3f', dark: 0.5 },
+    rooms: [{ x: 9, y: 9, w: 48, h: 28, doors: [['N', 10, 3], ['N', 34, 3], ['S', 12, 3], ['S', 34, 3], ['W', 12, 3], ['E', 12, 3]] }],
+    walls: [[9, 22, 8, 1], [49, 22, 8, 1]],
+    obst: [[14, 12, 5, 3, 'generator'], [26, 12, 5, 3, 'generator'], [38, 12, 5, 3, 'generator'], [14, 31, 5, 3, 'generator'], [26, 31, 5, 3, 'generator'], [38, 31, 5, 3, 'generator'],
+      [32, 20, 2, 6, 'pipe'], [20, 21, 6, 1, 'pipe'], [40, 24, 6, 1, 'pipe'], [48, 14, 3, 3, 'tank'], [12, 26, 3, 3, 'tank'], [48, 30, 2, 2, 'crate']]
+  });
+  DF.LEVELS.push({
+    id: 'cemetery', after: 'power', name: 'Cemitério Velho', blurb: 'Lápides, criptas e neblina. O Necromante levanta os mortos.',
+    w: 66, h: 48, waves: 7, hpScale: 2.9, countScale: 2.0, boss: 'boss_necro', start: [33, 23],
+    theme: { floor: '#3f4a3a', floor2: '#374132', wall: '#1a1d1a', wallTop: '#343a33', out: '#27311f', out2: '#222b1b', dark: 0.66 },
+    rooms: [{ x: 8, y: 8, w: 50, h: 32, doors: [['N', 12, 3], ['N', 34, 3], ['S', 12, 3], ['S', 34, 3], ['W', 14, 3], ['E', 14, 3]] }],
+    walls: [[28, 8, 1, 5], [28, 35, 1, 5]],
+    obst: [[13, 12, 1, 1, 'tomb'], [16, 12, 1, 1, 'tomb'], [19, 12, 1, 1, 'tomb'], [13, 15, 1, 1, 'tomb'], [16, 15, 1, 1, 'tomb'], [19, 15, 1, 1, 'tomb'],
+      [44, 12, 1, 1, 'tomb'], [47, 12, 1, 1, 'tomb'], [50, 12, 1, 1, 'tomb'], [44, 15, 1, 1, 'tomb'], [47, 15, 1, 1, 'tomb'], [50, 15, 1, 1, 'tomb'],
+      [13, 31, 1, 1, 'tomb'], [16, 31, 1, 1, 'tomb'], [19, 31, 1, 1, 'tomb'], [13, 34, 1, 1, 'tomb'], [16, 34, 1, 1, 'tomb'], [19, 34, 1, 1, 'tomb'],
+      [44, 31, 1, 1, 'tomb'], [47, 31, 1, 1, 'tomb'], [50, 31, 1, 1, 'tomb'], [44, 34, 1, 1, 'tomb'], [47, 34, 1, 1, 'tomb'], [50, 34, 1, 1, 'tomb'],
+      [28, 19, 6, 4, 'crypt'], [24, 26, 2, 2, 'tree'], [40, 26, 2, 2, 'tree'], [22, 16, 2, 2, 'tree'], [42, 18, 2, 2, 'tree']]
+  });
+  DF.LEVELS.push({
+    id: 'spider', after: 'cemetery', name: 'Mina Abandonada', blurb: 'Teias por toda parte desaceleram você. A Aranha Rainha ignora barricadas.',
+    w: 64, h: 46, waves: 7, hpScale: 3.1, countScale: 2.1, boss: 'boss_spider', start: [32, 22],
+    theme: { floor: '#4c4642', floor2: '#443e3a', wall: '#14110f', wallTop: '#2c2623', out: '#24201d', out2: '#1e1a18', dark: 0.62 },
+    rooms: [{ x: 9, y: 9, w: 46, h: 28, doors: [['N', 10, 3], ['N', 32, 3], ['S', 12, 3], ['S', 34, 3], ['W', 12, 3], ['E', 12, 3]] }],
+    walls: [[9, 20, 6, 1], [49, 26, 6, 1]],
+    obst: [[16, 13, 2, 3, 'rock'], [40, 13, 2, 3, 'rock'], [16, 29, 2, 3, 'rock'], [40, 29, 2, 3, 'rock'], [28, 17, 2, 2, 'rock'], [34, 27, 2, 2, 'rock'], [22, 24, 1, 2, 'cocoon'], [42, 22, 1, 2, 'cocoon'], [30, 31, 2, 1, 'cocoon'], [12, 25, 1, 2, 'cocoon'], [26, 12, 2, 1, 'cocoon']],
+    webs: [[22, 17, 4], [44, 18, 4], [20, 30, 4], [44, 30, 4], [32, 22, 3.5], [12, 14, 3], [52, 24, 3]],
+    decor: [['webcorner', 9, 9, 1], ['webcorner', 55, 9, 2], ['webcorner', 9, 37, 3], ['webcorner', 55, 37, 4]]
+  });
+  DF.LEVELS.push({
+    id: 'orphanage', after: 'spider', name: 'Orfanato Abandonado', blurb: 'Camas e brinquedos quebrados. Os Gêmeos caçam juntos e se curam entre si.',
+    w: 62, h: 44, waves: 7, hpScale: 3.3, countScale: 2.1, boss: 'boss_twin_a', boss2: 'boss_twin_b', start: [30, 21],
+    theme: { floor: '#6a5550', floor2: '#5f4b46', wall: '#2a1b1b', wallTop: '#46302f', out: '#2e2b2a', out2: '#292625', dark: 0.58 },
+    rooms: [
+      { x: 8, y: 9, w: 20, h: 22, doors: [['N', 6, 3], ['W', 9, 3], ['S', 6, 3]] },
+      { x: 34, y: 9, w: 20, h: 22, doors: [['N', 11, 3], ['E', 9, 3], ['S', 11, 3]] },
+      { x: 28, y: 17, w: 6, h: 6, doors: [] }
+    ],
+    walls: [],
+    obst: [[10, 12, 2, 3, 'bed'], [14, 12, 2, 3, 'bed'], [18, 12, 2, 3, 'bed'], [10, 25, 2, 3, 'bed'], [14, 25, 2, 3, 'bed'], [18, 25, 2, 3, 'bed'], [22, 19, 2, 2, 'crate'],
+      [36, 12, 3, 2, 'table'], [44, 12, 3, 2, 'table'], [48, 20, 2, 3, 'piano'], [36, 25, 2, 2, 'crate'], [42, 26, 4, 1, 'sofa'], [50, 12, 2, 2, 'crate']]
+  });
+  DF.LEVELS.push({
+    id: 'metro', after: 'orphanage', name: 'Metrô Abandonado', blurb: 'Quase sem luz. A Sombra só aparece quando a lanterna a ilumina.',
+    w: 70, h: 42, waves: 8, hpScale: 3.6, countScale: 2.2, boss: 'boss_shadow', start: [30, 21],
+    theme: { floor: '#3e4348', floor2: '#363b40', wall: '#101316', wallTop: '#262b30', out: '#1c2024', out2: '#181b1f', dark: 0.78 },
+    rooms: [{ x: 8, y: 9, w: 54, h: 24, doors: [['N', 12, 3], ['N', 38, 3], ['S', 12, 3], ['S', 38, 3], ['W', 10, 3], ['E', 10, 3]] }],
+    walls: [],
+    obst: [[12, 12, 18, 3, 'train'], [40, 12, 18, 3, 'train'], [12, 27, 18, 3, 'train'], [40, 27, 18, 3, 'train'], [32, 20, 2, 2, 'crate'], [34, 20, 2, 2, 'crate'], [10, 21, 2, 2, 'crate'], [58, 21, 2, 2, 'crate'], [34, 16, 1, 3, 'barrier'], [34, 25, 1, 3, 'barrier']]
   });
 
   // ---------- Skins ----------

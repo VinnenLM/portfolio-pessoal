@@ -168,10 +168,11 @@
     const g = $('level-grid'); g.innerHTML = '';
     DF.LEVELS.forEach((lv, i) => {
       if (endless && lv.mission) return;
-      const locked = i >= save.unlocked || (lv.unlock !== undefined && save.unlocked < lv.unlock); const st = save.stars[lv.id] || 0;
+      const prev = lv.after && lv.after !== 'base' ? DF.LEVELS.find((q) => q.id === lv.after) : null;
+      const locked = lv.after ? !(save.unlocked >= 5 && (!prev || (save.stars[prev.id] || 0) > 0)) : (i >= save.unlocked || (lv.unlock !== undefined && save.unlocked < lv.unlock)); const st = save.stars[lv.id] || 0;
       const c = document.createElement('div'); c.className = 'card' + (locked ? ' locked' : '');
       c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (endless === 'rush' ? 'Chefes em sequência, cada um mais forte · Recorde: <b>' + ((save.records || {})[lv.id + '-rush'] || 0) + ' chefes</b>' : endless ? 'Sobreviva o máximo que puder · Recorde: <b>' + fmtT((save.records || {})[lv.id] || 0) + '</b>' : lv.mission ? 'Missão: objetivos + chefe' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
-      const b = document.createElement('button'); b.className = 'btn primary small'; b.textContent = locked ? '🔒 Bloqueada' : 'JOGAR'; b.disabled = locked;
+      const b = document.createElement('button'); b.className = 'btn primary small'; b.textContent = locked ? (prev ? '🔒 Vença: ' + prev.name : '🔒 Bloqueada') : 'JOGAR'; b.disabled = locked;
       b.onclick = () => { click(); startGame(i, endless); };
       c.appendChild(b); g.appendChild(c);
     });

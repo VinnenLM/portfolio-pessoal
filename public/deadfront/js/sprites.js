@@ -138,6 +138,8 @@
     c.stroke();
   }
   function blood(c, x, y, r) { ell(c, x, y, r, r * 0.7, 'rgba(140,16,20,0.85)'); }
+  const NEWBOSS = { swat: 1, ice: 1, fire: 1, electric: 1, necro: 1, twin: 1, shadow: 1 };
+  function rrectS(c, x, y, w, h, r) { c.beginPath(); c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r); c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h); c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r); c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y); c.closePath(); }
   DF.sprites.zombie = function (c, z, time) {
     const t = z.type, boss = z.boss;
     if (t === 'worm') {
@@ -181,6 +183,72 @@
       limb(c, 4, -13, 14 + swing * 2 + R, -6 * X, 4, skin); limb(c, 4, 13, 14 - swing * 2 + R, 6 * X, 4, skin);
       clawHand(c, 16 + swing * 2 + R, -6 * X, 0.9, skin); clawHand(c, 16 - swing * 2 + R, 6 * X, 0.9, skin);
       ell(c, 8, 0, 5.8, 6.2, skin, OUT); ell(c, 12.2, 0, 2.2, 3.2, '#3a0c0e'); ell(c, 10, -2.7, 1.2, 1.2, '#f0f0c8'); ell(c, 10, 2.7, 1.2, 1.2, '#f0f0c8');
+    } else if (t === 'totem') {
+      const p = 0.6 + 0.4 * Math.sin(time * 4);
+      ell(c, 0, 0, 14, 14, '#2c302a', OUT); ell(c, 0, 0, 10, 10, '#4a5046');
+      c.strokeStyle = 'rgba(120,255,160,' + p + ')'; c.lineWidth = 2; c.beginPath(); c.arc(0, 0, 7, 0, TAU); c.moveTo(-5, -5); c.lineTo(5, 5); c.moveTo(5, -5); c.lineTo(-5, 5); c.stroke();
+      ell(c, 0, 0, 3, 3, 'rgba(160,255,190,' + p + ')');
+      if (z.flash > 0) ell(c, 0, 0, 14, 14, 'rgba(255,255,255,0.5)');
+    } else if (t === 'spiderling' || boss === 'spider') {
+      const big = boss ? 1.9 : 1, legC = boss ? '#17171b' : '#151515';
+      c.strokeStyle = legC; c.lineWidth = 2 * big; c.lineCap = 'round';
+      for (let k = 0; k < 4; k++) for (const sy of [-1, 1]) {
+        const ph = Math.sin((z.walk || 0) * 2 + k * 1.3 + (sy > 0 ? 1.6 : 0)) * 3 * big, fx = (5 - k * 3.4) * big;
+        c.beginPath(); c.moveTo(1 * big, sy * 3 * big); c.lineTo(fx + 4 * big, sy * (9 * big + ph)); c.lineTo(fx + 1 * big, sy * 15 * big); c.stroke();
+      }
+      c.lineCap = 'butt';
+      ell(c, -5 * big, 0, 7.5 * big, 6.5 * big, boss ? '#26262d' : '#222', OUT);
+      if (boss) { c.fillStyle = '#c0182a'; c.beginPath(); c.moveTo(-14 * big, 0); c.lineTo(-7 * big, -3 * big); c.lineTo(-4 * big, 0); c.lineTo(-7 * big, 3 * big); c.fill(); ell(c, -8 * big, 0, 2.2, 2.2, '#ff5a5a'); }
+      ell(c, 4 * big, 0, 5 * big, 4.6 * big, boss ? '#32323a' : '#2c2c2c', OUT);
+      for (const [ex, ey] of [[7, -2], [7, 2], [5.5, -3.4], [5.5, 3.4]]) ell(c, ex * big, ey * big, 0.9 * big, 0.9 * big, '#ff3030');
+      if (boss) { c.strokeStyle = '#d8d0c0'; c.lineWidth = 2; c.beginPath(); c.moveTo(9 * big, -2); c.lineTo(13 * big, -3.5); c.moveTo(9 * big, 2); c.lineTo(13 * big, 3.5); c.stroke(); }
+      if (z.enraged) ell(c, 0, 0, 22 * big, 22 * big, 'rgba(255,40,30,0.15)');
+    } else if (NEWBOSS[boss] || t === 'clone') {
+      const sw = swing, def = z.def;
+      let body = def.color, skin2 = '#8fa08a', shoulder = null, hx = 26, leg = '#222';
+      if (boss === 'swat') { body = '#2f3b52'; skin2 = '#2a3140'; leg = '#151a24'; }
+      else if (boss === 'ice') { body = '#8fd0ee'; skin2 = '#cfeefa'; leg = '#4a7fa0'; }
+      else if (boss === 'fire') { body = '#8a2f10'; skin2 = '#e0661c'; leg = '#4a1a0a'; }
+      else if (boss === 'electric') { body = '#3a3d48'; skin2 = '#c8b840'; leg = '#202228'; }
+      else if (boss === 'necro') { body = '#4a2a66'; skin2 = '#cfd6c0'; leg = '#2a1a3a'; hx = 20; }
+      else if (boss === 'twin') { skin2 = '#cdb8a8'; leg = shade(body, -50); }
+      else if (boss === 'shadow' || t === 'clone') { body = '#150d26'; skin2 = '#241638'; leg = '#0c0816'; }
+      // aura / efeitos de fundo
+      if (boss === 'ice') { ell(c, 0, 0, 30, 30, 'rgba(160,220,255,0.12)'); c.fillStyle = '#e6f8ff'; for (let k = 0; k < 6; k++) { const a = Math.PI * 0.6 + k * 0.5; c.beginPath(); c.moveTo(Math.cos(a) * 10, Math.sin(a) * 10 - 1); c.lineTo(Math.cos(a) * 26, Math.sin(a) * 26); c.lineTo(Math.cos(a) * 10, Math.sin(a) * 10 + 2); c.fill(); } }
+      if (boss === 'fire') { for (let k = 0; k < 6; k++) { const fl = 10 + 6 * Math.sin(time * 9 + k * 2); c.fillStyle = k % 2 ? '#ffb02a' : '#ff5a1a'; c.beginPath(); c.moveTo(-8, -10 + k * 4); c.lineTo(-8 - fl - 8, -12 + k * 4.4); c.lineTo(-8, -6 + k * 4); c.fill(); } }
+      if (boss === 'electric') { c.strokeStyle = 'rgba(255,240,100,0.85)'; c.lineWidth = 1.6; for (let k = 0; k < 4; k++) { const a = time * 7 + k * 1.6, r1 = 18, r2 = 28 + Math.sin(time * 15 + k) * 4; c.beginPath(); c.moveTo(Math.cos(a) * r1, Math.sin(a) * r1); c.lineTo(Math.cos(a + 0.2) * (r1 + r2) / 2, Math.sin(a + 0.2) * (r1 + r2) / 2 + 3); c.lineTo(Math.cos(a) * r2, Math.sin(a) * r2); c.stroke(); } }
+      if (boss === 'shadow' || t === 'clone') { for (let k = 0; k < 4; k++) { const a = time * 2 + k * 1.57; ell(c, -14 + Math.cos(a) * 5 - k * 3, Math.sin(a) * 12, 5 - k, 4 - k * 0.6, 'rgba(70,40,120,0.28)'); } }
+      if (boss === 'necro') { ell(c, 0, 0, 24, 24, 'rgba(120,255,160,0.07)'); }
+      // pernas, tronco, ombros
+      ell(c, -2 + sw * 6, -9, 8, 5, leg, OUT); ell(c, -2 - sw * 6, 9, 8, 5, leg, OUT);
+      const bodyW = boss === 'necro' ? 16 : 13, bodyH = boss === 'necro' ? 20 : 18;
+      ell(c, 0, 0, bodyW, bodyH, body, OUT); ell(c, 2, -2, bodyW * 0.55, bodyH * 0.6, shade(body, 18));
+      if (boss === 'swat') { rect(c, -4, -11, 11, 22, '#1b2230', OUT, 3); rect(c, -1, -6, 5, 12, '#3a4a68'); for (const sy of [-1, 1]) rect(c, 6, sy * 8 - 1.5, 5, 3, '#c9a227'); }
+      if (boss === 'fire') { c.strokeStyle = '#ffb02a'; c.lineWidth = 1.8; c.beginPath(); c.moveTo(-6, -8); c.lineTo(0, -2); c.lineTo(-4, 4); c.moveTo(2, -6); c.lineTo(6, 2); c.lineTo(2, 9); c.stroke(); }
+      if (boss === 'electric') { c.fillStyle = '#ffe14a'; c.beginPath(); c.moveTo(1, -9); c.lineTo(-4, 1); c.lineTo(0, 1); c.lineTo(-2, 9); c.lineTo(5, -2); c.lineTo(1, -2); c.closePath(); c.fill(); }
+      if (boss === 'necro') { c.fillStyle = 'rgba(0,0,0,0.25)'; c.beginPath(); c.moveTo(-14, -8); c.quadraticCurveTo(-26, 0, -14, 8); c.fill(); }
+      if (boss === 'twin') { rect(c, -2, -12, 4, 24, shade(body, 40), OUT, 1); }
+      ell(c, 2, -16, 6.5, 5.5, shade(body, -22), OUT); ell(c, 2, 16, 6.5, 5.5, shade(body, -22), OUT);
+      // braços e mãos
+      const armX = boss === 'swat' ? 24 : hx;
+      limb(c, 4, -14, armX + sw * 2 + R, -(boss === 'swat' ? 4 : 8) * X, 6.5, skin2); limb(c, 4, 14, armX - sw * 2 + R, (boss === 'swat' ? 4 : 8) * X, 6.5, skin2);
+      if (boss === 'swat') { rect(c, 10, -2.6, 30, 5.2, '#14171d', OUT, 1.5); rect(c, 30, -3.6, 8, 2.4, '#14171d'); ell(c, armX + sw * 2, -4, 4, 4, '#222a38', OUT); ell(c, armX - sw * 2, 4, 4, 4, '#222a38', OUT); if (z.mode === 'act' && z.kind === 'burst') ell(c, 42, 0, 6, 4, 'rgba(255,225,140,0.95)'); }
+      else if (boss === 'necro') { ell(c, armX + sw * 2, -8 * X, 4, 4, skin2, OUT); ell(c, armX - sw * 2, 8 * X, 4, 4, skin2, OUT); c.strokeStyle = '#5a3a2a'; c.lineWidth = 3; c.beginPath(); c.moveTo(26, 10); c.lineTo(26, -22); c.stroke(); ell(c, 26, -24, 5, 5, 'rgba(120,255,160,' + (0.6 + 0.4 * Math.sin(time * 5)) + ')', OUT); }
+      else if (boss === 'fire') { clawHand(c, armX + sw * 2 + R, -8 * X, 1.5, '#ff7a22'); clawHand(c, armX - sw * 2 + R, 8 * X, 1.5, '#ff7a22'); ell(c, armX + 4, -8 * X, 5, 5, 'rgba(255,160,40,0.55)'); ell(c, armX + 4, 8 * X, 5, 5, 'rgba(255,160,40,0.55)'); }
+      else { clawHand(c, armX + sw * 2 + R, -8 * X, 1.5, shade(skin2, -10)); clawHand(c, armX - sw * 2 + R, 8 * X, 1.5, shade(skin2, -10)); }
+      // cabeça
+      const headC = boss === 'swat' ? '#0f1319' : boss === 'necro' ? '#d8dccb' : boss === 'ice' ? '#d6f2ff' : boss === 'fire' ? '#d4561a' : boss === 'electric' ? '#e8d86a' : boss === 'shadow' || t === 'clone' ? '#1a1030' : shade(skin2, 6);
+      ell(c, 4, 0, 8.8, 9.2, headC, OUT);
+      if (boss === 'swat') { rect(c, 6, -7, 5, 14, '#4a90b8', OUT, 2); ell(c, 0, 0, 8.6, 9, '#222a38', OUT); rect(c, 6, -7, 5, 14, '#4a90b8', OUT, 2); }
+      if (boss === 'necro') { c.fillStyle = '#3a1f52'; c.beginPath(); c.arc(2, 0, 11, Math.PI * 0.5, Math.PI * 1.5); c.fill(); ell(c, 9, -3, 2, 2.4, '#6fff9a'); ell(c, 9, 3, 2, 2.4, '#6fff9a'); rect(c, 11, -2, 2, 4, '#222'); }
+      else if (boss === 'ice') { c.fillStyle = '#ffffff'; for (let k = -2; k <= 2; k++) { c.beginPath(); c.moveTo(1, k * 3.4 - 1.4); c.lineTo(-7 - Math.abs(k) * 1.2, k * 4.4); c.lineTo(1, k * 3.4 + 1.4); c.fill(); } ell(c, 8, -3.6, 1.8, 1.8, '#2a6cff'); ell(c, 8, 3.6, 1.8, 1.8, '#2a6cff'); }
+      else if (boss === 'fire') { for (let k = 0; k < 5; k++) { const fl = 8 + 4 * Math.sin(time * 10 + k); c.fillStyle = k % 2 ? '#ffd23f' : '#ff7a1a'; c.beginPath(); c.moveTo(0, (k - 2) * 3.2 - 2); c.lineTo(-fl - 2, (k - 2) * 4); c.lineTo(0, (k - 2) * 3.2 + 2); c.fill(); } ell(c, 8, -3.6, 1.8, 1.8, '#ffee66'); ell(c, 8, 3.6, 1.8, 1.8, '#ffee66'); ell(c, 11, 0, 2, 2.6, '#3a0c0e'); }
+      else if (boss === 'electric') { c.strokeStyle = '#ffe14a'; c.lineWidth = 2; c.beginPath(); c.moveTo(0, -6); c.lineTo(-7, -9 + Math.sin(time * 20) * 3); c.moveTo(0, 6); c.lineTo(-7, 9 + Math.cos(time * 20) * 3); c.stroke(); ell(c, 8, -3.6, 1.9, 1.9, '#ffffff'); ell(c, 8, 3.6, 1.9, 1.9, '#ffffff'); ell(c, 11, 0, 2, 2.6, '#3a3000'); }
+      else if (boss === 'twin') { c.fillStyle = def.color; c.beginPath(); c.arc(3, 0, 9.4, Math.PI * 0.5, Math.PI * 1.5); c.fill(); ell(c, 8, -3.8, 1.8, 1.8, '#fff'); ell(c, 8, 3.8, 1.8, 1.8, '#fff'); ell(c, 11, 0, 2, 2.8, '#3a0c0e'); ell(c, 8, -3.8, 0.8, 0.8, def.color); ell(c, 8, 3.8, 0.8, 0.8, def.color); }
+      else if (boss === 'shadow' || t === 'clone') { ell(c, 8, -3.4, 2.2, 1.6, '#c07aff'); ell(c, 8, 3.4, 2.2, 1.6, '#c07aff'); ell(c, 8, -3.4, 4.2, 3.4, 'rgba(190,120,255,0.25)'); ell(c, 8, 3.4, 4.2, 3.4, 'rgba(190,120,255,0.25)'); }
+      if (boss === 'swat' && z.shield) { c.fillStyle = 'rgba(120,190,230,0.45)'; c.strokeStyle = '#d8e8f2'; c.lineWidth = 2; rrectS(c, 20, -22, 9, 44, 4); c.fill(); c.stroke(); c.fillStyle = 'rgba(255,255,255,0.4)'; c.fillRect(22, -18, 2.5, 22); c.fillStyle = '#e8e8e8'; c.fillRect(22, 8, 5, 3); }
+      if (z.ward) { c.strokeStyle = 'rgba(160,100,255,' + (0.4 + 0.3 * Math.sin(time * 6)) + ')'; c.lineWidth = 2.5; c.beginPath(); c.arc(0, 0, 25, 0, TAU); c.stroke(); }
+      if (z.enraged) ell(c, 0, 0, 22, 24, 'rgba(255,40,30,0.18)');
     } else if (t === 'brute' || boss) {
       // pernas
       ell(c, -2 + swing * 6, -9, 8, 5, '#2a2320', OUT); ell(c, -2 - swing * 6, 9, 8, 5, '#2a2320', OUT);
