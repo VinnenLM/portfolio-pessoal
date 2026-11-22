@@ -291,8 +291,8 @@
   // ---------- Tutorial guiado ----------
   const TUT = [
     { t: 'Bem-vindo ao Deadfront!', x: 'Sobreviva às ondas de zumbis. Entre elas há uma pausa para você montar a defesa. Este tour rápido mostra como tudo funciona.' },
-    { t: 'Mover', x: 'Use <b>W A S D</b> (ou as setas). No celular, use o joystick esquerdo.' },
-    { t: 'Mirar e atirar', x: 'Mire com o <b>mouse</b> e atire com o <b>clique esquerdo</b> (ou segure Espaço). No celular, arraste o lado direito da tela. A mira automática pode ser ligada na pausa. Paredes e objetos altos bloqueiam tiros; mesas e caixas baixas não.' },
+    { t: 'Mover', x: 'Use <b>W A S D</b> (ou as setas) para andar. No celular, veja a dica abaixo.', tx: '<b>Toque e arraste o dedo na metade ESQUERDA da tela</b> para andar. Um joystick aparece onde você tocar; quanto mais longe arrastar, mais rápido você anda. Solte para parar.', tsel: '#zoneL' },
+    { t: 'Mirar e atirar', x: 'Mire com o <b>mouse</b> e atire com o <b>clique esquerdo</b> (ou segure Espaço). A mira automática pode ser ligada na pausa. Paredes e objetos altos bloqueiam tiros; mesas e caixas baixas não.', tx: '<b>Toque e arraste o dedo na metade DIREITA da tela</b>: a arma mira para o lado que você arrastar e atira enquanto o dedo estiver puxado. Dá para andar com um dedo e atirar com o outro ao mesmo tempo. A mira automática (na pausa) mira nos zumbis por você. Paredes e objetos altos bloqueiam tiros; mesas baixas não.', tsel: '#zoneR' },
     { t: 'Vida', x: 'Se a barra chegar a zero, a fase acaba. Zumbis te acertam de perto, e os cuspidores atacam de longe.', sel: '.bar.hp' },
     { t: 'Armas', x: '<b>Q</b> troca de arma (ou números 1–9). <b>R</b> recarrega e mostra uma barrinha. A munição reserva é limitada; compre armas novas na loja e pegue drops no chão.', sel: '#slot-weapon' },
     { t: 'Barricadas', x: '<b>E</b> constrói uma barricada na porta ou à sua frente. <b>Z</b> troca o material. Zumbis quebram barricadas, então reforce sempre. Sucata (🔧) vem de zumbis mortos.', sel: '#slot-build' },
@@ -315,9 +315,10 @@
   }
   function tutShow() {
     const st = TUT[tutI], w = tutEls(), hole = $('tut-hole'), card = $('tut-card');
-    $('tut-n').textContent = (tutI + 1) + ' / ' + TUT.length; $('tut-t').textContent = st.t; $('tut-x').innerHTML = st.x;
+    const stSel = (touch && st.tsel) || st.sel, stTxt = (touch && st.tx) || st.x;
+    $('tut-n').textContent = (tutI + 1) + ' / ' + TUT.length; $('tut-t').textContent = st.t; $('tut-x').innerHTML = stTxt;
     $('tut-next').textContent = tutI === TUT.length - 1 ? 'JOGAR' : 'PRÓXIMO'; $('tut-prev').style.visibility = tutI === 0 ? 'hidden' : 'visible';
-    const el = st.sel ? document.querySelector(st.sel) : null; const r = el ? el.getBoundingClientRect() : null;
+    const el = stSel ? document.querySelector(stSel) : null; const r = el ? el.getBoundingClientRect() : null;
     if (r && r.width > 0) {
       const pad = 6; hole.style.display = 'block';
       hole.style.left = (r.left - pad) + 'px'; hole.style.top = (r.top - pad) + 'px'; hole.style.width = (r.width + pad * 2) + 'px'; hole.style.height = (r.height + pad * 2) + 'px';
@@ -325,10 +326,16 @@
       card.style.top = r.top > innerHeight / 2 ? '14%' : 'auto'; card.style.bottom = r.top > innerHeight / 2 ? 'auto' : '12%';
     } else { hole.style.display = 'none'; w.classList.add('dim'); card.style.top = '50%'; card.style.bottom = 'auto'; }
     card.style.transform = (r && r.width > 0) ? 'translateX(-50%)' : 'translate(-50%,-50%)';
+    card.style.width = '';
+    if (r && r.width > innerWidth * 0.35) { // zona grande (joystick): card do lado oposto
+      const left = r.left + r.width / 2 < innerWidth / 2;
+      card.style.width = 'min(400px, 46vw)'; card.style.top = '50%'; card.style.bottom = 'auto';
+      card.style.left = left ? '74%' : '26%'; card.style.transform = 'translate(-50%,-50%)';
+    } else card.style.left = '50%';
   }
   function tutGo(d) {
     let n = tutI + d;
-    while (n >= 0 && n < TUT.length && TUT[n].sel) { const e = document.querySelector(TUT[n].sel); if (e && e.getBoundingClientRect().width > 0) break; n += d || 1; }
+    while (n >= 0 && n < TUT.length && ((touch && TUT[n].tsel) || TUT[n].sel)) { const e = document.querySelector((touch && TUT[n].tsel) || TUT[n].sel); if (e && e.getBoundingClientRect().width > 0) break; n += d || 1; }
     if (n >= TUT.length) { closeTut(); return; }
     if (n < 0) return; tutI = n; tutShow();
   }
