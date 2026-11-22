@@ -1914,9 +1914,13 @@
         if (L.g === 'holy') { ctx.fillStyle = '#d4a017'; ctx.fillRect(-1, -1, 2, 8); ctx.fillRect(-3.5, 1.5, 7, 2); }
         else { ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.beginPath(); ctx.moveTo(-6, 2); ctx.lineTo(6, 2); ctx.moveTo(0, -4); ctx.lineTo(0, 8); ctx.stroke(); }
       } else if (k === 'scrap') {
-        ctx.strokeStyle = '#e8c07a'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(-6, 6); ctx.lineTo(4, -4); ctx.stroke(); ctx.lineCap = 'butt';
-        ctx.fillStyle = '#c9ccd0'; ctx.beginPath(); ctx.arc(5, -5, 4.5, 0, 6.283); ctx.fill(); ctx.fillStyle = '#7a5a2e'; ctx.beginPath(); ctx.arc(5, -5, 1.8, 0, 6.283); ctx.fill();
-        ctx.fillStyle = '#9aa0a6'; ctx.fillRect(-9, 3, 6, 5);
+        ctx.save(); ctx.rotate(-0.785);
+        ctx.fillStyle = '#c4cad0'; ctx.strokeStyle = '#6a7279'; ctx.lineWidth = 1.2;
+        rrect(ctx, -2.8, -4, 5.6, 17, 2.5); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, -8, 6.2, 0, 6.283); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#7a5a2e'; ctx.fillRect(-2.6, -15, 5.2, 8);
+        ctx.beginPath(); ctx.arc(0, 11, 2.3, 0, 6.283); ctx.fillStyle = '#7a5a2e'; ctx.fill();
+        ctx.restore();
       } else if (k === 'coins') {
         ctx.fillStyle = '#ffd86b'; ctx.strokeStyle = '#a8761a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, 8, 0, 6.283); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#a8761a'; ctx.font = 'bold 11px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText('$', 0, 1);
       } else if (k === 'weapon') {
