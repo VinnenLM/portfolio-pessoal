@@ -1374,7 +1374,7 @@
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       const psx = (P.x - camera.x + shx) * s, psy = (P.y - camera.y + shy) * s;
       const R1 = 230 * s * (camera.s > 0 ? 1 : 1), R2 = 620 * s;
-      if (save.light !== false) drawLighting(psx, psy, shx, shy);
+      if (save.light !== false && !DF.noLight) drawLighting(psx, psy, shx, shy);
       else {
         const g = ctx.createRadialGradient(psx, psy, R1, psx, psy, R2);
         g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,8,' + lv.theme.dark + ')');
@@ -1464,12 +1464,8 @@
       for (const g of G.grenFly) if (g.t >= 0 && g.type === 'fire') glow(g.x, g.y, 70, 0.6);
       for (const z of G.zombies) if (z.burnT > 0) glow(z.x, z.y, 70, 0.5);
       for (const zp of G.zaps) glow(zp.x1, zp.y1, 90, 0.7);
+      if (!DF.flatSprites) { lctx.globalCompositeOperation = 'source-over'; const wg = lctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s); wg.addColorStop(0, 'rgba(255,225,170,0.13)'); wg.addColorStop(1, 'rgba(255,225,170,0)'); lctx.fillStyle = wg; lctx.beginPath(); pts.forEach((p, k) => (k ? lctx.lineTo(p[0], p[1]) : lctx.moveTo(p[0], p[1]))); lctx.closePath(); lctx.fill(); }
       ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'low'; ctx.drawImage(lightCv, 0, 0, canvas.width, canvas.height); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      // brilho quente da lanterna (soma de luz)
-      if (!DF.flatSprites) { ctx.save(); ctx.globalCompositeOperation = 'lighter';
-      const wg = ctx.createRadialGradient(psx, psy, 10 * s, psx, psy, CONE * s); wg.addColorStop(0, 'rgba(255,236,190,0.16)'); wg.addColorStop(1, 'rgba(255,236,190,0)');
-      ctx.fillStyle = wg; ctx.beginPath(); pts.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]))); ctx.closePath(); ctx.fill();
-      ctx.restore(); }
     }
     function drawBar(x, y, w, h, pct, color, alpha) {
       ctx.globalAlpha = alpha; ctx.fillStyle = 'rgba(0,0,0,0.65)'; ctx.fillRect(x - 1, y - 1, w + 2, h + 2);

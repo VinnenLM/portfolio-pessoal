@@ -137,8 +137,8 @@
     (function loop() { n++; const now = performance.now();
       if (now - t0 >= 1000) {
         const fps = Math.round(n * 1000 / (now - t0)); n = 0; t0 = now;
-        if (save.fps) $('fps').textContent = fps + ' FPS' + (DF.lowRes ? ' (leve+)' : DF.flatSprites ? ' (leve)' : '');
-        if (inGame && !paused) { if (fps < 40) slow++; else slow = 0; if (slow >= 3) { slow = 0; if (!DF.flatSprites) DF.flatSprites = true; else if (!DF.lowRes) { DF.lowRes = true; if (DF.resizeGame) DF.resizeGame(); } } }
+        if (save.fps) $('fps').textContent = fps + ' FPS' + (DF.noLight ? ' (leve++)' : DF.lowRes ? ' (leve+)' : DF.flatSprites ? ' (leve)' : '');
+        if (inGame && !paused) { if (fps < 40) slow++; else slow = 0; if (slow >= 3) { slow = 0; if (!DF.flatSprites) DF.flatSprites = true; else if (!DF.lowRes) { DF.lowRes = true; if (DF.resizeGame) DF.resizeGame(); } else DF.noLight = true; } }
       }
       requestAnimationFrame(loop); })();
   }
@@ -238,6 +238,8 @@
     wIco: $('w-ico'), wName: $('w-name'), wAmmo: $('w-ammo'), reload: $('reload-fill'), bName: $('b-name'), bCost: $('b-cost'), mIco: $('m-ico'),
     hCount: $('h-count'), tIco: $('t-ico'), tName: $('t-name'), tCount: $('t-count'), slotBuild: $('slot-build'), slotHeal: $('slot-heal'), slotTrap: $('slot-trap'), slotMat: $('slot-mat'), slotTower: $('slot-tower'), slotGren: $('slot-gren'), kIco: $('k-ico'), kName: $('k-name'), kSub: $('k-sub'), kCd: $('k-cd'), slotSkill: $('slot-skill'), gIco: $('g-ico'), gName: $('g-name'), gCount: $('g-count'), warn: $('warn'), obj: $('obj-info'), twIco: $('tw-ico'), twName: $('tw-name'), twCost: $('tw-cost')
   };
+  function setTxt(el, v) { v = String(v); if (el.textContent !== v) el.textContent = v; }
+  function setIco(el, key, fn) { if (el.dataset.k !== key) { el.dataset.k = key; el.innerHTML = fn(); } }
   function updateHud(G) {
     const now = performance.now(); if (now - lastHud < 90) return; lastHud = now;
     const h = G.hud();
@@ -249,15 +251,15 @@
     else if (h.waveState === 'break' && h.state === 'play') { els.count.classList.remove('hidden'); els.count.textContent = (h.wave === 0 ? 'Primeira onda' : 'Próxima onda') + ' em ' + Math.ceil(h.breakT) + 's'; els.skip.classList.remove('hidden'); }
     else { els.count.classList.add('hidden'); els.skip.classList.add('hidden'); }
     if (h.boss) { els.bossBar.classList.remove('hidden'); els.bossName.textContent = h.boss.name; els.bossFill.style.width = (h.boss.hp / h.boss.max * 100) + '%'; } else els.bossBar.classList.add('hidden');
-    els.wIco.innerHTML = DF.weaponSVG(h.wid); els.wName.textContent = h.weapon; els.wAmmo.textContent = h.mag + '/' + (h.reserve === Infinity ? '∞' : h.reserve);
+    setIco(els.wIco, h.wid, () => DF.weaponSVG(h.wid)); els.wName.textContent = h.weapon; els.wAmmo.textContent = h.mag + '/' + (h.reserve === Infinity ? '∞' : h.reserve);
     const rb = els.reload.parentElement; if (h.reload >= 0) { rb.style.display = 'block'; els.reload.style.width = (h.reload * 100) + '%'; } else rb.style.display = 'none';
-    els.bName.textContent = h.mat.name; els.bCost.textContent = h.mat.cost + ' 🔧'; els.mIco.innerHTML = DF.matSVG(h.matId);
+    els.bName.textContent = h.mat.name; els.bCost.textContent = h.mat.cost + ' 🔧'; setIco(els.mIco, h.matId, () => DF.matSVG(h.matId));
     els.slotBuild.classList.toggle('glow', h.nearDoor); els.slotBuild.classList.toggle('disabled', h.scrap < h.mat.cost);
     els.hCount.textContent = 'x' + h.medkit; els.slotHeal.classList.toggle('disabled', h.medkit <= 0);
-    els.tIco.innerHTML = DF.trapSVG(h.trapId); els.tName.textContent = h.trap.name.length > 9 ? 'Urso' : h.trap.name; els.tCount.textContent = 'x' + h.trapCount; els.slotTrap.classList.toggle('disabled', h.trapCount <= 0);
-    if (h.towerInfo) { els.twIco.innerHTML = DF.towerSVG(h.towerInfo.id); els.twName.textContent = h.towerInfo.name.length > 9 ? h.towerInfo.name.slice(0, 8) + '.' : h.towerInfo.name; els.twCost.textContent = h.towerInfo.cost + '🔧 ' + h.towerInfo.count + '/' + h.towerInfo.max; els.slotTower.classList.toggle('disabled', h.scrap < h.towerInfo.cost || h.towerInfo.count >= h.towerInfo.max); }
+    setIco(els.tIco, h.trapId, () => DF.trapSVG(h.trapId)); els.tName.textContent = h.trap.name.length > 9 ? 'Urso' : h.trap.name; els.tCount.textContent = 'x' + h.trapCount; els.slotTrap.classList.toggle('disabled', h.trapCount <= 0);
+    if (h.towerInfo) { setIco(els.twIco, h.towerInfo.id, () => DF.towerSVG(h.towerInfo.id)); els.twName.textContent = h.towerInfo.name.length > 9 ? h.towerInfo.name.slice(0, 8) + '.' : h.towerInfo.name; els.twCost.textContent = h.towerInfo.cost + '🔧 ' + h.towerInfo.count + '/' + h.towerInfo.max; els.slotTower.classList.toggle('disabled', h.scrap < h.towerInfo.cost || h.towerInfo.count >= h.towerInfo.max); }
     else { els.twIco.textContent = '🗼'; els.twName.textContent = 'Torre'; els.twCost.textContent = 'na loja'; els.slotTower.classList.add('disabled'); }
-    els.gIco.innerHTML = DF.grenSVG(h.gren.id); els.gName.textContent = h.gren.name; els.gCount.textContent = 'x' + h.gren.count; els.slotGren.classList.toggle('disabled', h.gren.count <= 0 && !Object.values(h.gren.all).some((n) => n > 0));
+    setIco(els.gIco, h.gren.id, () => DF.grenSVG(h.gren.id)); els.gName.textContent = h.gren.name; els.gCount.textContent = 'x' + h.gren.count; els.slotGren.classList.toggle('disabled', h.gren.count <= 0 && !Object.values(h.gren.all).some((n) => n > 0));
     els.warn.classList.toggle('hidden', !h.outside);
     if (els.kIco.dataset.c !== h.cls.id) { els.kIco.dataset.c = h.cls.id; els.kIco.innerHTML = DF.classSVG(h.cls.id); }
     els.kName.textContent = h.cls.skill.length > 10 ? h.cls.skill.split(' ')[0] : h.cls.skill;
