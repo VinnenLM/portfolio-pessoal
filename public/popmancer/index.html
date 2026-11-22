@@ -356,7 +356,7 @@ const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, saved
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
-let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], strikes = [], muteBtn = { x: 0, y: 0, w: 0, h: 0 };
+let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
 const P = { x: 0, y: 0, w: 22, h: 34, vy: 0, face: 1, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, anim: 0,
             sq: 0, lean: 0, walking: false, dead: null };
 let coinTaps = [];
@@ -458,6 +458,7 @@ const sfx = {
   spit:  () => { beep(400, .18, 'sine', .05, -260); noise(.12, 900, 300, .04); },
   shield: () => { beep(900, .25, 'triangle', .06, -600); noise(.2, 3000, 800, .05); },
   boss:  () => { beep(150, .22, 'sawtooth', .07, -70); noise(.15, 600, 150, .06); },
+  chime: () => { [1319, 1760, 2349].forEach((f, i) => beep(f, .35, 'sine', .045, 0, i * .08)); },
   zap:   () => { noise(.4, 7000, 600, .12); beep(1900, .25, 'sawtooth', .04, -1500); beep(90, .3, 'square', .05, -40, .02); },
   freeze: () => { noise(1.2, 3500, 500, .16); [1568, 2093, 2637, 3136].forEach((f, i) => beep(f, .5, 'sine', .035, 0, .05 + i * .09)); },
   clear: () => [523, 659, 784, 1046, 1318].forEach((f, i) => beep(f, .22, 'triangle', .06, 0, i * .11)),
@@ -592,7 +593,7 @@ function startLevel(i) {
   flyers = (L.flyers || []).map(d => mkFlyer(d.k, d.x, d.y));
   blocks = L.blocks || [];
   ladders = (L.ladders || []).map(l => ({ x: l.x, y: l.y, w: 26, h: l.h }));
-  shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = [];
+  shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   Object.assign(P, { x: W / 2 - P.w / 2, y: FLOOR - P.h, vy: 0, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, face: 1, sq: 0, lean: 0, walking: false, dead: null });
   S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0;
   S.shield = 0; S.freeze = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
@@ -611,7 +612,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; S.perk = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = [];
+  S.state = 'menu'; S.perk = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -751,6 +752,10 @@ function updateShots() {
         hitFlyer(f, w.dmg || 1, sh);
         if (!w.pierce) { shots.splice(i, 1); break; }
       }
+    }
+    if (wisp && shots[i] === sh) {                          // fada dourada
+      const cy = clamp(wispY(), sh.top, sh.bottom), dx = sh.x - wisp.x, dy = cy - wispY();
+      if (dx * dx + dy * dy <= (wisp.r + 3) * (wisp.r + 3)) { killWisp(sh); if (!w.pierce) { shots.splice(i, 1); } }
     }
   }
 }
@@ -1060,6 +1065,32 @@ function pickItem(it) {
   else if (it.type === 'life') S.lives = Math.min(5, S.lives + 1);
 }
 
+// Fada Dourada: se o jogador demora na fase, uma fadinha cruza a tela em linha reta; derrubá-la dá um bônus garantido
+function updateWisp() {
+  if (!wisp) {
+    if (++wispT >= 1800 && S.state === 'play') {
+      wispT = 0; const dir = Math.random() < .5 ? 1 : -1;
+      wisp = { x: dir > 0 ? -24 : W + 24, y: rnd(110, 300), vx: dir * 2.6, r: 13, t: 0, life: 840, p: Math.random() * TAU, in: false, flash: 0 };
+      sfx.chime(); popup(W / 2, 110, 'Uma fada mágica apareceu!', '#ffe27a', 16);
+    }
+    return;
+  }
+  const w = wisp; w.t++; w.p += .2; w.x += w.vx;
+  if (w.t > w.life) w.in = false; else if (w.x > w.r && w.x < W - w.r) w.in = true;
+  if (w.in) { if (w.x < w.r) { w.x = w.r; w.vx = Math.abs(w.vx); } else if (w.x > W - w.r) { w.x = W - w.r; w.vx = -Math.abs(w.vx); } }
+  if ((w.t > w.life && (w.x < -30 || w.x > W + 30)) || w.t > w.life + 400) { wisp = null; return; }
+  if (S.tick % 2 === 0) emit({ kind: 'spark', x: w.x - Math.sign(w.vx) * 8, y: w.y + Math.sin(w.p) * 3, vx: rnd(-.3, .3), vy: rnd(-.2, .5), g: 0, life: 22, c: Math.random() < .5 ? '#fff3a0' : '#ffd23d', r: 1.8 });
+  if (w.t > w.life - 120 && S.tick % 4 === 0) w.blink = !w.blink; else if (w.t <= w.life - 120) w.blink = false;
+}
+function wispY() { return wisp.y + Math.sin(wisp.p) * 3; }
+function killWisp(sh) {
+  const w = wisp, y = wispY(); wisp = null; S.score += 500; sfx.pop(3); sfx.chime();
+  burst(w.x, y, '#ffe27a', 16); sparks(w.x, y, '#fff3a0', 18, 6); ring(w.x, y, 46, '#ffe27a', 22, 3); S.flashA = Math.max(S.flashA, .25); S.flashC = '255,240,160';
+  popup(w.x, y - 16, 'FADA! +500', '#ffe27a', 15);
+  items.push({ x: w.x, y, vy: -4, vx: 0, type: weightedDrop(), t: 0 });
+  for (let i = 0; i < 6; i++) items.push({ x: w.x, y, vy: rnd(-6, -3), vx: rnd(-2.5, 2.5), type: 'coin', val: 2, t: 0 });
+}
+
 // Ataques em tela cheia (Onda de Fogo, Tempestade, Chuva de Meteoros): 1 de dano em tudo que está no mapa
 function startStrike(kind) {
   const all = slimes.concat(flyers), n = all.length;
@@ -1245,7 +1276,7 @@ function step() {
       if (S.slow > 0) S.slow--;
       updatePlayer(); handleFire(); updateShots();
       if (S.state !== 'play') break;
-      updateSlimes(); updateFlyers(); updateStrikes(); updatePerks(); updateGlobs(); updateFx(); updateItems(); updateParts();
+      updateSlimes(); updateFlyers(); updateWisp(); updateStrikes(); updatePerks(); updateGlobs(); updateFx(); updateItems(); updateParts();
       if (playerHit()) { hurt(); if (S.state !== 'play') break; }
       if (!slimes.length && !flyers.length) {
         S.state = 'clear'; S.timer = 200; sfx.clear();
@@ -1816,6 +1847,12 @@ function drawFlyers() {
     if (f.flash > 0 && (f.flash >> 1) % 2) ctx.globalAlpha = .55;
     if (f.k === 'bat') drawBat(f, t); else if (f.k === 'ghost') drawGhost(f, t); else drawPhoenix(f, t);
     ctx.restore();
+  }
+  if (wisp && !wisp.blink) {
+    const w = wisp, y = wispY(), fl = Math.sin(S.tick * .6), d = w.vx > 0 ? 1 : -1;
+    ctx.save(); ctx.translate(w.x, y); ctx.globalCompositeOperation = 'lighter'; glow(0, 0, 30, 'rgba(255,225,120,.55)'); ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(-3 * d, -6, 4, 9 + fl * 3, -.5 * d, 0, TAU); ctx.ellipse(-8 * d, -3, 3.4, 7 - fl * 3, -1 * d, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#ffd23d'; circle(0, 0, 7); ctx.fillStyle = '#fff6b0'; circle(-1.5, -1.5, 3.4); ctx.fillStyle = '#7a4a00'; circle(2 * d, -1, 1); ctx.restore();
   }
 }
 function drawBat(f, t) {
@@ -2995,6 +3032,12 @@ function drawFlyers() {
     if (f.k === 'bat') batP(X, Y, f, t); else if (f.k === 'ghost') ghostP(X, Y, f, t); else phoenixP(X, Y, f, t);
     ctx.restore();
   }
+  if (wisp && !wisp.blink) {
+    const X = Math.round(wisp.x / 2), Y = Math.round(wispY() / 2), d = wisp.vx > 0 ? 1 : -1, fl = (S.tick >> 2) % 2;
+    ctx.globalAlpha = .3; disc(X, Y, 10, '#ffe27a'); ctx.globalAlpha = 1;
+    rc(X - 4 * d - 1, Y - 6 - fl, 3, 5 + fl, '#ffffff'); rc(X - 7 * d - 1, Y - 4 + fl, 3, 4, '#dfe9ff');
+    disc(X, Y, 4, '#b07a00'); disc(X, Y, 3, '#ffd23d'); rc(X - 1, Y - 2, 2, 1, '#fff6b0'); rc(X + d, Y - 1, 1, 1, '#4a2a00');
+  }
 }
 function lockP(cx, cy) { rc(cx - 3, cy - 6, 1, 5, '#e0e0e0'); rc(cx + 3, cy - 6, 1, 5, '#e0e0e0'); rc(cx - 3, cy - 7, 7, 1, '#e0e0e0'); rc(cx - 5, cy - 1, 11, 8, '#7a5a00'); rc(cx - 4, cy, 9, 6, '#ffd43b'); rc(cx, cy + 2, 1, 2, '#7a5a00'); }
 function drawMaps() {
@@ -3179,7 +3222,7 @@ requestAnimationFrame(frame);
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
   MAPS, openMaps, pickMap, mkFlyer, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
-  get fires() { return fires; }, get strikes() { return strikes; },
+  get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
   get menuBtns() { return menuBtns; } };
