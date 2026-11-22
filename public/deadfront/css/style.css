@@ -138,3 +138,8 @@ body.touch .s-key { display: none; }
 .class-chip .cico svg { width: 22px; height: 22px; display: block; }
 #class-desc { margin: 0; max-width: 760px; text-align: center; font-size: 13px; color: #b9c4b0; }
 #slot-skill .reload-bar { display: block; } #slot-skill .reload-bar b { background: #ffd86b; }
+#shop-list { grid-auto-rows: 1fr; }
+#shop-list .card > .btn:first-of-type, #level-grid .card > .btn:first-of-type { margin-top: auto; }
+.card .wbig, .card .tbig { height: 44px; display: flex; align-items: center; }
+.card .wbig svg { height: 44px; width: auto; max-width: 100%; }
+.card .tbig svg { height: 48px; width: 48px; } .card .tbig { height: 50px; }
