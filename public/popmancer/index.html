@@ -170,7 +170,7 @@ const SKINS = [
   { id: 'sombra', name: 'Mago Sombra', price: 600, body: '#3b2f63', legs: '#15101f', hat: '#1a1330', style: 'hood', skin: '#b8b8d0', start: 'sticky', perk: { name: 'Passo das Sombras', lines: ['Aumenta em 20% a velocidade', 'de movimentação.', 'Começa com Raio Persistente.'] } },
   { id: 'lumi', name: 'Clérigo da Luz', price: 650, body: '#fff3bf', legs: '#7a5a1a', hat: '#fab005', style: 'wizard', sn: 'Clérigo Luz', skin: '#ffe8cc', perk: { name: 'Luz Purificadora', lines: ['Ao estourar um slime, 10% de chance', 'de explosão de luz nos próximos.', 'Visitantes chegam 10 s mais cedo.'] } },
   { id: 'xama', name: 'Xamã', price: 250, body: '#d9480f', legs: '#4a3520', hat: '#66a80f', style: 'druid', skin: '#e0a878', perk: { name: 'Espírito Guardião', lines: ['Começa cada fase com uma proteção', 'que bloqueia um golpe.'] } },
-  { id: 'runo', name: 'Mago Rúnico', price: 400, body: '#364fc7', legs: '#1a2255', hat: '#91a7ff', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Runas Antigas', lines: ['Aumenta em 30% a duração', 'de todos os itens de poder.'] } },
+  { id: 'runo', name: 'Mago Rúnico', price: 400, body: '#364fc7', legs: '#1a2255', hat: '#91a7ff', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Runas de Destruição', lines: ['Fogo, Tempestade e Meteoros', 'caem 3x mais dos slimes.'] } },
   { id: 'magmaista', name: 'Mago Vulcão', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.', 'Meteoros deixam fogo no chão.'] } },
   { id: 'aero', name: 'Mago do Vento', price: 850, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', sn: 'Mago Vento', skin: '#ffe8d0', start: 'gun', perk: { name: 'Passos de Vento', lines: ['Pula 25% mais alto.', 'Começa com Mísseis Mágicos.'] } },
   { id: 'sangue', name: 'Cultista', price: 500, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', perk: { name: 'Último Sacrifício', lines: ['Começa o jogo com 4 vidas.', 'Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.'] } },
@@ -465,7 +465,7 @@ const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
 const ropeNow = () => ROPES.find(k => k.id === S.rope) || ROPES[0];
 // bônus passivos dos magos
 const is = id => S.skin === id;
-const durMul = () => (is('bruxa') ? 1.5 : 1) * (is('runo') ? 1.3 : 1);
+const durMul = () => (is('bruxa') ? 1.5 : 1);
 const freezeMul = () => durMul() * (is('crio') ? 1.5 : 1);     // Criomante: nevasca +50%          // duração de escudo/nevasca/relógio
 const clockMul = () => durMul() * (is('crono') ? 1.5 : 1);
 const slowMul = () => (is('druida') ? 0 : 1) * (is('geo') ? .7 : 1);            // tempo de lentidão
@@ -852,10 +852,12 @@ function updateShots() {
   }
 }
 
+const STRIKE_DROP = { fire: 1, bolt: 1, meteor: 1 };
+const dropW = d => d[1] * (is('runo') && STRIKE_DROP[d[0]] ? 3 : 1);       // Mago Rúnico: ataques de tela cheia caem 3x mais
 function weightedDrop() {
-  let t = 0; for (const d of DROPS) t += d[1];
+  let t = 0; for (const d of DROPS) t += dropW(d);
   let r = Math.random() * t;
-  for (const d of DROPS) { r -= d[1]; if (r <= 0) return d[0]; }
+  for (const d of DROPS) { r -= dropW(d); if (r <= 0) return d[0]; }
   return DROPS[0][0];
 }
 
@@ -3587,7 +3589,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  startTutorial, endTutorial, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  startTutorial, endTutorial, weightedDrop, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
