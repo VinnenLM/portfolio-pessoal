@@ -222,7 +222,8 @@
   function create(opts) {
     const lv = DF.LEVELS[opts.level];
     const save = opts.save;
-    const endless = !!opts.endless;
+    const rush = !!opts.rush;
+    const endless = !!opts.endless || rush;
     const canvas = opts.canvas;
     const ctx = canvas.getContext('2d');
     const map = buildMap(lv);
@@ -840,7 +841,7 @@
         x = (sp.x + 0.5) * TILE + rand(-10, 10); y = (sp.y + 0.5) * TILE + rand(-10, 10);
       }
       const waveMul = mission ? 1 + 0.055 * mission.idx : endless ? 1 + 0.07 * (Math.max(1, G.wave) - 1) + G.time / 300 : 1 + 0.06 * (Math.max(1, G.wave) - 1);
-      const hp = d.boss ? d.hp : Math.round(d.hp * lv.hpScale * waveMul);
+      const hp = d.boss ? Math.round(d.hp * (rush ? 1 + 0.12 * (Math.max(1, G.wave) - 1) : 1)) : Math.round(d.hp * lv.hpScale * waveMul);
       const z = {
         id: G.idc++, type: typeId, def: d, x, y, r: d.r, hp, max: hp, speed: d.speed * rand(0.92, 1.1) * (endless && !d.boss ? 1 + Math.min(0.35, G.time / 900) : 1),
         atkT: rand(0, 0.5), barT: 0, flash: 0, rootT: 0, slowT: 0, born: 0.35, losT: rand(0, 0.2), canSee: false,
@@ -850,7 +851,25 @@
       if (d.boss) { G.bossAlive = true; G.boss = z; msg('⚠ ' + d.name + ' chegou!', '#ff5a5a'); sfx('boss'); }
       return z;
     }
+    const RUSH_BOSSES = ['boss_smasher', 'boss_charger', 'boss_spitter', 'boss_mega'];
+    function composeRush(w) {
+      const k = w - 1, n = Math.round((3 + k * 1.4) * lv.countScale);
+      const pool = [['walker', 10], ['runner', k >= 1 ? 4 : 0], ['spitter', k >= 2 ? 2 : 0], ['bomber', k >= 2 ? 1.5 : 0], ['brute', k >= 3 ? 1.5 : 0], ['carrier', k >= 4 ? 1.2 : 0]].filter((p) => p[1] > 0);
+      const tot = pool.reduce((a, p) => a + p[1], 0), q = [];
+      for (let i = 0; i < n; i++) { let r = Math.random() * tot, t = 'walker'; for (const [id, wgt] of pool) { r -= wgt; if (r <= 0) { t = id; break; } } q.push(t); }
+      q.unshift(RUSH_BOSSES[k % RUSH_BOSSES.length]);
+      return q;
+    }
+    function rushBonus() {
+      const k = G.wave;
+      const heal = Math.round(P.maxHp * 0.5); P.hp = Math.min(P.maxHp, P.hp + heal);
+      for (const w2 of P.weapons) { if (w2.id === 'pistol' || w2.reserve === Infinity) continue; w2.reserve += Math.round(DF.WEAPONS[w2.id].reserve * 0.3); }
+      const sc = 60 + 15 * k; P.scrap += sc; G.scrapGained += sc; P.inv.medkit += 1;
+      const co = 15 + 5 * k; G.bonusCoins += co;
+      msg('Bônus do chefe: +' + sc + ' sucata, +' + co + ' moedas, vida e munição', '#ffd27a');
+    }
     function composeWave(w) {
+      if (rush) return composeRush(w);
       const N = lv.waves; const li = opts.level;
       const count = Math.round((6 + w * 3.2) * lv.countScale);
       const wt = { walker: 10, runner: (w >= 2 || li >= 1) ? 4 + w : 0, spitter: (w >= 3 || li >= 2) ? 2 + w / 2 : 0, brute: (w >= 4 || (li >= 2 && w >= 3)) ? 1.2 + li * 0.4 : 0, bomber: (w >= 3 || (li >= 1 && w >= 2)) ? 1.2 + w / 3 : 0, carrier: (w >= 4 || (li >= 2 && w >= 3)) ? 1 + w / 3.5 : 0 };
@@ -864,6 +883,7 @@
     }
     function startWave() {
       G.wave++; G.waveState = 'fight'; G.spawnQ = composeWave(G.wave); G.spawnT = 0.5;
+      if (rush) { const bn = DF.ZOMBIES[RUSH_BOSSES[(G.wave - 1) % RUSH_BOSSES.length]].name; msg('CHEFE ' + G.wave + ': ' + bn, '#ff5a5a'); sfx('wave'); return; }
       if (endless) { msg('Onda ' + G.wave + (G.wave % 5 === 0 ? ' — CHEFE!' : ''), G.wave % 5 === 0 ? '#ff5a5a' : '#fff'); sfx('wave'); return; }
       msg(G.wave === lv.waves ? 'ONDA FINAL!' : 'Onda ' + G.wave + ' de ' + lv.waves, G.wave === lv.waves ? '#ff5a5a' : '#fff'); sfx('wave');
     }
@@ -872,7 +892,7 @@
       G.kills++; const sc = Math.round((z.def.scrap + rint(0, 1)) * (1 + 0.25 * pk('scrap'))); P.scrap += sc; G.scrapGained += sc;
       text(z.x, z.y - z.r - 14, '+' + sc, '#e8c07a'); blood(z.x, z.y, z.boss ? 40 : 12, z.type === 'spitter' ? '#3a8a6a' : '#6f1114', z.boss ? 260 : 150);
       sfx(z.boss ? 'bossdie' : 'die');
-      if (z.boss) { G.bossAlive = false; G.boss = null; G.bossDead = true; G.shake = 14; msg('Chefe derrotado! Pegue os itens!', '#7be07a'); dropBossLoot(z.x, z.y); }
+      if (z.boss) { G.bossKills = (G.bossKills || 0) + 1; G.bossAlive = false; G.boss = null; G.bossDead = true; G.shake = 14; msg('Chefe derrotado! Pegue os itens!', '#7be07a'); dropBossLoot(z.x, z.y); }
       if (z.def.bomb) bombBlast(z);
       if (z.def.brood) { for (let k = 0; k < 6; k++) spawnZombie('worm', { x: z.x + rand(-20, 20), y: z.y + rand(-20, 20) }); msg('Vermes!', '#e8a0a0'); }
       decal(z.x, z.y, z.boss ? 50 : z.r * 1.7, z.type === 'spitter' ? 'rgba(40,120,80,0.55)' : z.type === 'worm' ? 'rgba(150,90,90,0.5)' : 'rgba(110,14,18,0.6)');
@@ -1279,7 +1299,7 @@
           }
           if (!G.spawnQ.length && G.zombies.length === 0) {
             if (!endless && G.wave >= lv.waves) { if (!G.bossDead || G.bossLootT <= 0 || !G.loot.some((l) => l.boss)) { G.state = 'won'; G.endT = 1.8; msg('VITÓRIA!', '#7be07a'); sfx('win'); } }
-            else { G.waveState = 'break'; G.breakT = endless ? 8 : 12; const bonus = 12 + 4 * G.wave; P.scrap += bonus; G.scrapGained += bonus; msg('Onda ' + G.wave + ' concluída! +' + bonus + ' sucata', '#7be07a'); sfx('wavedone'); if (endless && (G.wave % 3 === 0 || G.wave % 5 === 0)) offerPerk(); }
+            else { G.waveState = 'break'; G.breakT = rush ? 12 : endless ? 8 : 12; const bonus = 12 + 4 * G.wave; P.scrap += bonus; G.scrapGained += bonus; msg('Onda ' + G.wave + ' concluída! +' + bonus + ' sucata', '#7be07a'); sfx('wavedone'); if (rush) { rushBonus(); offerPerk(); } else if (endless && (G.wave % 3 === 0 || G.wave % 5 === 0)) offerPerk(); }
           }
         }
         // loot
@@ -1377,6 +1397,7 @@
       const stars = win ? (hpPct >= 0.85 ? 3 : hpPct >= 0.5 ? 2 : 1) : 0;
       const waveProg = Math.max(0, G.wave - (win ? 0 : 1));
       const coins = Math.round(20 + 12 * li + G.kills * 0.5 + (win ? 70 + 40 * li + stars * 25 : waveProg * (6 + 3 * li))) + G.bonusCoins;
+      if (rush) { if (opts.onEnd) opts.onEnd({ win: false, rush: true, bosses: G.bossKills || 0, time: Math.floor(G.time), kills: G.kills, coins: (G.bossKills || 0) * 25 + Math.round(Math.floor(G.time) / 10) + G.bonusCoins, wave: G.wave, level: li }); return; }
       if (endless) { if (opts.onEnd) opts.onEnd({ win: false, endless: true, time: Math.floor(G.time), kills: G.kills, coins: Math.round(Math.floor(G.time) / 6 + G.kills * 0.5) + G.bonusCoins, wave: G.wave, level: li }); return; }
       if (opts.onEnd) opts.onEnd({ win, stars, kills: G.kills, coins, wave: G.wave, waves: lv.waves, level: li });
     }
@@ -1394,7 +1415,7 @@
         wid: w.id, towerInfo: (() => { const o = ownedTowers(); if (!o.length) return null; const id = o.includes(DF.ALL_TOWERS[P.towerI]) ? DF.ALL_TOWERS[P.towerI] : o[0]; return { id, name: DF.TOWERS[id].name, cost: tcost(id), count: G.towers.length, max: towerMaxNow() }; })(),
         gren: { id: DF.GRENADE_ORDER[P.grenI], name: DF.GRENADES[DF.GRENADE_ORDER[P.grenI]].name, count: P.gren[DF.GRENADE_ORDER[P.grenI]], all: P.gren },
         cls: { id: cls, name: CLS.name, skill: CLS.skill, cd: G.skillCd, cdMax: CLS.cd, cost: CLS.cost, fury: G.furyT }, outside: G.outside, bossTimer: !mission && !endless && G.bossDead && G.state === 'play' ? Math.ceil(Math.max(0, G.bossLootT)) : 0, mission: mission && lv.objectives[mission.idx] ? (() => { const o = lv.objectives[mission.idx], t = objTarget(); return { text: o.text, dist: Math.round(Math.hypot(P.x - t.x, P.y - t.y) / TILE), step: mission.idx + 1, total: lv.objectives.length }; })() : null,
-        msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door || (endless && !!ammoBox && Math.hypot(P.x - ammoBox.x, P.y - ammoBox.y) < 70), endless, time: Math.floor(G.time), record: endless ? ((save.records || {})[lv.id] || 0) : 0, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
+        msg: G.msgT > 0 ? G.msgText : '', msgColor: G.msgColor, nearDoor: !!door || (endless && !!ammoBox && Math.hypot(P.x - ammoBox.x, P.y - ammoBox.y) < 70), endless, rush, bosses: G.bossKills || 0, time: Math.floor(G.time), record: rush ? ((save.records || {})[lv.id + '-rush'] || 0) : endless ? ((save.records || {})[lv.id] || 0) : 0, weapons: P.weapons.map((x) => x.id), wi: P.wi, state: G.state, steel: !!save.steel
       };
     };
 

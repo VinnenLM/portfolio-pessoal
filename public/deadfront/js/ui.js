@@ -105,6 +105,7 @@
   function click() { if (DF.audioInit) DF.audioInit(); if (DF.sfx) DF.sfx('click'); }
   $('m-play').onclick = () => { click(); renderLevels(false); show('levels'); };
   $('m-endless').onclick = () => { click(); renderLevels(true); show('levels'); };
+  $('m-rush').onclick = () => { click(); renderLevels('rush'); show('levels'); };
   $('m-gear').onclick = () => { click(); show('options'); };
   $('m-shop').onclick = () => { click(); renderShop(); show('shop'); };
   $('m-unlock').onclick = () => {
@@ -163,13 +164,13 @@
   }
   function renderLevels(endless) {
     renderClasses();
-    document.querySelector('#levels h2').textContent = endless ? 'Modo infinito — escolha o mapa' : 'Escolha o local';
+    document.querySelector('#levels h2').textContent = endless === 'rush' ? 'Boss Rush — escolha o mapa' : endless ? 'Modo infinito — escolha o mapa' : 'Escolha o local';
     const g = $('level-grid'); g.innerHTML = '';
     DF.LEVELS.forEach((lv, i) => {
       if (endless && lv.mission) return;
       const locked = i >= save.unlocked || (lv.unlock !== undefined && save.unlocked < lv.unlock); const st = save.stars[lv.id] || 0;
       const c = document.createElement('div'); c.className = 'card' + (locked ? ' locked' : '');
-      c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (endless ? 'Sobreviva o máximo que puder · Recorde: <b>' + fmtT((save.records || {})[lv.id] || 0) + '</b>' : lv.mission ? 'Missão: objetivos + chefe' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
+      c.innerHTML = '<h4>' + (i + 1) + '. ' + lv.name + '</h4><p>' + lv.blurb + '</p><p>' + (endless === 'rush' ? 'Chefes em sequência, cada um mais forte · Recorde: <b>' + ((save.records || {})[lv.id + '-rush'] || 0) + ' chefes</b>' : endless ? 'Sobreviva o máximo que puder · Recorde: <b>' + fmtT((save.records || {})[lv.id] || 0) + '</b>' : lv.mission ? 'Missão: objetivos + chefe' : 'Ondas: ' + lv.waves + ' + chefe · Portas: ' + countDoors(lv)) + '</p><div class="stars">' + [1, 2, 3].map((n) => '<span class="' + (n <= st ? '' : 'off') + '">★</span>').join('') + '</div>';
       const b = document.createElement('button'); b.className = 'btn primary small'; b.textContent = locked ? '🔒 Bloqueada' : 'JOGAR'; b.disabled = locked;
       b.onclick = () => { click(); startGame(i, endless); };
       c.appendChild(b); g.appendChild(c);
@@ -246,7 +247,7 @@
     const now = performance.now(); if (now - lastHud < 90) return; lastHud = now;
     const h = G.hud();
     els.hpFill.style.width = (h.hp / h.maxHp * 100) + '%'; els.hpText.textContent = Math.ceil(h.hp) + ' / ' + h.maxHp;
-    els.wave.textContent = h.endless ? 'Onda ' + h.wave + ' · ' + fmtT(h.time) + ' · Recorde ' + fmtT(Math.max(h.record, h.time)) : h.mission ? 'Missão · Restam ' + h.left : h.wave === 0 ? 'Prepare-se!' : 'Onda ' + h.wave + '/' + h.waves + ' · Restam ' + h.left;
+    els.wave.textContent = h.rush ? 'Chefe ' + h.wave + ' · ' + fmtT(h.time) + ' · Recorde ' + Math.max(h.record, h.bosses) + ' chefes' : h.endless ? 'Onda ' + h.wave + ' · ' + fmtT(h.time) + ' · Recorde ' + fmtT(Math.max(h.record, h.time)) : h.mission ? 'Missão · Restam ' + h.left : h.wave === 0 ? 'Prepare-se!' : 'Onda ' + h.wave + '/' + h.waves + ' · Restam ' + h.left;
     els.scrap.textContent = h.scrap;
     els.toast.textContent = h.msg; els.toast.style.color = h.msgColor;
     if (h.bossTimer > 0) { els.count.classList.remove('hidden'); els.count.textContent = 'Missão termina em ' + h.bossTimer + 's — pegue o loot!'; els.skip.classList.add('hidden'); }
@@ -273,12 +274,12 @@
   }
   let curEndless = false;
   function startGame(level, endless) {
-    curEndless = !!endless;
+    curEndless = endless || false;
     if (DF.audioInit) DF.audioInit();
     stopGame(); curLevel = level; hideAll(); $('hud').classList.remove('hidden');
     for (const k in keys) keys[k] = false; input.mx = input.my = 0; input.actions.length = 0; input.stick.active = false; input.keyFire = false; input.mouseDown = false;
     inGame = true; paused = false; lastHud = 0;
-    engine = DF.Engine.create({ level, endless: curEndless, canvas: cv, save, onHud: updateHud, onEnd: onEnd, onPerk: showPerk });
+    engine = DF.Engine.create({ level, endless: curEndless === true, rush: curEndless === 'rush', canvas: cv, save, onHud: updateHud, onEnd: onEnd, onPerk: showPerk });
     tutI = -1; const tw = $('tut'); if (tw) tw.style.display = 'none';
     if (!save.tut) setTimeout(() => { if (engine && inGame) openTut(); }, 500);
   }
@@ -384,6 +385,13 @@
   function onEnd(r) {
     lastResult = r; const lv = DF.LEVELS[r.level];
     save.coins += r.coins;
+    if (r.rush) {
+      const key = lv.id + '-rush'; save.records = save.records || {}; const old = save.records[key] || 0; const nr = r.bosses > old; if (nr) save.records[key] = r.bosses; persist();
+      if (DF.sfx) DF.sfx('lose');
+      $('r-title').textContent = nr ? 'Novo recorde!' : 'Você caiu...'; $('r-stars').innerHTML = '';
+      $('r-info').innerHTML = 'Mapa: <b>' + lv.name + '</b><br>Chefes derrotados: <b>' + r.bosses + '</b> (recorde ' + Math.max(old, r.bosses) + ')<br>Tempo: <b>' + fmtT(r.time) + '</b> · Zumbis: <b>' + r.kills + '</b><br>Moedas ganhas: <b style="color:#ffd86b">' + COIN + ' ' + r.coins + '</b>';
+      $('r-next').classList.add('hidden'); stopGame(); show('result'); return;
+    }
     if (r.endless) {
       save.records = save.records || {}; const old = save.records[lv.id] || 0; const nr = r.time > old; if (nr) save.records[lv.id] = r.time; persist();
       if (DF.sfx) DF.sfx('lose');
