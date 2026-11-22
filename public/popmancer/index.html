@@ -207,11 +207,13 @@ const LEVELS = [
    ===================================================================== */
 const cv = document.getElementById('c');
 const scr = cv.getContext('2d'); scr.imageSmoothingEnabled = false;
+const TOUCH = (typeof matchMedia === 'function' && matchMedia('(pointer:coarse)').matches) || (typeof navigator !== 'undefined' && navigator.maxTouchPoints > 0);
+const SB = TOUCH ? 0 : 1;   // sombras desfocadas são caras em celulares: desligadas no toque
 let KS = 3, DPR = 1, artStyle = 'classic', fitKey = '';
 if (window.CanvasRenderingContext2D && !CanvasRenderingContext2D.prototype.roundRect) CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) { this.rect(x, y, w, h); };
 function fitCanvas(force) {
   const r = cv.getBoundingClientRect(), pr = window.devicePixelRatio || 1, cw = (r.width || W) * pr, px = artStyle === 'pixel';
-  KS = Math.min(8, Math.max(2, Math.round(cw / 400))); DPR = Math.min(3, Math.max(1, Math.ceil((cw / W) * 4) / 4));
+  KS = Math.min(8, Math.max(2, Math.round(cw / 400))); DPR = Math.min(TOUCH ? 2 : 3, Math.max(1, Math.ceil((cw / W) * 4) / 4));
   const w = px ? 400 * KS : Math.round(W * DPR), h = px ? 225 * KS : Math.round(H * DPR), key = artStyle + w + 'x' + h;
   cv.style.imageRendering = px ? 'pixelated' : 'auto';
   if (force !== true && key === fitKey && cv.width === w) return;
@@ -1081,7 +1083,7 @@ function paintBg(ti) {
       ridge('#2e0d19', FLOOR - 105, 70, 7, 12, 5);
       ctx.fillStyle = '#26101a'; ctx.beginPath(); ctx.moveTo(380, FLOOR); ctx.lineTo(530, FLOOR - 230); ctx.lineTo(590, FLOOR - 230); ctx.lineTo(740, FLOOR); ctx.closePath(); ctx.fill();
       glow(560, FLOOR - 230, 90, 'rgba(255,140,40,.8)');
-      ctx.strokeStyle = '#ff8a3d'; ctx.lineWidth = 3; ctx.shadowColor = '#ff6a1a'; ctx.shadowBlur = 10;
+      ctx.strokeStyle = '#ff8a3d'; ctx.lineWidth = 3; ctx.shadowColor = '#ff6a1a'; ctx.shadowBlur = SB * (10);
       for (const [a, b, c] of [[545, 575, 60], [575, 640, 110], [560, 500, 140], [575, 600, 170]]) { ctx.beginPath(); ctx.moveTo(a, FLOOR - 228); ctx.quadraticCurveTo((a + b) / 2 + 8, FLOOR - 228 + c / 2, b, FLOOR - 228 + c); ctx.stroke(); }
       ctx.shadowBlur = 0;
       ctx.fillStyle = '#1a0a12'; castle(150, FLOOR - 105, .85); litWindows(150, FLOOR - 105, .85, '#ffb347');
@@ -1315,7 +1317,7 @@ function drawHero(x, top, face, anim, pose, sk, orb, o) {
   ctx.strokeStyle = '#a56a34'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(-.8, 18); ctx.lineTo(-.8, -17); ctx.stroke();
   ctx.strokeStyle = '#6b3f1a'; ctx.lineWidth = 1.8; ctx.beginPath(); ctx.arc(0, -21, 5.5, .15 * Math.PI, .85 * Math.PI); ctx.stroke(); ctx.lineCap = 'butt';
   const pr = 4.3 + .7 * Math.sin(t * .2) + (cast ? 2 : 0);
-  ctx.fillStyle = orb; ctx.shadowColor = orb; ctx.shadowBlur = cast ? 18 : 8; circle(0, -23, pr); ctx.shadowBlur = 0;
+  ctx.fillStyle = orb; ctx.shadowColor = orb; ctx.shadowBlur = SB * (cast ? 18 : 8); circle(0, -23, pr); ctx.shadowBlur = 0;
   ctx.fillStyle = 'rgba(255,255,255,.8)'; circle(-1.4, -24.4, 1.5);
   ctx.fillStyle = '#fff';
   for (let i = 0; i < 2; i++) { const a = t * .12 + i * Math.PI; ctx.fillRect(Math.cos(a) * 8 - .7, -23 + Math.sin(a) * 3.5 - .7, 1.5, 1.5); }
@@ -1416,7 +1418,7 @@ function drawShots() {
       ctx.beginPath(); ctx.moveTo(sh.x, sh.bottom); ctx.lineTo(sh.x, sh.top); ctx.stroke();
       ctx.globalCompositeOperation = 'source-over'; ctx.lineCap = 'butt';
       ctx.globalAlpha = fade * .35; ctx.strokeStyle = '#000'; ctx.lineWidth = 6; ctx.beginPath(); ctx.moveTo(sh.x, sh.bottom); ctx.lineTo(sh.x, sh.top); ctx.stroke();
-      ctx.shadowColor = color; ctx.shadowBlur = 10;
+      ctx.shadowColor = color; ctx.shadowBlur = SB * (10);
       if (sh.wk === 'sticky') {
         for (const [lw, col] of [[4, color], [1.6, '#ffffff']]) {
           ctx.strokeStyle = col; ctx.lineWidth = lw; ctx.globalAlpha = fade; ctx.beginPath(); ctx.moveTo(sh.x, sh.bottom);
@@ -1430,13 +1432,13 @@ function drawShots() {
           ctx.stroke();
         }
       }
-      ctx.globalAlpha = 1; ctx.shadowBlur = 16; ctx.fillStyle = '#fff'; circle(sh.x, sh.top, 4.8); ctx.fillStyle = color; ctx.globalAlpha = .85; circle(sh.x, sh.top, 3.2);
+      ctx.globalAlpha = 1; ctx.shadowBlur = SB * (16); ctx.fillStyle = '#fff'; circle(sh.x, sh.top, 4.8); ctx.fillStyle = color; ctx.globalAlpha = .85; circle(sh.x, sh.top, 3.2);
       ctx.globalAlpha = .9; ctx.shadowBlur = 0; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.2; ctx.beginPath();
       ctx.moveTo(sh.x - 10, sh.top); ctx.lineTo(sh.x + 10, sh.top); ctx.moveTo(sh.x, sh.top - 10); ctx.lineTo(sh.x, sh.top + 10); ctx.stroke();
     } else {
       ctx.globalCompositeOperation = 'lighter'; ctx.strokeStyle = color; ctx.globalAlpha = .55; ctx.lineWidth = 5; ctx.lineCap = 'round';
       ctx.beginPath(); ctx.moveTo(sh.x, sh.bottom + 10); ctx.lineTo(sh.x, sh.top); ctx.stroke();
-      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.shadowColor = color; ctx.shadowBlur = 12;
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1; ctx.shadowColor = color; ctx.shadowBlur = SB * (12);
       ctx.fillStyle = '#fff'; circle(sh.x, sh.top + 2, 4.5); ctx.fillStyle = color; circle(sh.x, sh.top + 2, 3);
     }
     ctx.restore();
@@ -1457,7 +1459,7 @@ function drawItems() {
     }
     const d = ITEMS[it.type];
     ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.globalAlpha = .45 + .2 * Math.sin(S.tick * .2);
-    ctx.fillStyle = d.color; ctx.shadowColor = d.color; ctx.shadowBlur = 14; circle(it.x, y, 13); ctx.restore();
+    ctx.fillStyle = d.color; ctx.shadowColor = d.color; ctx.shadowBlur = SB * (14); circle(it.x, y, 13); ctx.restore();
     ctx.fillStyle = d.color; ctx.strokeStyle = '#000'; ctx.lineWidth = 2;
     ctx.beginPath(); ctx.arc(it.x, y, 9, 0, TAU); ctx.fill(); ctx.stroke();
     ctx.fillStyle = 'rgba(255,255,255,.45)'; circle(it.x - 3, y - 3.5, 2.6);
@@ -1575,7 +1577,7 @@ function drawHUD() {
   // caixa da magia
   const wk = WEAPONS[S.weapon], sc = spellColor(S.weapon);
   ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(6, H - 30, 146, 24, 8); ctx.fill();
-  ctx.fillStyle = sc; ctx.shadowColor = sc; ctx.shadowBlur = 8; circle(20, H - 18, 5); ctx.shadowBlur = 0;
+  ctx.fillStyle = sc; ctx.shadowColor = sc; ctx.shadowBlur = SB * (8); circle(20, H - 18, 5); ctx.shadowBlur = 0;
   txt(wk.name, 32, H - 17, 13, '#fff', 'left', null);
   let ex = W - 10;
   const eff = (label, col, v) => { const w = 108; ctx.fillStyle = 'rgba(0,0,0,.5)'; ctx.beginPath(); ctx.roundRect(ex - w, H - 30, w, 24, 8); ctx.fill(); txt(`${label} ${Math.ceil(v / 60)}s`, ex - w / 2, H - 17, 12, col, 'center', null); ex -= w + 6; };
@@ -1645,7 +1647,7 @@ function drawShop() {
     menuBtns.push({ x, y, w, h, fn: () => buyOrEquip('rope', k) });
     ctx.fillStyle = eq ? 'rgba(47,158,68,.55)' : 'rgba(255,255,255,.14)'; ctx.strokeStyle = eq ? '#69db7c' : 'rgba(255,255,255,.4)'; ctx.lineWidth = 3;
     ctx.beginPath(); ctx.roundRect(x, y, w, h, 12); ctx.fill(); ctx.stroke();
-    ctx.save(); ctx.shadowColor = k.color; ctx.shadowBlur = 10;
+    ctx.save(); ctx.shadowColor = k.color; ctx.shadowBlur = SB * (10);
     ctx.strokeStyle = k.color; ctx.lineWidth = 6; ctx.globalAlpha = .5;
     ctx.beginPath(); ctx.moveTo(x + w / 2, y + 40); ctx.lineTo(x + w / 2, y + 14); ctx.stroke();
     ctx.globalAlpha = 1; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5; ctx.stroke();
