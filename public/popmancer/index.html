@@ -429,11 +429,11 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], inf: false, wave: 1, up: {}, runWeapon: null, picks: [], curL: null, infBest: { score: 0, wave: 0 }, infTop: [], runRec: false, openN: 0, seen: {}, tip: null, tipT: 0, tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], inf: false, wave: 1, up: {}, runWeapon: null, picks: [], curL: null, infBest: { score: 0, wave: 0 }, infTop: [], runRec: false, openN: 0, frostN: 0, seen: {}, tip: null, tipT: 0, tut: null, tutDone: false, musicOn: true, sfxOn: true, setFrom: 'menu', prevState: 'menu', resetAsk: false, confirm: null, lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
-let fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], gearBtn = { x: 0, y: 0, w: 0, h: 0 }, tutBtn = { x: 0, y: 0, w: 0, h: 0 }, amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
+let strikeQ = [], fires = [], famShots = [], fam = null, flyers = [], slimes = [], blocks = [], ladders = [], shots = [], items = [], parts = [], globs = [], puddles = [], fx = [], menuBtns = [], gearBtn = { x: 0, y: 0, w: 0, h: 0 }, tutBtn = { x: 0, y: 0, w: 0, h: 0 }, amb = [], clouds = [], windP = [], strikes = [], wisp = null, wispT = 0, muteBtn = { x: 0, y: 0, w: 0, h: 0 };
 const P = { x: 0, y: 0, w: 22, h: 34, vy: 0, face: 1, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, anim: 0,
             sq: 0, lean: 0, walking: false, dead: null };
 let coinTaps = [];
@@ -682,7 +682,8 @@ const UPS = [
   { id: 'score',  name: 'Pontuação Dobrada', lb: 'P', col: '#ffd43b', d: ['+25% de pontos em tudo.'] },
   { id: 'move',   name: 'Pés Ligeiros',    lb: 'M', col: '#b2f2bb', d: ['+10% de velocidade ao andar.'] },
   { id: 'jump',   name: 'Salto Alto',      lb: 'J', col: '#d0bfff', d: ['Pula 8% mais alto.'] },
-  { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Começa cada onda com um', 'ataque de tela cheia.'] },
+  { id: 'open',   name: 'Abertura Arcana', lb: 'F', col: '#ff922b', d: ['Ataque de tela cheia no início', 'da onda; +1 passada por nível.'] },
+  { id: 'frost',  name: 'Nevasca Inicial', lb: 'N', col: '#a5d8ff', d: ['Começa cada onda com Nevasca', '(dura mais a cada nível).'] },
   { id: 'arma',   name: 'Nova Arma',       lb: 'W', col: '#f783ac', d: ['Troca sua arma inicial por', 'uma especial aleatória.'] },
 ];
 const UPS_BY = Object.fromEntries(UPS.map(u => [u.id, u]));
@@ -738,7 +739,7 @@ function startLevel(i) {
   flyers = (L.flyers || []).map(d => mkFlyer(d.k, d.x, d.y));
   blocks = L.blocks || [];
   ladders = (L.ladders || []).map(l => ({ x: l.x, y: l.y, w: 26, h: l.h }));
-  shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
+  shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; strikeQ = []; wisp = null; wispT = 0;
   Object.assign(P, { x: W / 2 - P.w / 2, y: FLOOR - P.h, vy: 0, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, face: 1, sq: 0, lean: 0, walking: false, dead: null });
   S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0; S.lvT = 0;
   S.shield = 0; S.freeze = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
@@ -746,7 +747,7 @@ function startLevel(i) {
   if (is('crono') && !S.tut) S.timeLeft += 900;                // Tempo Distorcido: +15 s
   if (is('xama')) S.shield = 99999;                            // Espírito Guardião: bloqueia 1 golpe
   { const sw = (S.inf && S.runWeapon) || skinNow().start; if (sw && S.weapon === 'harpoon') S.weapon = sw; }
-  S.openN = 0; if (S.inf) { S.timeLeft += 600 * up('time'); S.shield = Math.max(S.shield, 300 * up('shield')); S.openN = up('open'); }  // arma inicial do mago
+  S.openN = 0; S.frostN = 0; if (S.inf) { S.timeLeft += 600 * up('time'); S.shield = Math.max(S.shield, 300 * up('shield')); S.openN = up('open'); S.frostN = up('frost'); }  // arma inicial do mago
   fires = []; famShots = []; fam = is('invoc') ? { x: P.x + P.w / 2, y: P.y - 36, t: 150 } : null;
   initAmb(L.theme); Music.setIntense(false);
   Music.play(L.slimes.some(d => d.boss) ? 'boss' : 'stage' + L.theme);
@@ -760,7 +761,7 @@ function newGame(fromLevel) {
 }
 
 function goMenu() {
-  S.state = 'menu'; S.tut = null; S.tip = null; S.inf = false; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
+  S.state = 'menu'; S.tut = null; S.tip = null; S.inf = false; S.perk = null; S.confirm = null; fires = []; famShots = []; fam = null; flyers = []; blocks = []; ladders = []; shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; strikeQ = []; wisp = null; wispT = 0;
   S.freeze = 0; S.fade = 0; initAmb(0); Music.setIntense(false); Music.play('menu');
   slimes = [];
   const cols = ['#5fd35f', '#4aa8ff', '#b04aff', '#ff7a2f', '#c9e03a'];
@@ -1277,15 +1278,16 @@ function killWisp(sh) {
 }
 
 // Ataques em tela cheia (Onda de Fogo, Tempestade, Chuva de Meteoros): 1 de dano em tudo que está no mapa
-function startStrike(kind) {
+function startStrike(kind, passes = 1, rev = false) {
   const all = slimes.concat(flyers), n = all.length;
   S.flashA = .5; S.flashC = kind === 'fire' ? '255,160,60' : kind === 'bolt' ? '255,245,160' : '255,120,80'; S.shake = Math.max(S.shake, kind === 'bolt' ? 8 : 12);
   if (kind === 'bolt') sfx.zap(); else sfx.boom();
-  if (kind === 'fire') strikes.push({ kind, wave: 0 });
+  if (kind === 'fire') strikes.push({ kind, wave: 0, rev });
+  if (passes > 1) strikeQ.push({ kind, t: 62, left: passes - 1, rev: kind === 'fire' ? !rev : false });   // passada seguinte (a de fogo volta no sentido contrário)
   const byX = all.slice().sort((a, b) => a.x - b.x);
   all.forEach(o => {
     let d;
-    if (kind === 'fire') d = Math.round(o.x / W * 50);                      // a frente de fogo varre da esquerda p/ direita
+    if (kind === 'fire') d = Math.round((rev ? W - o.x : o.x) / W * 50);                      // a frente de fogo varre da esquerda p/ direita
     else if (kind === 'bolt') d = 4 + byX.indexOf(o) * Math.min(6, 50 / Math.max(1, n));   // raios caem um após o outro
     else d = 18 + Math.round(rnd(0, 36));                                    // meteoros: chegam em momentos diferentes
     strikes.push({ kind, tg: o, d, t: 0, x: o.x, y: o.y });
@@ -1304,11 +1306,12 @@ function strikeVfx(k, o) {
   }
 }
 function updateStrikes() {
+  for (let i = strikeQ.length - 1; i >= 0; i--) { const q = strikeQ[i]; if (--q.t > 0) continue; strikeQ.splice(i, 1); if (slimes.length || flyers.length) startStrike(q.kind, q.left, q.rev); }
   for (let i = strikes.length - 1; i >= 0; i--) {
     const k = strikes[i];
     if (!k.tg) {                                                            // frente da Onda de Fogo
-      k.wave += 1; const x = W * k.wave / 50;
-      for (let j = 0; j < 7; j++) emit({ kind: 'dot', x: x + rnd(-14, 6), y: rnd(TOP, FLOOR), vx: rnd(1, 3), vy: rnd(-2.2, -.4), g: -.02, life: 26, c: Math.random() < .5 ? '#ff7a2f' : '#ffd23d', r: rnd(3, 6) });
+      k.wave += 1; const x = k.rev ? W - W * k.wave / 50 : W * k.wave / 50, dv = k.rev ? -1 : 1;
+      for (let j = 0; j < 7; j++) emit({ kind: 'dot', x: x + rnd(-14, 6) * dv, y: rnd(TOP, FLOOR), vx: rnd(1, 3) * dv, vy: rnd(-2.2, -.4), g: -.02, life: 26, c: Math.random() < .5 ? '#ff7a2f' : '#ffd23d', r: rnd(3, 6) });
       if (k.wave > 52) strikes.splice(i, 1); continue;
     }
     k.t++;
@@ -1327,13 +1330,13 @@ function updateStrikes() {
     if (flyers.includes(o)) hitFlyer(o, dmg, null); else if (o.boss) hitBoss(o, dmg);
     else { const sz = o.size, st = o.type; popSlime(o, null); if (dmg > 1 && sz > 1) for (const c of slimes.slice(-2)) if (c.size === sz - 1 && c.imm > 0) popSlime(c, null); }
     S.arc = false;
-    if (S.state !== 'play') { strikes.length = 0; return; }
+    if (S.state !== 'play') { strikes.length = 0; strikeQ.length = 0; return; }
   }
 }
 
 // Nevasca: vento de gelo varre a tela e congela os slimes
-function startFreeze() {
-  S.freeze = Math.round(300 * freezeMul()); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
+function startFreeze(ticks) {
+  S.freeze = Math.round((ticks || 300) * freezeMul()); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
   const cx = P.x + P.w / 2, cy = P.y + P.h / 2;
   ring(cx, cy, 130, '#bfe8ff', 30, 4);
   for (let i = 0; i < 30; i++) { const a = rnd(0, TAU), v = rnd(2, 7);
@@ -1455,7 +1458,8 @@ function step() {
   switch (S.state) {
     case 'ready':
       S.timer--;
-      if (S.timer <= 0 || (wasPressed && S.timer < 140)) { S.state = 'play'; if (S.openN > 0) { for (let k = 0; k < S.openN; k++) startStrike(['fire', 'bolt', 'meteor'][Math.floor(Math.random() * 3)]); S.openN = 0; } }
+      if (S.timer <= 0 || (wasPressed && S.timer < 140)) { S.state = 'play'; if (S.openN > 0) { startStrike(['fire', 'bolt', 'meteor'][Math.floor(Math.random() * 3)], S.openN); S.openN = 0; }
+    if (S.frostN > 0) { startFreeze(120 + 60 * S.frostN); S.frostN = 0; } }
       updateParts();
       break;
     case 'play':
@@ -3713,7 +3717,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  startTutorial, endTutorial, weightedDrop, startInfinite, genWave, pickBonus, rollPicks, recordRun, UPS, up, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  startTutorial, endTutorial, startStrike, startLevel, weightedDrop, startInfinite, genWave, pickBonus, rollPicks, recordRun, UPS, up, leaveToMenu, TIPS, pickItem, tutUpdate, TUT_STEPS, get tutBtn() { return tutBtn; }, MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, openSettings, closeSettings, resetData, setMusicOn, setSfxOn, get gearBtn() { return gearBtn; }, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
