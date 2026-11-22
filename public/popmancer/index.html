@@ -135,23 +135,23 @@ const BOSSES = {
 // Magos: body = manto, hat = chapéu/detalhes, legs = sapatos, style = tipo de chapéu
 const SKINS = [
   { id: 'hero',   name: 'Aprendiz',   price: 0,   body: '#3b5bdb', legs: '#3b2a1a', hat: '#4c6ef5', style: 'wizard',   skin: '#ffd1a1', perk: { name: 'Equilibrado', lines: ['Sem bônus especial.', 'Ótimo para aprender o jogo.'] } },
-  { id: 'fogo',   name: 'Piromante',  price: 100, body: '#e8590c', legs: '#3b2a1a', hat: '#c92a2a', style: 'wizard',   skin: '#ffd1a1', perk: { name: 'Brasas', lines: ['Ao estourar um slime, brasas', 'estouram slimes pequenos por perto.'] } },
+  { id: 'fogo',   name: 'Piromante',  price: 100, body: '#e8590c', legs: '#3b2a1a', hat: '#c92a2a', style: 'wizard',   skin: '#ffd1a1', perk: { name: 'Brasas', lines: ['Ao estourar um slime, brasas', 'estouram slimes pequenos por perto.', 'Fogo e Meteoros causam 2 de dano.'] } },
   { id: 'bruxa',  name: 'Bruxa',      price: 200, body: '#862e9c', legs: '#1a1a1a', hat: '#2b1b33', style: 'witch',    skin: '#c5f6a8', perk: { name: 'Poções Duradouras', lines: ['Escudo, nevasca e relógio', 'duram 50% mais tempo.'] } },
   { id: 'druida', name: 'Druida',     price: 300, body: '#2b8a3e', legs: '#4a3520', hat: '#8ce99a', style: 'druid',    skin: '#ffd1a1', perk: { name: 'Pés de Raiz', lines: ['A gosma te deixa lento', 'pela metade do tempo.'] } },
   { id: 'necro',  name: 'Necromante', price: 400, body: '#343a40', legs: '#15151a', hat: '#212529', style: 'hood',     skin: '#ced4da', perk: { name: 'Pacto Sombrio', lines: ['Começa cada fase com escudo de 5s', 'e revive 1 vez por fase.'] } },
   { id: 'arqui',  name: 'Arquimago',  price: 700, body: '#f1f3f5', legs: '#7a5a1a', hat: '#ffd43b', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Arcano Veloz', lines: ['Magias 25% mais rápidas', 'e recarga 20% menor.'] } },
-  { id: 'crio', name: 'Criomante', price: 350, body: '#4dabf7', legs: '#2b3a55', hat: '#a5d8ff', style: 'wizard', skin: '#e7f5ff', perk: { name: 'Toque Congelante', lines: ['Slimes atingidos ficam 30% mais', 'lentos por 2 segundos.'] } },
-  { id: 'eletro', name: 'Eletromante', price: 550, body: '#fcc419', legs: '#3b2a1a', hat: '#e8590c', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Choque em Cadeia', lines: ['15% de chance do disparo atingir', 'também um slime próximo.'] } },
+  { id: 'crio', name: 'Criomante', price: 350, body: '#4dabf7', legs: '#2b3a55', hat: '#a5d8ff', style: 'wizard', skin: '#e7f5ff', perk: { name: 'Toque Congelante', lines: ['Slimes atingidos ficam 30% mais', 'lentos por 2 segundos.', 'Nevasca dura 50% a mais.'] } },
+  { id: 'eletro', name: 'Eletromante', price: 550, body: '#fcc419', legs: '#3b2a1a', hat: '#e8590c', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Choque em Cadeia', lines: ['15% de chance do disparo atingir', 'também um slime próximo.', 'Tempestade causa 2 de dano.'] } },
   { id: 'invoc', name: 'Invocador', price: 900, body: '#7048e8', legs: '#1d1538', hat: '#b197fc', style: 'hood', skin: '#ffd1a1', perk: { name: 'Familiar Mágico', lines: ['Um familiar dispara sozinho contra', 'os slimes a cada 5 segundos.'] } },
   { id: 'geo', name: 'Geomante', price: 350, body: '#8d6e63', legs: '#4a3520', hat: '#c9a227', style: 'druid', skin: '#ffd1a1', perk: { name: 'Pele de Pedra', lines: ['Reduz em 30% o tempo de lentidão', 'depois de ser atingido.'] } },
-  { id: 'ilu', name: 'Ilusionista', price: 450, body: '#e599f7', legs: '#4a2a5a', hat: '#9c36b5', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Reflexo Arcano', lines: ['15% de chance de evitar um golpe', 'sem perder a vida.'] } },
+  { id: 'ilu', name: 'Ilusionista', price: 450, body: '#e599f7', legs: '#4a2a5a', hat: '#9c36b5', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Reflexo Arcano', lines: ['15% de chance de evitar um golpe', 'sem perder a vida.', 'Visitantes ficam 50% mais tempo.'] } },
   { id: 'crono', name: 'Cronomante', price: 600, body: '#12b886', legs: '#14302a', hat: '#63e6be', style: 'wizard', skin: '#ffd1a1', perk: { name: 'Tempo Distorcido', lines: ['O efeito do relógio dura', '50% mais tempo.'] } },
-  { id: 'alqui', name: 'Alquimista', price: 650, body: '#fd7e14', legs: '#2b1b33', hat: '#5f3dc4', style: 'witch', skin: '#ffd1a1', perk: { name: 'Mistura Explosiva', lines: ['Explosões de slimes laranja estouram', 'os slimes num raio 25% maior.'] } },
+  { id: 'alqui', name: 'Alquimista', price: 650, body: '#fd7e14', legs: '#2b1b33', hat: '#5f3dc4', style: 'witch', skin: '#ffd1a1', perk: { name: 'Mistura Explosiva', lines: ['Explosões de slimes laranja estouram', 'os slimes num raio 25% maior.', 'Visitantes dão o dobro de moedas.'] } },
   { id: 'sombra', name: 'Sombramante', price: 450, body: '#3b2f63', legs: '#15101f', hat: '#1a1330', style: 'hood', skin: '#b8b8d0', perk: { name: 'Passo das Sombras', lines: ['Aumenta em 20% a velocidade', 'de movimentação.'] } },
-  { id: 'lumi', name: 'Lumimante', price: 650, body: '#fff3bf', legs: '#7a5a1a', hat: '#fab005', style: 'wizard', skin: '#ffe8cc', perk: { name: 'Luz Purificadora', lines: ['Ao estourar um slime, 10% de chance', 'de explosão de luz nos próximos.'] } },
+  { id: 'lumi', name: 'Lumimante', price: 650, body: '#fff3bf', legs: '#7a5a1a', hat: '#fab005', style: 'wizard', skin: '#ffe8cc', perk: { name: 'Luz Purificadora', lines: ['Ao estourar um slime, 10% de chance', 'de explosão de luz nos próximos.', 'Visitantes chegam 10 s mais cedo.'] } },
   { id: 'xama', name: 'Xamã', price: 250, body: '#d9480f', legs: '#4a3520', hat: '#66a80f', style: 'druid', skin: '#e0a878', perk: { name: 'Espírito Guardião', lines: ['Começa cada fase com uma proteção', 'que bloqueia um golpe.'] } },
   { id: 'runo', name: 'Runomante', price: 550, body: '#364fc7', legs: '#1a2255', hat: '#91a7ff', style: 'archmage', skin: '#ffd1a1', perk: { name: 'Runas Antigas', lines: ['Aumenta em 15% a duração', 'de todos os itens de poder.'] } },
-  { id: 'magmaista', name: 'Magmaísta', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.'] } },
+  { id: 'magmaista', name: 'Magmaísta', price: 750, body: '#7c2d12', legs: '#2a0f0a', hat: '#ff6b35', style: 'hood', skin: '#e8a888', perk: { name: 'Erupção', lines: ['10% de chance do disparo criar', 'uma área de fogo no chão.', 'Meteoros deixam fogo no chão.'] } },
   { id: 'aero', name: 'Aeromante', price: 500, body: '#99e9f2', legs: '#3a5560', hat: '#3bc9db', style: 'wizard', skin: '#ffe8d0', perk: { name: 'Corrente de Vento', lines: ['Aumenta em 20% a velocidade', 'dos disparos.'] } },
   { id: 'sangue', name: 'Sangromante', price: 800, body: '#7a0e1c', legs: '#2a050a', hat: '#d6336c', style: 'hood', skin: '#e8c0c0', perk: { name: 'Último Sacrifício', lines: ['Ao perder uma vida, recebe 5 s', 'de invulnerabilidade.'] } },
   { id: 'demo', name: 'Demonologista', price: 1000, body: '#5c0a0a', legs: '#1a0505', hat: '#e03131', style: 'witch', skin: '#ff8787', sn: 'Demonolog.', perk: { name: 'Pacto Demoníaco', lines: ['Começa cada fase com um disparo', 'especial adicional (Raio Duplo).'] } },
@@ -352,7 +352,7 @@ if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(cv);
 
 const S = { state: 'menu', tick: 0, level: 0, lives: 3, score: 0, best: 0, savedLevel: 0,
             weapon: 'harpoon', timeLeft: 0, timer: 0, paused: false, fireCd: 0, uid: 0, muted: false,
-            cur: LEVELS[0], bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
+            cur: LEVELS[0], lvT: 0, bonus: 0, shield: 0, freeze: 0, slow: 0, shake: 0,
             unlocked: 1, coins: 0, skin: 'hero', rope: 'padrao', ownedSkins: ['hero'], ownedRopes: ['padrao'],
             msg: '', msgT: 0, gained: 0,
             fade: 0, flashA: 0, flashC: '255,255,255', slowmo: 0, windSweep: 0, timeFlash: 0 };
@@ -388,7 +388,8 @@ const skinNow = () => SKINS.find(k => k.id === S.skin) || SKINS[0];
 const ropeNow = () => ROPES.find(k => k.id === S.rope) || ROPES[0];
 // bônus passivos dos magos
 const is = id => S.skin === id;
-const durMul = () => (is('bruxa') ? 1.5 : 1) * (is('runo') ? 1.15 : 1);          // duração de escudo/nevasca/relógio
+const durMul = () => (is('bruxa') ? 1.5 : 1) * (is('runo') ? 1.15 : 1);
+const freezeMul = () => durMul() * (is('crio') ? 1.5 : 1);     // Criomante: nevasca +50%          // duração de escudo/nevasca/relógio
 const clockMul = () => durMul() * (is('crono') ? 1.5 : 1);
 const slowMul = () => (is('druida') ? .5 : 1) * (is('geo') ? .7 : 1);            // tempo de lentidão
 const shotMul = () => (is('arqui') ? 1.25 : 1) * (is('aero') ? 1.2 : 1);         // velocidade dos disparos
@@ -595,7 +596,7 @@ function startLevel(i) {
   ladders = (L.ladders || []).map(l => ({ x: l.x, y: l.y, w: 26, h: l.h }));
   shots = []; items = []; parts = []; globs = []; puddles = []; fx = []; strikes = []; wisp = null; wispT = 0;
   Object.assign(P, { x: W / 2 - P.w / 2, y: FLOOR - P.h, vy: 0, climb: false, ladder: null, onGround: true, inv: 0, shoot: 0, face: 1, sq: 0, lean: 0, walking: false, dead: null });
-  S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0;
+  S.timeLeft = L.time * 60; S.timer = 170; S.fireCd = 0; S.lvT = 0;
   S.shield = 0; S.freeze = 0; S.slow = 0; S.shake = 0; jumpBuf = 0; S.fade = 1; S.windSweep = 0; S.slowmo = 0; S.flashA = 0;
   S.revUsed = false; if (S.skin === 'necro') S.shield = 300;
   if (is('xama')) S.shield = 99999;                            // Espírito Guardião: bloqueia 1 golpe
@@ -1065,30 +1066,54 @@ function pickItem(it) {
   else if (it.type === 'life') S.lives = Math.min(5, S.lives + 1);
 }
 
-// Fada Dourada: se o jogador demora na fase, uma fadinha cruza a tela em linha reta; derrubá-la dá um bônus garantido
+// Visitantes mágicos: se o jogador demora na fase, uma criatura cruza a tela em linha reta; derrubá-la dá um bônus
+const VIS = {
+  fada:   { r: 13, vx: 2.6, y: [110, 300], life: 840, msg: 'Uma fada mágica apareceu!',      col: '255,225,120' },
+  cometa: { r: 12, vx: 6.5, y: [60, 130],  life: 420, msg: 'Um cometa arcano cruza o céu!',  col: '150,200,255' },
+  coruja: { r: 15, vx: 1.4, y: [130, 280], life: 900, msg: 'Uma coruja sábia apareceu!',     col: '230,200,160' },
+  bau:    { r: 14, vx: 1.7, y: [120, 280], life: 840, msg: 'Um baú alado apareceu!',         col: '255,210,90' },
+  sorte:  { r: 13, vx: 2.4, y: [100, 300], life: 840, msg: 'O Espírito da Sorte apareceu!',  col: '120,240,150' },
+  dragao: { r: 15, vx: 2.0, y: [90, 200],  life: 840, msg: 'Um dragãozinho apareceu!',       col: '255,140,90' },
+};
+let wispLast = '';
+function spawnVisitor(kind) {
+  const d = VIS[kind], dir = Math.random() < .5 ? 1 : -1, n = Math.floor(S.lvT / 1800);
+  const vx = kind === 'sorte' ? 2.2 + Math.min(2.5, n * .7) : d.vx;                    // Espírito da Sorte: quanto mais demora, mais rápido
+  wisp = { k: kind, x: dir > 0 ? -26 : W + 26, y: rnd(d.y[0], d.y[1]), vx: dir * vx, r: d.r, t: 0, life: Math.round(d.life * (is('ilu') ? 1.5 : 1)), p: Math.random() * TAU, in: false, flash: 0, n, cd: 40 };
+  sfx.chime(); popup(W / 2, 110, d.msg, '#ffe27a', 16);
+}
 function updateWisp() {
   if (!wisp) {
-    if (++wispT >= 1800 && S.state === 'play') {
-      wispT = 0; const dir = Math.random() < .5 ? 1 : -1;
-      wisp = { x: dir > 0 ? -24 : W + 24, y: rnd(110, 300), vx: dir * 2.6, r: 13, t: 0, life: 840, p: Math.random() * TAU, in: false, flash: 0 };
-      sfx.chime(); popup(W / 2, 110, 'Uma fada mágica apareceu!', '#ffe27a', 16);
+    if (++wispT >= (is('lumi') ? 1200 : 1800) && S.state === 'play') {
+      wispT = 0; const ks = Object.keys(VIS).filter(k => k !== wispLast); wispLast = ks[Math.floor(Math.random() * ks.length)]; spawnVisitor(wispLast);
     }
     return;
   }
-  const w = wisp; w.t++; w.p += .2; w.x += w.vx;
+  const w = wisp, d = VIS[w.k]; w.t++; w.p += .2; w.x += w.vx;
   if (w.t > w.life) w.in = false; else if (w.x > w.r && w.x < W - w.r) w.in = true;
   if (w.in) { if (w.x < w.r) { w.x = w.r; w.vx = Math.abs(w.vx); } else if (w.x > W - w.r) { w.x = W - w.r; w.vx = -Math.abs(w.vx); } }
-  if ((w.t > w.life && (w.x < -30 || w.x > W + 30)) || w.t > w.life + 400) { wisp = null; return; }
-  if (S.tick % 2 === 0) emit({ kind: 'spark', x: w.x - Math.sign(w.vx) * 8, y: w.y + Math.sin(w.p) * 3, vx: rnd(-.3, .3), vy: rnd(-.2, .5), g: 0, life: 22, c: Math.random() < .5 ? '#fff3a0' : '#ffd23d', r: 1.8 });
+  if ((w.t > w.life && (w.x < -40 || w.x > W + 40)) || w.t > w.life + 500) { wisp = null; return; }
+  if (S.tick % 2 === 0) emit({ kind: 'spark', x: w.x - Math.sign(w.vx) * 8, y: wispY() + rnd(-2, 2), vx: rnd(-.3, .3), vy: rnd(-.2, .5), g: 0, life: w.k === 'cometa' ? 30 : 22, c: `rgb(${d.col})`, r: w.k === 'cometa' ? 2.6 : 1.8 });
+  if (w.k === 'dragao' && w.in && --w.cd <= 0) {                 // dragãozinho cospe fogo no chão (queima slimes, não machuca o mago)
+    w.cd = 75; const gy = groundBelow(w.x, w.y); fires.push({ x: w.x, y: gy, life: 240, w: 60, cd: 0 }); sparks(w.x, w.y, '#ff7a1a', 8, 3); sfx.spit();
+  }
   if (w.t > w.life - 120 && S.tick % 4 === 0) w.blink = !w.blink; else if (w.t <= w.life - 120) w.blink = false;
 }
-function wispY() { return wisp.y + Math.sin(wisp.p) * 3; }
+function wispY() { return wisp.y + (wisp.k === 'cometa' ? 0 : Math.sin(wisp.p) * 3); }
 function killWisp(sh) {
-  const w = wisp, y = wispY(); wisp = null; S.score += 500; sfx.pop(3); sfx.chime();
-  burst(w.x, y, '#ffe27a', 16); sparks(w.x, y, '#fff3a0', 18, 6); ring(w.x, y, 46, '#ffe27a', 22, 3); S.flashA = Math.max(S.flashA, .25); S.flashC = '255,240,160';
-  popup(w.x, y - 16, 'FADA! +500', '#ffe27a', 15);
-  items.push({ x: w.x, y, vy: -4, vx: 0, type: weightedDrop(), t: 0 });
-  for (let i = 0; i < 6; i++) items.push({ x: w.x, y, vy: rnd(-6, -3), vx: rnd(-2.5, 2.5), type: 'coin', val: 2, t: 0 });
+  const w = wisp, y = wispY(), cm = is('alqui') ? 2 : 1; wisp = null; S.score += 500; sfx.pop(3); sfx.chime();
+  burst(w.x, y, '#ffe27a', 16); sparks(w.x, y, '#fff3a0', 18, 6); ring(w.x, y, 46, '#ffe27a', 22, 3); S.flashA = Math.max(S.flashA, .25); S.flashC = VIS[w.k].col;
+  const item = t => items.push({ x: w.x, y, vy: -4, vx: rnd(-1, 1), type: t, t: 0 });
+  const coins = n => { for (let i = 0; i < n * cm; i++) items.push({ x: w.x, y, vy: rnd(-6, -3), vx: rnd(-2.5, 2.5), type: 'coin', val: 2, t: 0 }); };
+  const pick = a => a[Math.floor(Math.random() * a.length)];
+  let label = 'FADA!';
+  if (w.k === 'fada') { item(weightedDrop()); coins(6); }
+  else if (w.k === 'cometa') { label = 'COMETA!'; item(pick(['fire', 'bolt', 'meteor'])); coins(4); }
+  else if (w.k === 'coruja') { label = 'CORUJA!'; item(pick(['clock', 'shield'])); coins(3); }
+  else if (w.k === 'bau') { label = 'BAÚ!'; coins(14); }
+  else if (w.k === 'sorte') { label = 'SORTE!'; item(weightedDrop()); coins(8 + 5 * Math.min(5, w.n)); }
+  else { label = 'DRAGÃO!'; item(pick(['twin', 'sticky', 'gun'].filter(k => k !== S.weapon))); coins(4); }
+  popup(w.x, y - 16, label + ' +500', '#ffe27a', 15);
 }
 
 // Ataques em tela cheia (Onda de Fogo, Tempestade, Chuva de Meteoros): 1 de dano em tudo que está no mapa
@@ -1137,7 +1162,10 @@ function updateStrikes() {
     const o = k.tg; if (!(slimes.includes(o) || flyers.includes(o))) continue;
     k.x = o.x; k.y = o.y; strikeVfx(k, o);
     S.arc = true;
-    if (flyers.includes(o)) hitFlyer(o, 1, null); else if (o.boss) hitBoss(o, 1); else popSlime(o, null);
+    const dmg = ((k.kind !== 'bolt' && is('fogo')) || (k.kind === 'bolt' && is('eletro'))) ? 2 : 1;   // Piromante: fogo/meteoro; Eletromante: tempestade
+    if (k.kind === 'meteor' && is('magmaista')) { const gy = groundBelow(o.x, o.y); fires.push({ x: o.x, y: gy, life: 240, w: 60, cd: 0 }); }
+    if (flyers.includes(o)) hitFlyer(o, dmg, null); else if (o.boss) hitBoss(o, dmg);
+    else { const sz = o.size, st = o.type; popSlime(o, null); if (dmg > 1 && sz > 1) for (const c of slimes.slice(-2)) if (c.size === sz - 1 && c.imm > 0) popSlime(c, null); }
     S.arc = false;
     if (S.state !== 'play') { strikes.length = 0; return; }
   }
@@ -1145,7 +1173,7 @@ function updateStrikes() {
 
 // Nevasca: vento de gelo varre a tela e congela os slimes
 function startFreeze() {
-  S.freeze = Math.round(300 * durMul()); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
+  S.freeze = Math.round(300 * freezeMul()); S.windSweep = 45; S.flashA = 0.55; S.flashC = '190,230,255'; sfx.freeze();
   const cx = P.x + P.w / 2, cy = P.y + P.h / 2;
   ring(cx, cy, 130, '#bfe8ff', 30, 4);
   for (let i = 0; i < 30; i++) { const a = rnd(0, TAU), v = rnd(2, 7);
@@ -1269,7 +1297,7 @@ function step() {
       updateParts();
       break;
     case 'play':
-      S.timeLeft--;
+      S.timeLeft--; S.lvT++;
       if (S.timeLeft <= 0) { killPlayer(); break; }
       if (S.shield > 0) S.shield--;
       if (S.freeze > 0) S.freeze--;
@@ -1840,6 +1868,42 @@ function drawPerkFx() {
   }
   for (const q of famShots) { ctx.globalCompositeOperation = 'lighter'; glow(q.x, q.y, 14, 'rgba(190,150,255,.7)'); ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = '#fff'; circle(q.x, q.y, 3.5); }
 }
+function drawVisitorC() {
+  const w = wisp, y = wispY(), fl = Math.sin(S.tick * .6), d = w.vx > 0 ? 1 : -1, k = w.k;
+  ctx.save(); ctx.translate(w.x, y);
+  ctx.globalCompositeOperation = 'lighter'; glow(0, 0, k === 'cometa' ? 36 : 30, `rgba(${VIS[k].col},.5)`); ctx.globalCompositeOperation = 'source-over';
+  const wing = (x, yy, rx, ry, rot, col = 'rgba(255,255,255,.85)') => { ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x * d, yy, rx, ry, rot * d, 0, TAU); ctx.fill(); };
+  if (k === 'fada') {
+    wing(-3, -6, 4, 9 + fl * 3, -.5); wing(-8, -3, 3.4, 7 - fl * 3, -1);
+    ctx.fillStyle = '#ffd23d'; circle(0, 0, 7); ctx.fillStyle = '#fff6b0'; circle(-1.5, -1.5, 3.4); ctx.fillStyle = '#7a4a00'; circle(2 * d, -1, 1);
+  } else if (k === 'cometa') {
+    const g = ctx.createLinearGradient(-d * 46, 0, 0, 0); g.addColorStop(0, 'rgba(120,180,255,0)'); g.addColorStop(1, 'rgba(200,230,255,.9)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(-d * 46, 0); ctx.lineTo(0, 8); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#cfe6ff'; circle(0, 0, 9); ctx.fillStyle = '#fff'; circle(-1.5, -1.5, 5);
+  } else if (k === 'coruja') {
+    wing(-9, 1, 6, 11 + fl * 3, -.3, '#6d4c41'); wing(9, 1, 6, 11 + fl * 3, .3, '#6d4c41');
+    ctx.fillStyle = '#8d6e63'; ctx.beginPath(); ctx.ellipse(0, 1, 10, 12, 0, 0, TAU); ctx.fill(); ctx.fillStyle = '#d7ccc8'; ctx.beginPath(); ctx.ellipse(0, 5, 6, 7, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#8d6e63'; ctx.beginPath(); ctx.moveTo(-8, -8); ctx.lineTo(-6, -15); ctx.lineTo(-2, -10); ctx.moveTo(8, -8); ctx.lineTo(6, -15); ctx.lineTo(2, -10); ctx.fill();
+    ctx.fillStyle = '#fff'; circle(-4, -4, 4); circle(4, -4, 4); ctx.fillStyle = '#222'; circle(-4 + d, -4, 1.8); circle(4 + d, -4, 1.8); ctx.fillStyle = '#ffa94d'; ctx.beginPath(); ctx.moveTo(-2, -1); ctx.lineTo(2, -1); ctx.lineTo(0, 3); ctx.fill();
+  } else if (k === 'bau') {
+    wing(-12, -2, 4, 9 + fl * 3, -.7); wing(12, -2, 4, 9 + fl * 3, .7);
+    ctx.fillStyle = '#6b4220'; ctx.fillRect(-11, -4, 22, 14); ctx.fillStyle = '#8a5a2b'; ctx.fillRect(-10, -3, 20, 12);
+    ctx.fillStyle = '#9a6a35'; ctx.beginPath(); ctx.moveTo(-11, -3); ctx.quadraticCurveTo(0, -15, 11, -3); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ffd43b'; ctx.fillRect(-2, -9, 4, 19); ctx.fillRect(-11, 2, 22, 2); ctx.fillStyle = '#7a5a00'; ctx.fillRect(-1, 1, 2, 4);
+  } else if (k === 'sorte') {
+    ctx.fillStyle = '#2f9e44'; for (const [lx, ly] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) circle(lx, ly, 5);
+    ctx.fillStyle = '#69db7c'; for (const [lx, ly] of [[-4.5, -4.5], [4.5, -4.5], [-4.5, 4.5], [4.5, 4.5]]) circle(lx, ly, 3.6);
+    ctx.fillStyle = '#d8f5a2'; circle(0, 0, 3); ctx.fillStyle = '#fff'; circle(-1, -1, 1.2);
+  } else {
+    wing(-2, -10, 7, 5 + fl * 3, -.4 * 0, '#2f9e44');
+    ctx.fillStyle = '#51cf66'; ctx.beginPath(); ctx.ellipse(0, 2, 11, 8, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#2f9e44'; ctx.beginPath(); ctx.moveTo(-d * 10, 2); ctx.lineTo(-d * 22, 6 + fl * 2); ctx.lineTo(-d * 10, 7); ctx.fill();
+    ctx.fillStyle = '#51cf66'; circle(d * 11, -3, 6.5); ctx.fillStyle = '#b2f2bb'; ctx.beginPath(); ctx.ellipse(d * 14, -1, 4, 3, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff'; circle(d * 10, -5, 2.2); ctx.fillStyle = '#111'; circle(d * 10.6, -5, 1);
+    ctx.fillStyle = (S.tick >> 2) % 2 ? '#ffb347' : '#ff6b35'; ctx.beginPath(); ctx.moveTo(d * 18, -2); ctx.lineTo(d * 25, -4); ctx.lineTo(d * 25, 1); ctx.fill();
+  }
+  ctx.restore();
+}
 function drawFlyers() {
   const t = S.tick;
   for (const f of flyers) {
@@ -1848,12 +1912,7 @@ function drawFlyers() {
     if (f.k === 'bat') drawBat(f, t); else if (f.k === 'ghost') drawGhost(f, t); else drawPhoenix(f, t);
     ctx.restore();
   }
-  if (wisp && !wisp.blink) {
-    const w = wisp, y = wispY(), fl = Math.sin(S.tick * .6), d = w.vx > 0 ? 1 : -1;
-    ctx.save(); ctx.translate(w.x, y); ctx.globalCompositeOperation = 'lighter'; glow(0, 0, 30, 'rgba(255,225,120,.55)'); ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(255,255,255,.85)'; ctx.beginPath(); ctx.ellipse(-3 * d, -6, 4, 9 + fl * 3, -.5 * d, 0, TAU); ctx.ellipse(-8 * d, -3, 3.4, 7 - fl * 3, -1 * d, 0, TAU); ctx.fill();
-    ctx.fillStyle = '#ffd23d'; circle(0, 0, 7); ctx.fillStyle = '#fff6b0'; circle(-1.5, -1.5, 3.4); ctx.fillStyle = '#7a4a00'; circle(2 * d, -1, 1); ctx.restore();
-  }
+  if (wisp && !wisp.blink) drawVisitorC();
 }
 function drawBat(f, t) {
   const fl = Math.sin(t * .55 + f.p * 3);
@@ -3024,6 +3083,33 @@ function drawPerkFx() {
   }
   for (const q of famShots) { const X = Math.round(q.x / 2), Y = Math.round(q.y / 2); disc(X, Y, 2, '#b197fc'); rc(X, Y, 1, 1, '#ffffff'); }
 }
+function drawVisitorP() {
+  const w = wisp, X = Math.round(w.x / 2), Y = Math.round(wispY() / 2), d = w.vx > 0 ? 1 : -1, fl = (S.tick >> 2) % 2, k = w.k, t = S.tick;
+  ctx.globalAlpha = .28; disc(X, Y, k === 'cometa' ? 12 : 10, `rgb(${VIS[k].col})`); ctx.globalAlpha = 1;
+  if (k === 'fada') {
+    rc(X - 4 * d - 1, Y - 6 - fl, 3, 5 + fl, '#ffffff'); rc(X - 7 * d - 1, Y - 4 + fl, 3, 4, '#dfe9ff');
+    disc(X, Y, 4, '#b07a00'); disc(X, Y, 3, '#ffd23d'); rc(X - 1, Y - 2, 2, 1, '#fff6b0'); rc(X + d, Y - 1, 1, 1, '#4a2a00');
+  } else if (k === 'cometa') {
+    for (let i = 1; i < 18; i++) { ctx.globalAlpha = 1 - i / 18; rc(X - d * i - (d < 0 ? 0 : 1), Y - Math.round(4 * (1 - i / 18)), 2, Math.max(1, Math.round(8 * (1 - i / 18))), i < 8 ? '#e6f2ff' : '#7fb4ff'); }
+    ctx.globalAlpha = 1; disc(X, Y, 4, '#8fc1ff'); disc(X, Y, 3, '#e6f2ff'); rc(X - 1, Y - 2, 2, 1, '#fff');
+  } else if (k === 'coruja') {
+    rc(X - 8, Y - 3 + fl, 3, 8, '#5d4037'); rc(X + 5, Y - 3 + fl, 3, 8, '#5d4037');
+    ellip(X, Y + 1, 5, 6, '#6d4c41'); ellip(X, Y + 1, 4, 5, '#8d6e63'); ellip(X, Y + 3, 3, 3, '#d7ccc8');
+    rc(X - 4, Y - 7, 2, 3, '#6d4c41'); rc(X + 3, Y - 7, 2, 3, '#6d4c41');
+    disc(X - 2, Y - 2, 2, '#ffffff'); disc(X + 2, Y - 2, 2, '#ffffff'); rc(X - 2 + (d > 0 ? 1 : 0), Y - 2, 1, 1, '#111'); rc(X + 2 + (d > 0 ? 1 : 0), Y - 2, 1, 1, '#111'); rc(X, Y, 1, 2, '#ffa94d');
+  } else if (k === 'bau') {
+    rc(X - 9, Y - 4 + fl, 3, 5, '#ffffff'); rc(X + 7, Y - 4 + fl, 3, 5, '#ffffff');
+    rc(X - 6, Y - 3, 13, 9, '#3b2410'); rc(X - 5, Y - 2, 11, 7, '#8a5a2b'); rc(X - 5, Y - 4, 11, 2, '#a8743a'); rc(X - 4, Y - 5, 9, 1, '#a8743a');
+    rc(X - 1, Y - 4, 2, 10, '#ffd43b'); rc(X - 5, Y, 11, 1, '#ffd43b'); rc(X, Y + 1, 1, 2, '#7a5a00');
+  } else if (k === 'sorte') {
+    for (const [lx, ly] of [[-2, -2], [2, -2], [-2, 2], [2, 2]]) { disc(X + lx, Y + ly, 3, '#2f9e44'); disc(X + lx, Y + ly, 2, '#69db7c'); }
+    disc(X, Y, 2, '#d8f5a2'); rc(X - 1, Y - 1, 1, 1, '#fff');
+  } else {
+    rc(X - 3, Y - 7 - fl, 6, 3, '#2f9e44'); ellip(X, Y + 1, 6, 4, '#51cf66'); rc(X - d * 8 - (d > 0 ? 0 : -1), Y + 1 + fl, 5, 2, '#2f9e44');
+    disc(X + d * 6, Y - 2, 3, '#51cf66'); rc(X + d * 7, Y - 1, 2, 2, '#b2f2bb'); rc(X + d * 6, Y - 3, 1, 1, '#111');
+    rc(X + d * 9, Y - 1, 3, 2, (t >> 2) % 2 ? '#ffb347' : '#ff6b35');
+  }
+}
 function drawFlyers() {
   const t = S.tick;
   for (const f of flyers) {
@@ -3032,12 +3118,7 @@ function drawFlyers() {
     if (f.k === 'bat') batP(X, Y, f, t); else if (f.k === 'ghost') ghostP(X, Y, f, t); else phoenixP(X, Y, f, t);
     ctx.restore();
   }
-  if (wisp && !wisp.blink) {
-    const X = Math.round(wisp.x / 2), Y = Math.round(wispY() / 2), d = wisp.vx > 0 ? 1 : -1, fl = (S.tick >> 2) % 2;
-    ctx.globalAlpha = .3; disc(X, Y, 10, '#ffe27a'); ctx.globalAlpha = 1;
-    rc(X - 4 * d - 1, Y - 6 - fl, 3, 5 + fl, '#ffffff'); rc(X - 7 * d - 1, Y - 4 + fl, 3, 4, '#dfe9ff');
-    disc(X, Y, 4, '#b07a00'); disc(X, Y, 3, '#ffd23d'); rc(X - 1, Y - 2, 2, 1, '#fff6b0'); rc(X + d, Y - 1, 1, 1, '#4a2a00');
-  }
+  if (wisp && !wisp.blink) drawVisitorP();
 }
 function lockP(cx, cy) { rc(cx - 3, cy - 6, 1, 5, '#e0e0e0'); rc(cx + 3, cy - 6, 1, 5, '#e0e0e0'); rc(cx - 3, cy - 7, 7, 1, '#e0e0e0'); rc(cx - 5, cy - 1, 11, 8, '#7a5a00'); rc(cx - 4, cy, 9, 6, '#ffd43b'); rc(cx, cy + 2, 1, 2, '#7a5a00'); }
 function drawMaps() {
@@ -3221,7 +3302,7 @@ requestAnimationFrame(frame);
 // gancho para testes automatizados
 window.__Popmancer = { setStyle, getStyle: () => artStyle, startFreeze, pickItem, Music, setMuted, initAudio, getAC: () => ac, getMaster: () => master, S, P, input, LEVELS, SKINS, ROPES, BOSSES, step, draw, startLevel, newGame, goMenu, openShop, buyOrEquip, hurt, explode, popSlime, mkSlime,
   jump: () => { jumpBuf = 8; },
-  MAPS, openMaps, pickMap, mkFlyer, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
+  MAPS, openMaps, pickMap, mkFlyer, spawnVisitor, killWisp, get flyers() { return flyers; }, set flyers(v) { flyers = v; },
   get wisp() { return wisp; }, set wisp(v) { wisp = v; }, get wispT() { return wispT; }, set wispT(v) { wispT = v; }, get fires() { return fires; }, get strikes() { return strikes; },
   get slimes() { return slimes; }, set slimes(v) { slimes = v; }, get shots() { return shots; }, get items() { return items; },
   get globs() { return globs; }, get puddles() { return puddles; }, get ladders() { return ladders; }, get blocks() { return blocks; },
