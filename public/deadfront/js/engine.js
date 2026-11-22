@@ -89,7 +89,7 @@
     for (let y = 0; y < map.h; y++) for (let x = 0; x < map.w; x++) {
       const t = map.tiles[y * map.w + x];
       const px = x * TILE, py = y * TILE;
-      if (t === T.OUT) {
+      if (t === T.OUT || (t === T.OBST && lv.open && !lv.rooms.some((q) => x >= q.x && x < q.x + q.w && y >= q.y && y < q.y + q.h))) {
         ctx.fillStyle = (x + y) % 2 ? th.out : th.out2; ctx.fillRect(px, py, TILE, TILE);
         for (let i = 0; i < 5; i++) { ctx.fillStyle = 'rgba(0,0,0,0.12)'; ctx.fillRect(px + rnd() * TILE, py + rnd() * TILE, 2, 4); }
         for (let i = 0; i < 3; i++) { ctx.fillStyle = 'rgba(255,255,255,0.05)'; ctx.fillRect(px + rnd() * TILE, py + rnd() * TILE, 2, 3); }
@@ -582,7 +582,7 @@
       if (P.scrap < tcost(id)) { msg('Sucata insuficiente (' + tcost(id) + ')', '#ff6b6b'); return; }
       const x = P.x + Math.cos(P.angle) * 38, y = P.y + Math.sin(P.angle) * 38;
       const ti = tileAt(x, y);
-      let ok = ti >= 0 && tiles[ti] === T.FLOOR;
+      let ok = ti >= 0 && (tiles[ti] === T.FLOOR || (open && tiles[ti] === T.OUT));
       for (const ox of [-14, 0, 14]) for (const oy of [-14, 0, 14]) if (ok && solid(Math.floor((x + ox) / TILE), Math.floor((y + oy) / TILE), true)) ok = false;
       if (!ok) { msg('Não dá para colocar aqui', '#ffb347'); return; }
       for (const t of G.towers) if (Math.hypot(t.x - x, t.y - y) < 40) { msg('Muito perto de outra torre', '#ffb347'); return; }
@@ -1568,7 +1568,7 @@
         const da = Math.abs(Math.atan2(Math.sin(a - P.angle), Math.cos(a - P.angle)));
         const mr = BASE + (da < half ? (CONE - BASE) * Math.pow(Math.cos(da / half * 1.5708), 0.6) : 0);
         const ca = Math.cos(a), sa = Math.sin(a); let r = 10;
-        const blk = (rr) => { const ti = tileAt(P.x + ca * rr, P.y + sa * rr); return ti < 0 || isBlockType(ti); };
+        const blk = (rr) => { const ti = tileAt(P.x + ca * rr, P.y + sa * rr); if (ti < 0 || tiles[ti] === T.WALL) return true; if (rr < 52) return false; const t2 = tileAt(P.x + ca * (rr - 40), P.y + sa * (rr - 40)); return t2 >= 0 && isHigh(t2); };
         for (; r < mr; r += 12) { if (blk(r)) { let lo = Math.max(10, r - 12), hi = r; for (let k = 0; k < 5; k++) { const mid = (lo + hi) / 2; if (blk(mid)) hi = mid; else lo = mid; } r = hi; break; } }
         r = Math.min(r, mr); pts.push([(P.x + ca * r - camera.x + shx) * s, (P.y + sa * r - camera.y + shy) * s]);
       }
