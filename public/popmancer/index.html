@@ -14,44 +14,39 @@
   #app{height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;--ctl:0px}
   #stage{position:relative;width:min(100vw,calc((100dvh - var(--ctl))*16/9));aspect-ratio:16/9}
   canvas{width:100%;height:100%;display:block;image-rendering:pixelated;background:#000;border-radius:6px;touch-action:none}
-  #ctl{display:none;width:100%;box-sizing:border-box;padding:6px 12px calc(8px + env(safe-area-inset-bottom));
-    justify-content:space-between;align-items:flex-end;gap:8px}
-  .grp{display:flex;gap:8px;align-items:flex-end}
-  #ctl button{width:58px;height:58px;border-radius:16px;border:2px solid rgba(255,255,255,.35);
-    background:rgba(255,255,255,.14);color:#fff;font-size:24px;touch-action:none;-webkit-tap-highlight-color:transparent;padding:0}
-  #ctl button.on{background:rgba(255,255,255,.38)}
-  #ctl button.fire{width:80px;height:80px;border-radius:50%;background:rgba(255,90,90,.35);border-color:rgba(255,160,160,.7);font-size:14px;font-weight:700}
-  #ctl button.jump{width:68px;height:68px;border-radius:50%;background:rgba(90,170,255,.3);border-color:rgba(160,200,255,.7);font-size:13px;font-weight:700}
-  #ctl .col{display:flex;flex-direction:column;gap:6px}
-  #ctl .col button{height:36px}
+  #ctl{display:none;width:100%;box-sizing:border-box;padding:6px 14px calc(8px + env(safe-area-inset-bottom));
+    justify-content:flex-end;align-items:flex-end;gap:12px;pointer-events:none}
+  #ctl button{border-radius:50%;border:2px solid rgba(255,255,255,.4);color:#fff;touch-action:none;-webkit-tap-highlight-color:transparent;padding:0;
+    display:flex;align-items:center;justify-content:center;pointer-events:auto;opacity:.85}
+  #ctl button svg{width:55%;height:55%;fill:none;stroke:#fff;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+  #ctl button.on{filter:brightness(1.6)}
+  #ctl button.fire{width:62px;height:62px;background:rgba(255,90,90,.38);border-color:rgba(255,160,160,.75)}
+  #ctl button.jump{width:52px;height:52px;background:rgba(90,170,255,.34);border-color:rgba(160,200,255,.75);margin-bottom:6px}
+  /* analógico flutuante (igual ao Deadfront): toque e arraste na metade esquerda */
+  #zone{position:fixed;left:0;bottom:0;width:58%;height:48dvh;touch-action:none;display:none;z-index:5}
+  .stick-base{position:absolute;width:110px;height:110px;border-radius:50%;border:2px solid rgba(255,255,255,.28);background:rgba(255,255,255,.08);transform:translate(-50%,-50%);display:none;pointer-events:none}
+  .stick-knob{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.55)}
+  #zone.active .stick-base{display:block}
   @media (pointer:coarse){
     #ctl{display:flex}
-    #app{--ctl:112px}
+    #app{--ctl:96px}
+    body.playing #zone{display:block}
   }
   @media (pointer:coarse) and (orientation:landscape){
     #app{--ctl:0px}
-    #ctl{position:fixed;left:0;right:0;bottom:0;pointer-events:none}
-    #ctl button{pointer-events:auto;opacity:.8}
+    #ctl{position:fixed;left:0;right:0;bottom:0}
+    #zone{height:72dvh;width:50%}
   }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="stage"><canvas id="c"></canvas></div>
+  <div id="zone"><div class="stick-base"><div class="stick-knob"></div></div></div>
   <div id="ctl">
-    <div class="grp">
-      <button data-k="left">◀</button>
-      <button data-k="right">▶</button>
-    </div>
-    <div class="grp">
-      <div class="col">
-        <button data-k="up">▲</button>
-        <button data-k="down">▼</button>
-      </div>
-      <button data-k="jump" class="jump">PULAR</button>
-      <button data-k="fire" class="fire">MAGIA</button>
-    </div>
-  </div>
+    <button data-k="jump" class="jump" aria-label="Pular"><svg viewBox="0 0 24 24"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg></button>
+    <button data-k="fire" class="fire" aria-label="Magia"><svg viewBox="0 0 24 24"><path d="M4 20 14 10"/><path d="M17 3l1.2 2.8L21 7l-2.8 1.2L17 11l-1.2-2.8L13 7l2.8-1.2z" fill="#fff"/><path d="M7 4v3M5.5 5.5h3M20 14v3M18.5 15.5h3"/></svg></button>
+</div>
 </div>
 
 <script>
@@ -1664,7 +1659,7 @@ function present() { // amplia o quadro pixel para a tela, sem suavização
   if (sh) { scr.fillStyle = '#000'; scr.fillRect(0, 0, cv.width, cv.height); }
   scr.drawImage(lo, ox, oy, LW * k, LH * k);
 }
-function draw() { render(); present(); }
+function draw() { syncZone(); render(); present(); }
 
 
 /* =====================================================================
@@ -1723,6 +1718,28 @@ document.querySelectorAll('#ctl button').forEach(btn => {
   btn.addEventListener('pointercancel', off);
   btn.addEventListener('lostpointercapture', off);
 });
+{ // analógico flutuante: onde o dedo tocar na metade esquerda vira o centro
+  const zone = document.getElementById('zone'), base = zone && zone.querySelector && zone.querySelector('.stick-base'), knob = base && base.firstElementChild;
+  if (zone && base && knob) {
+    const st = { id: -1, cx: 0, cy: 0 }, R = 48;
+    const setStick = (x, y) => { input.left = x < -0.3; input.right = x > 0.3; input.down = y > 0.5; input.up = y < -0.5; };
+    zone.addEventListener('pointerdown', e => {
+      Music.unlock(); if (st.id !== -1) return; st.id = e.pointerId; zone.setPointerCapture(e.pointerId);
+      const r = zone.getBoundingClientRect(); st.cx = e.clientX; st.cy = e.clientY;
+      base.style.left = (e.clientX - r.left) + 'px'; base.style.top = (e.clientY - r.top) + 'px'; knob.style.transform = 'translate(0,0)'; zone.classList.add('active');
+      if (S.state !== 'play') pressed = true; e.preventDefault();
+    });
+    zone.addEventListener('pointermove', e => {
+      if (e.pointerId !== st.id) return;
+      let dx = e.clientX - st.cx, dy = e.clientY - st.cy; const d = Math.hypot(dx, dy); if (d > R) { dx = dx / d * R; dy = dy / d * R; }
+      knob.style.transform = `translate(${dx}px,${dy}px)`; setStick(dx / R, dy / R); e.preventDefault();
+    });
+    const end = e => { if (e.pointerId !== st.id) return; st.id = -1; zone.classList.remove('active'); setStick(0, 0); };
+    zone.addEventListener('pointerup', end); zone.addEventListener('pointercancel', end); zone.addEventListener('lostpointercapture', end);
+  }
+}
+let playingCls = null;
+function syncZone() { const pl = S.state !== 'menu' && S.state !== 'shop'; if (pl !== playingCls && document.body && document.body.classList) { playingCls = pl; document.body.classList.toggle('playing', pl); } }
 document.addEventListener('contextmenu', e => e.preventDefault());
 
 /* =====================================================================
