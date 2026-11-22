@@ -25,7 +25,7 @@
     input.mx = (keys.d || keys.arrowright ? 1 : 0) - (keys.a || keys.arrowleft ? 1 : 0);
     input.my = (keys.s || keys.arrowdown ? 1 : 0) - (keys.w || keys.arrowup ? 1 : 0);
   }
-  const KEYMAP = { e: 'build', z: 'material', f: 'heal', t: 'trap', x: 'trapType', q: 'weapon', r: 'reload', n: 'skip', enter: 'skip', g: 'tower', v: 'towerType', b: 'gren', c: 'grenType' };
+  const KEYMAP = { e: 'build', z: 'material', f: 'heal', t: 'trap', x: 'trapType', q: 'weapon', r: 'reload', n: 'skip', enter: 'skip', g: 'tower', v: 'towerType', b: 'gren', c: 'grenType', h: 'skill' };
   window.addEventListener('keydown', (e) => {
     const k = e.key.toLowerCase();
     if (!inGame) return;
@@ -129,7 +129,19 @@
 
   // ---------- fases ----------
   function fmtT(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+  function renderClasses() {
+    const row = $('class-row'); row.innerHTML = '';
+    if (!DF.CLASSES[save.cls]) save.cls = 'fighter';
+    DF.CLASS_ORDER.forEach((id) => {
+      const c = DF.CLASSES[id]; const b = document.createElement('button'); b.className = 'class-chip' + (save.cls === id ? ' on' : ''); b.style.setProperty('--cc', c.color);
+      b.innerHTML = '<span class="cico">' + DF.classSVG(id) + '</span><span>' + c.name + '</span>';
+      b.onclick = () => { click(); save.cls = id; persist(); renderClasses(); };
+      row.appendChild(b);
+    });
+    const c = DF.CLASSES[save.cls]; $('class-desc').innerHTML = '<b>' + c.name + ':</b> ' + c.desc;
+  }
   function renderLevels(endless) {
+    renderClasses();
     document.querySelector('#levels h2').textContent = endless ? 'Modo infinito — escolha o mapa' : 'Escolha o local';
     const g = $('level-grid'); g.innerHTML = '';
     DF.LEVELS.forEach((lv, i) => {
@@ -202,7 +214,7 @@
     hpFill: $('hp-fill'), hpText: $('hp-text'), wave: $('wave-info'), scrap: $('scrap-val'), toast: $('toast'), count: $('countdown'),
     bossBar: $('boss-bar'), bossName: $('boss-name'), bossFill: $('boss-fill'), skip: $('btn-skip'),
     wIco: $('w-ico'), wName: $('w-name'), wAmmo: $('w-ammo'), reload: $('reload-fill'), bName: $('b-name'), bCost: $('b-cost'), mIco: $('m-ico'),
-    hCount: $('h-count'), tIco: $('t-ico'), tName: $('t-name'), tCount: $('t-count'), slotBuild: $('slot-build'), slotHeal: $('slot-heal'), slotTrap: $('slot-trap'), slotMat: $('slot-mat'), slotTower: $('slot-tower'), slotGren: $('slot-gren'), gIco: $('g-ico'), gName: $('g-name'), gCount: $('g-count'), warn: $('warn'), obj: $('obj-info'), twIco: $('tw-ico'), twName: $('tw-name'), twCost: $('tw-cost')
+    hCount: $('h-count'), tIco: $('t-ico'), tName: $('t-name'), tCount: $('t-count'), slotBuild: $('slot-build'), slotHeal: $('slot-heal'), slotTrap: $('slot-trap'), slotMat: $('slot-mat'), slotTower: $('slot-tower'), slotGren: $('slot-gren'), kIco: $('k-ico'), kName: $('k-name'), kSub: $('k-sub'), kCd: $('k-cd'), slotSkill: $('slot-skill'), gIco: $('g-ico'), gName: $('g-name'), gCount: $('g-count'), warn: $('warn'), obj: $('obj-info'), twIco: $('tw-ico'), twName: $('tw-name'), twCost: $('tw-cost')
   };
   function updateHud(G) {
     const now = performance.now(); if (now - lastHud < 90) return; lastHud = now;
@@ -225,6 +237,11 @@
     else { els.twIco.textContent = '🗼'; els.twName.textContent = 'Torre'; els.twCost.textContent = 'na loja'; els.slotTower.classList.add('disabled'); }
     els.gIco.innerHTML = DF.grenSVG(h.gren.id); els.gName.textContent = h.gren.name; els.gCount.textContent = 'x' + h.gren.count; els.slotGren.classList.toggle('disabled', h.gren.count <= 0 && !Object.values(h.gren.all).some((n) => n > 0));
     els.warn.classList.toggle('hidden', !h.outside);
+    if (els.kIco.dataset.c !== h.cls.id) { els.kIco.dataset.c = h.cls.id; els.kIco.innerHTML = DF.classSVG(h.cls.id); }
+    els.kName.textContent = h.cls.skill.length > 10 ? h.cls.skill.split(' ')[0] : h.cls.skill;
+    els.kSub.textContent = h.cls.fury > 0 ? Math.ceil(h.cls.fury) + 's' : h.cls.cd > 0 ? Math.ceil(h.cls.cd) + 's' : (h.cls.cost ? h.cls.cost + ' 🔧' : 'pronto');
+    els.kCd.style.width = (h.cls.cd > 0 ? (1 - h.cls.cd / h.cls.cdMax) * 100 : 100) + '%'; els.slotSkill.classList.toggle('disabled', h.cls.cd > 0);
+    els.slotSkill.classList.toggle('glow', h.cls.fury > 0);
     if (h.mission) { els.obj.classList.remove('hidden'); els.obj.innerHTML = '🎯 ' + h.mission.step + '/' + h.mission.total + ' · ' + h.mission.text + ' <b>' + h.mission.dist + 'm</b>'; } else els.obj.classList.add('hidden');
     if (DF.musicMode) DF.musicMode(h.boss ? 'boss' : 'game');
   }

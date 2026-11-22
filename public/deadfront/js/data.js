@@ -42,6 +42,9 @@
     runner:  { name: 'Corredor', hp: 32,  speed: 118, r: 12, dmg: 7,  bdmg: 9,  cd: 0.7, color: '#a8b24a', scrap: 2 },
     spitter: { name: 'Cuspidor', hp: 48,  speed: 52,  r: 14, dmg: 6,  bdmg: 8,  cd: 0.9, color: '#4fb0a0', scrap: 3, ranged: true },
     brute:   { name: 'Bruto',    hp: 280, speed: 40,  r: 21, dmg: 22, bdmg: 46, cd: 1.1, color: '#8a5a4a', scrap: 6 },
+    bomber:  { name: 'Explosivo', hp: 85,  speed: 60,  r: 16, dmg: 8,  bdmg: 16, cd: 0.9, color: '#c8602a', scrap: 3, bomb: true },
+    carrier: { name: 'Hospedeiro', hp: 140, speed: 48, r: 17, dmg: 10, bdmg: 18, cd: 1.0, color: '#b9a58a', scrap: 4, brood: true },
+    worm:    { name: 'Verme',    hp: 14,  speed: 108, r: 6,  dmg: 4,  bdmg: 3,  cd: 0.6, color: '#d9a0a0', scrap: 0 },
     // bosses
     boss_smasher: { name: 'Colosso',        hp: 5600, speed: 66, r: 30, dmg: 34, bdmg: 100,  cd: 1.0, color: '#7a4a3a', scrap: 40, boss: 'smasher' },
     boss_charger: { name: 'Alfa Predador',  hp: 6200, speed: 92, r: 26, dmg: 30, bdmg: 90,  cd: 0.9, color: '#a04040', scrap: 40, boss: 'charger' },
@@ -175,6 +178,19 @@
     bazooka: { name: 'Bazuca',       cost: 125, price: 520, hp: 150, range: 430, dmg: 130, rate: 1.7,  splash: 85, desc: 'Foguete com explosão em área. Lento, mas devastador.' }
   };
   DF.TOWER_ORDER = ['mg', 'flame', 'bazooka'];
+  // torres exclusivas do Engenheiro
+  DF.TOWERS.tesla = { name: 'Tesla', cost: 70, price: 0, hp: 160, range: 250, dmg: 26, rate: 0.6, chain: 3, eng: true, desc: 'Raio que salta entre zumbis. Só do Engenheiro.' };
+  DF.TOWERS.railgun = { name: 'Sniper', cost: 95, price: 0, hp: 130, range: 640, dmg: 110, rate: 1.25, eng: true, desc: 'Tiro perfurante de longo alcance. Só do Engenheiro.' };
+  DF.ENG_TOWERS = ['tesla', 'railgun'];
+  DF.ALL_TOWERS = DF.TOWER_ORDER.concat(DF.ENG_TOWERS);
+  // ---------- Classes ----------
+  DF.CLASSES = {
+    fighter:   { name: 'Combatente', desc: '+20% de dano com todas as armas. Habilidade: Fúria (8s de tiro muito mais rápido).', skill: 'Fúria', cd: 35, cost: 0, color: '#d4541c' },
+    medic:     { name: 'Médico', desc: '+2 kits médicos e cura mais forte. Habilidade: Caixa de cura em área (cura quem estiver perto).', skill: 'Caixa de cura', cd: 18, cost: 30, color: '#3ddc84' },
+    engineer:  { name: 'Engenheiro', desc: 'Torres mais baratas e fortes, +2 torres, torres exclusivas (Tesla, Sniper). Habilidade: Caixa de munição.', skill: 'Caixa de munição', cd: 15, cost: 40, color: '#4d9fff' },
+    grenadier: { name: 'Granadeiro', desc: 'Granadas 50% mais fortes e maiores, mais granadas e recarga lenta. Habilidade: Bombardeio.', skill: 'Bombardeio', cd: 40, cost: 0, color: '#c9a227' }
+  };
+  DF.CLASS_ORDER = ['fighter', 'medic', 'engineer', 'grenadier'];
   DF.TOWER_MAX = 5;
   DF.TOWER_UP_MAX = 5; // +15% de dano e +5% de cadência por nível
   DF.towerUpCost = (id, lvl) => Math.round(DF.TOWERS[id].price * 0.45 + 50) * (lvl + 1);
@@ -199,7 +215,7 @@
   WSVG.minigun = S + '<rect x="2" y="14" width="9" height="15" fill="#7a8a55"/><rect x="9" y="8" width="17" height="14" rx="2" fill="#4a5156"/><rect x="26" y="8" width="42" height="3" fill="#b0b8be"/><rect x="26" y="13" width="42" height="3" fill="#b0b8be"/><rect x="26" y="18" width="42" height="3" fill="#b0b8be"/><rect x="48" y="6" width="4" height="17" fill="#6d7479"/><polygon points="14,22 21,22 19,30 13,30" fill="#2b2e32"/></svg>';
   WSVG.flamer = S + '<circle cx="14" cy="17" r="10" fill="#c0392b"/><circle cx="14" cy="17" r="5" fill="#e2594a"/><rect x="24" y="12" width="26" height="9" rx="2" fill="#2b2e32"/><rect x="50" y="9" width="12" height="15" fill="#6d7479"/><path d="M62 16q4-7 9-1q-3 2-3 2q3 2 3 4q-6 3-9-5z" fill="#ff9f1c"/><polygon points="30,21 36,21 34,30 29,30" fill="#3b3f44"/></svg>';
   WSVG.rpg = S + '<rect x="2" y="7" width="9" height="17" fill="#2b2e32"/><rect x="8" y="9" width="54" height="13" rx="3" fill="#7a8a55"/><ellipse cx="64" cy="15.5" rx="7" ry="6" fill="#c0392b"/><polygon points="30,22 37,22 35,31 29,31" fill="#3b3f44"/><rect x="40" y="5" width="10" height="4" fill="#4a5156"/></svg>';
-  DF.weaponSVG = (id) => WSVG[id] || '';
+  DF.weaponSVG = (id) => realize(WSVG[id]) || '';
   const I = '<svg class="wico ico" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke="#0b0d0b" stroke-width="1.2" stroke-linejoin="round">';
   const MSVG = {
     wood: I + '<rect x="2" y="3" width="20" height="5" fill="#9a6b3a"/><rect x="2" y="9.5" width="20" height="5" fill="#b27d44"/><rect x="2" y="16" width="20" height="5" fill="#9a6b3a"/><circle cx="5" cy="5.5" r=".9" fill="#ddd"/><circle cx="19" cy="18.5" r=".9" fill="#ddd"/></svg>',
@@ -216,8 +232,28 @@
     fire: I + '<ellipse cx="12" cy="14" rx="7" ry="8" fill="#c0392b"/><rect x="9" y="3" width="6" height="4" fill="#4a5156"/><path d="M12 8q4 3 1 7q-1-3-3-2q-2 3 2 6q-6-1-5-6q2-2 3-5z" fill="#ffb347"/></svg>',
     holy: I + '<ellipse cx="12" cy="14" rx="7" ry="8" fill="#f1e2a4"/><rect x="9" y="3" width="6" height="4" fill="#c9a15a"/><path d="M10.4 9h3.2v3h3v3.2h-3V20h-3.2v-4.8h-3V12h3z" fill="#b3141c" stroke="none"/></svg>'
   };
-  DF.matSVG = (id) => MSVG[id] || '';
-  DF.trapSVG = (id) => TRSVG[id] || '';
-  DF.grenSVG = (id) => GSVG[id] || '';
-  DF.towerSVG = (id) => TSVG[id] || '';
+  DF.matSVG = (id) => realize(MSVG[id]) || '';
+  DF.trapSVG = (id) => realize(TRSVG[id]) || '';
+  DF.grenSVG = (id) => realize(GSVG[id]) || '';
+  TSVG.tesla = TS + '<circle cx="18" cy="20" r="11" fill="#3b4f6b"/><circle cx="18" cy="20" r="6" fill="#4d9fff"/><path d="M22 12l6 6-5 1 7 9" fill="none" stroke="#bfe3ff" stroke-width="2.4"/><circle cx="18" cy="20" r="2.6" fill="#fff"/></svg>';
+  TSVG.railgun = TS + '<circle cx="14" cy="20" r="10" fill="#4a5156"/><rect x="8" y="17" width="30" height="6" rx="2" fill="#9aa2a8"/><rect x="4" y="15" width="8" height="10" fill="#2b2e32"/><rect x="20" y="12" width="8" height="4" fill="#4d9fff"/></svg>';
+  const CSV = {
+    fighter: I + '<circle cx="12" cy="12" r="10" fill="#d4541c"/><path d="M7 15l5-9 5 9-5-2z" fill="#ffd27a"/><path d="M12 8v6" stroke="#7a2a08" stroke-width="1.6"/></svg>',
+    medic: I + '<circle cx="12" cy="12" r="10" fill="#e8f5ec"/><path d="M10 5h4v5h5v4h-5v5h-4v-5H5v-4h5z" fill="#d4141c" stroke="none"/></svg>',
+    engineer: I + '<circle cx="12" cy="12" r="10" fill="#3a6fb8"/><path d="M7 16l6-6a3.5 3.5 0 1 1 3 3l-6 6z" fill="#e8c840"/><circle cx="15.5" cy="8.5" r="1.4" fill="#2b2e32"/></svg>',
+    grenadier: I + '<circle cx="12" cy="12" r="10" fill="#8a7a2a"/><ellipse cx="12" cy="14" rx="5" ry="6" fill="#7a8a55"/><rect x="10" y="5" width="4" height="3" fill="#4a5156"/></svg>'
+  };
+  DF.classSVG = (id) => realize(CSV[id]) || '';
+  // ---------- realismo: gradiente metálico automático em todos os ícones ----------
+  let gid = 0;
+  function realize(svg) {
+    if (!svg) return svg; const U = 'u' + (++gid) + '_';
+    const cols = {}; svg.replace(/fill="(#[0-9a-fA-F]{6})"/g, (m, c) => { cols[c.toLowerCase()] = 1; return m; });
+    const mix = (c, a) => { const n = parseInt(c.slice(1), 16); const f = (v) => Math.max(0, Math.min(255, v + a)); return 'rgb(' + f(n >> 16) + ',' + f((n >> 8) & 255) + ',' + f(n & 255) + ')'; };
+    let defs = '<defs>';
+    for (const c in cols) defs += '<linearGradient id="' + U + c.slice(1) + '" x1="0" y1="0" x2="0.35" y2="1"><stop offset="0" stop-color="' + mix(c, 38) + '"/><stop offset="0.5" stop-color="' + c + '"/><stop offset="1" stop-color="' + mix(c, -42) + '"/></linearGradient>';
+    defs += '</defs>';
+    return svg.replace(/fill="(#[0-9a-fA-F]{6})"/g, (m, c) => 'fill="url(#' + U + c.slice(1).toLowerCase() + ')"').replace(/(<svg[^>]*>)/, '$1' + defs);
+  }
+  DF.towerSVG = (id) => realize(TSVG[id]) || '';
 })();
