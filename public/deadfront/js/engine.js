@@ -660,7 +660,7 @@
     }
     function updateClass(dt) {
       G.skillCd = Math.max(0, G.skillCd - dt); G.furyT = Math.max(0, G.furyT - dt);
-      if (cls === 'grenadier') { G.regenT += dt; if (G.regenT > 25) { G.regenT = 0; if (P.gren.frag < 6) { P.gren.frag++; msg('+1 Granada', '#ffd27a'); } } }
+      if (cls === 'grenadier') { G.regenT += dt; if (G.regenT > (P.gren.frag <= 0 ? 8 : 14)) { G.regenT = 0; if (P.gren.frag < 8) { P.gren.frag++; msg('+1 Granada', '#ffd27a'); } } }
       for (let i = G.boxes.length - 1; i >= 0; i--) {
         const b = G.boxes[i]; b.t -= dt; const d = Math.hypot(P.x - b.x, P.y - b.y);
         if (b.kind === 'heal') { if (d < 105 && P.hp < P.maxHp) { P.hp = Math.min(P.maxHp, P.hp + 11 * dt); if (Math.random() < 0.15) G.parts.push({ x: P.x + rand(-8, 8), y: P.y + rand(-8, 8), vx: 0, vy: -40, life: 0.5, max: 0.5, size: 3, color: '#6ee07a' }); } }
@@ -775,6 +775,7 @@
       if (z.def.brood) { for (let k = 0; k < 6; k++) spawnZombie('worm', { x: z.x + rand(-20, 20), y: z.y + rand(-20, 20) }); msg('Vermes!', '#e8a0a0'); }
       decal(z.x, z.y, z.boss ? 50 : z.r * 1.7, z.type === 'spitter' ? 'rgba(40,120,80,0.55)' : z.type === 'worm' ? 'rgba(150,90,90,0.5)' : 'rgba(110,14,18,0.6)');
       if (Math.random() < 0.05 && !z.boss) spawnLoot(z.x, z.y);
+      if (cls === 'grenadier' && !z.boss && z.type !== 'worm' && Math.random() < 0.14) { const r2 = Math.random(); G.loot.push({ x: z.x, y: z.y, kind: 'grenade', g: r2 < 0.7 ? 'frag' : r2 < 0.92 ? 'fire' : 'holy', ttl: 32, bob: rand(0, 6) }); }
     }
     function bombBlast(z) {
       const R = 105; G.bombDepth = (G.bombDepth || 0) + 1;
