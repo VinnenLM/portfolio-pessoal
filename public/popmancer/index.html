@@ -32,16 +32,19 @@
   .stick-knob{position:absolute;left:50%;top:50%;width:50px;height:50px;margin:-25px 0 0 -25px;border-radius:50%;background:rgba(255,255,255,.35);border:2px solid rgba(255,255,255,.55)}
   #zone.active .stick-base{display:block}
   @media (pointer:coarse){
-    #ctl{display:flex}
-    #app{--ctl:96px}
+    #ctl{display:flex;position:fixed;left:auto;right:0;bottom:0;width:auto;flex-direction:column;align-items:center;gap:18px;padding:0 max(22px,env(safe-area-inset-right)) calc(44px + env(safe-area-inset-bottom)) 0}
+    #ctl button{position:relative}
+    #ctl button::after{content:"";position:absolute;inset:-9px;border-radius:50%}
+    #ctl button.jump{width:64px;height:64px;margin-bottom:0}
+    #ctl button.fire{width:76px;height:76px}
+    #app{--ctl:0px}
     body.playing #zone{display:block}
   }
   @media (pointer:coarse) and (orientation:landscape){
     #app{--ctl:0px}
-    #ctl{position:fixed;left:auto;right:0;bottom:0;width:auto;flex-direction:column;align-items:center;gap:16px;padding:0 max(22px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) 0}
-    #ctl button.jump{margin-bottom:0}
-    #ctl button::after{content:"";position:absolute;inset:-9px;border-radius:50%}
-    #ctl button{position:relative}
+    #ctl{gap:16px;padding:0 max(22px,env(safe-area-inset-right)) calc(18px + env(safe-area-inset-bottom)) 0}
+    #ctl button.jump{width:52px;height:52px}
+    #ctl button.fire{width:62px;height:62px}
     #zone{height:72dvh;width:50%}
   }
 </style>
@@ -1914,8 +1917,8 @@ function drawMenu() {
   txt('POPMANCER', W / 2, 88, 66, '#7dff7d', 'center', '#0b3d12');
   txt('MAGOS vs SLIMES', W / 2, 146, 34, '#ffe27a', 'center', '#5a3b00');
   coinCounter(W - 50, 22);
-  let y = 200;
-  const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 44, label, col, fn); y += 54; };
+  let y = 190;
+  const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 40, label, col, fn); y += 48; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
   add('Mapas', openMaps, '#7048e8');
@@ -2715,8 +2718,8 @@ function drawMenu() {
   overlay(.18);
   drawTitle();
   coinCounter(W - 52, 22);
-  let y = 200;
-  const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 44, label, col, fn); y += 54; };
+  let y = 190;
+  const add = (label, fn, col) => { button(W / 2 - 170, y, 340, 40, label, col, fn); y += 48; };
   if (S.savedLevel > 0) add(`Continuar · Fase ${levelTag(S.savedLevel)}`, () => newGame(S.savedLevel), '#2f9e44');
   add(S.savedLevel > 0 ? 'Novo jogo' : 'Jogar', () => newGame(0), S.savedLevel > 0 ? '#1971c2' : '#2f9e44');
   add('Mapas', openMaps, '#7048e8');
