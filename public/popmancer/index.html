@@ -164,11 +164,22 @@ const SKINS = [
 ];
 SKINS.sort((a, b) => a.price - b.price);
 // Cores da magia (raio principal)
+function hslHex(h) {                                     // matiz (0-360) → '#rrggbb' vivo (usado pelo Arco-íris)
+  const f = n => { const k = (n + h / 30) % 12, v = .6 - .4 * Math.max(-1, Math.min(k - 3, 9 - k, 1)); return Math.round(v * 255).toString(16).padStart(2, '0'); };
+  return '#' + f(0) + f(8) + f(4);
+}
 const ROPES = [
-  { id: 'padrao', name: 'Arcano', price: 0,   color: '#c9a6ff' },
-  { id: 'ouro',   name: 'Solar',  price: 80,  color: '#ffd34d' },
-  { id: 'neon',   name: 'Gélida', price: 120, color: '#74d7ff' },
-  { id: 'fogo',   name: 'Fogo',   price: 150, color: '#ff7a3d' },
+  { id: 'padrao',   name: 'Arcano',    price: 0,    color: '#c9a6ff' },
+  { id: 'ouro',     name: 'Solar',     price: 80,   color: '#ffd34d' },
+  { id: 'esmeralda',name: 'Esmeralda', price: 100,  color: '#4ff07a' },
+  { id: 'neon',     name: 'Gélida',    price: 120,  color: '#74d7ff' },
+  { id: 'neve',     name: 'Neve',      price: 130,  color: '#ffffff' },
+  { id: 'rubi',     name: 'Rubi',      price: 140,  color: '#ff4f7b' },
+  { id: 'fogo',     name: 'Fogo',      price: 150,  color: '#ff7a3d' },
+  { id: 'aurora',   name: 'Aurora',    price: 220,  color: '#3df0cf' },
+  { id: 'abissal',  name: 'Abissal',   price: 260,  color: '#8a5cff' },
+  { id: 'cosmica',  name: 'Cósmica',   price: 320,  color: '#f04cff' },
+  { id: 'arco',     name: 'Arco-íris', price: 1500, rainbow: true, get color() { return hslHex((S.tick * 4) % 360); } },
 ];
 
 // ---------- Temas visuais ----------
@@ -1385,7 +1396,7 @@ function resetData() {
   S.savedLevel = 0; S.best = 0; S.coins = 0; S.score = 0; S.unlocked = 1; S.ownedSkins = ['hero']; S.ownedRopes = ['padrao']; S.skin = 'hero'; S.rope = 'padrao';
   S.resetAsk = false; S.paused = false; save(); goMenu(); flash('Dados apagados');
 }
-function openShop() { S.confirm = null; S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); }
+function openShop() { S.confirm = null; S.state = 'shop'; S.msg = ''; S.msgT = 0; S.perk = null; S.shopPage = Math.floor(Math.max(0, SKINS.findIndex(k => k.id === S.skin)) / 5); S.ropePage = Math.floor(Math.max(0, ROPES.findIndex(k => k.id === S.rope)) / 6); }
 function openMaps() { S.state = 'maps'; S.msg = ''; S.msgT = 0; }
 function pickMap(m) { if (m < S.unlocked) newGame(m * 3); else flash('Vença o chefe do mapa anterior!'); }
 const levelTag = i => `${LEVELS[i].map + 1}-${LEVELS[i].f + 1}`;
@@ -2271,7 +2282,11 @@ function drawShop() {
     if (!owned) coinIcon(x + w / 2 - 14 - String(k.price).length * 3.5, y + 128);
   });
   txt('Cor da magia', 40, 262, 16, '#fff', 'left');
-  ROPES.forEach((k, i) => {
+  { const rN = Math.ceil(ROPES.length / 6), rp = Math.min(S.ropePage || 0, rN - 1);
+    button(W - 242, 244, 44, 30, '<', '#495057', () => { S.ropePage = (rp + rN - 1) % rN; });
+    txt(`${rp + 1}/${rN}`, W - 164, 260, 15, '#ffffff', 'center');
+    button(W - 130, 244, 44, 30, '>', '#495057', () => { S.ropePage = (rp + 1) % rN; }); }
+  ROPES.slice(Math.min(S.ropePage || 0, Math.ceil(ROPES.length / 6) - 1) * 6).slice(0, 6).forEach((k, i) => {
     const x = 36 + i * 122, y = 276, w = 114, h = 84, owned = S.ownedRopes.includes(k.id), eq = S.rope === k.id;
     menuBtns.push({ x, y, w, h, fn: () => buyOrEquip('rope', k) });
     ctx.fillStyle = eq ? 'rgba(47,158,68,.55)' : 'rgba(255,255,255,.14)'; ctx.strokeStyle = eq ? '#69db7c' : 'rgba(255,255,255,.4)'; ctx.lineWidth = 3;
@@ -3129,7 +3144,11 @@ function drawShop() {
     if (!owned) coinPx(Math.round((x + w / 2 - 16 - String(k.price).length * 6) / 2), Math.round((y + 128) / 2));
   });
   txt('COR DA MAGIA', 40, 262, 16, '#ffffff', 'left', '#000');
-  ROPES.forEach((k, i) => {
+  { const rN = Math.ceil(ROPES.length / 6), rp = Math.min(S.ropePage || 0, rN - 1);
+    button(W - 242, 244, 44, 30, '<', '#495057', () => { S.ropePage = (rp + rN - 1) % rN; });
+    txt(`${rp + 1}/${rN}`, W - 164, 260, 15, '#ffffff', 'center');
+    button(W - 130, 244, 44, 30, '>', '#495057', () => { S.ropePage = (rp + 1) % rN; }); }
+  ROPES.slice(Math.min(S.ropePage || 0, Math.ceil(ROPES.length / 6) - 1) * 6).slice(0, 6).forEach((k, i) => {
     const x = 36 + i * 122, y = 276, w = 114, h = 84, owned = S.ownedRopes.includes(k.id), eq = S.rope === k.id;
     menuBtns.push({ x, y, w, h, fn: () => buyOrEquip('rope', k) });
     const X = x / 2, Y = y / 2, Wd = w / 2, Hd = h / 2;
