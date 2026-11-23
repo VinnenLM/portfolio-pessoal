@@ -153,7 +153,7 @@ const CARDS = [
   { id: 'frostC',  name: 'Gelo: Geada',        rar: 0, icon: 'frost',  desc: 'Nova de Gelo recarrega 5% mais rápido.', req: 'frost', max: 8 },
   { id: 'boltC',   name: 'Raio: Cadeia',       rar: 1, icon: 'bolt',   desc: 'Relâmpago salta +2 vezes.', req: 'bolt' },
   { id: 'boltS',   name: 'Raio: Tempestade',   rar: 2, icon: 'bolt',   desc: 'Relâmpago +10% de dano e recarga 5% menor.', req: 'bolt', max: 8 },
-  { id: 'metR',    name: 'Meteoro: Chuva',     rar: 1, icon: 'meteor', desc: '+2 meteoros por chuva.', req: 'meteor' },
+  { id: 'metR',    name: 'Meteoro: Chuva',     rar: 1, icon: 'meteor', desc: '+2 meteoros por chuva.', req: 'meteor', max: 5 },
   { id: 'metP',    name: 'Meteoro: Cratera',   rar: 0, icon: 'meteor', desc: '+10% de dano dos meteoros.', req: 'meteor', max: 10 },
   { id: 'poisA',   name: 'Veneno: Corrosivo',  rar: 0, icon: 'poison', desc: 'Nuvem venenosa com +10% de dano.', req: 'poison', max: 10 },
   { id: 'poisB',   name: 'Veneno: Densa',      rar: 1, icon: 'poison', desc: 'Nuvem 8% maior e 8% mais longa.', req: 'poison', max: 8 },

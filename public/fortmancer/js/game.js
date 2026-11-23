@@ -170,7 +170,7 @@ const Game = (() => {
     const info = nextWaveInfoFor(w);
     let list = [];
     const mapMode = R.mode === 'map';
-    const scaleHp = waveScale(w) * (mapMode ? m.hp * .72 : 1) * (R.mode === 'infinite' && w > 15 ? Math.pow(1.07, w - 15) : 1);
+    const scaleHp = waveScale(w) * (mapMode ? m.hp * .72 : 1) * (R.mode === 'infinite' && w > 15 ? Math.pow(1.07, w - 15) : 1) * (R.mode === 'infinite' && w > 40 ? Math.pow(1.025, w - 40) : 1);
     const ctxW = { hpMul: scaleHp, dmgMul: 1 + .1 * (w - 1) + (mapMode ? .08 * R.map : 0), goldMul: (1 + .1 * (w - 1)) * (mapMode ? m.gold * 1.3 : 1) };
     if (R.mode !== 'boss') list = buildList(w, mapMode ? m.pool : INF_POOL, info.boss ? .55 : 1);
     wv = { q: list, t: 0, active: true, boss: null, endT: 0, ctx: ctxW, total: list.length + (info.boss ? 1 : 0) };
@@ -178,7 +178,8 @@ const Game = (() => {
       let hpMul;
       if (R.mode === 'boss') hpMul = 1 + .6 * Math.floor((w - 1) / BOSSES.length);
       else if (mapMode) hpMul = m.hp;
-      else hpMul = waveScale(w) / waveScale(10) * (w > 15 ? Math.pow(1.07, w - 15) : 1) * (1 + .5 * Math.floor((w / 10 - 1) / BOSSES.length));
+      else hpMul = waveScale(w) / waveScale(10) * (w > 15 ? Math.pow(1.07, w - 15) : 1) * (w > 40 ? Math.pow(1.025, w - 40) : 1) * (1 + .5 * Math.floor((w / 10 - 1) / BOSSES.length));
+      if (!mapMode) hpMul *= R.bossAdapt || 1;   // chefes se adaptam ao seu poder de fogo
       wv.bossSpawn = { t: 1.8, tpl: info.boss, hpMul, dmgMul: R.mode === 'boss' ? 1 + .3 * Math.floor((w - 1) / BOSSES.length) : ctxW.dmgMul };
       banner = { text: info.boss.name.toUpperCase(), sub: 'CHEFE', t: 0, life: 3, boss: true };
       Snd.sfx.boss(); Snd.play('boss');
@@ -267,6 +268,10 @@ const Game = (() => {
       if (mageId() === 'necro') healCastle(.5);
       if (card('siphon')) healCastle(card('siphon'));
     }
+    if (e.boss && !demo && R.mode !== 'map' && e.born != null) {
+      const ttk = Math.max(.5, T - e.born), target = 24;
+      R.bossAdapt = clamp((R.bossAdapt || 1) * (ttk < target ? Math.min(2, 1 + (target / ttk - 1) * .5) : ttk > target * 2.5 ? .92 : 1), 1, 1e6);
+    }
     if (e.boss) {
       R.bosses++; shake = Math.max(shake, 10); FX.push({ k: 'ring', x: e.x, y: cy(e), r: 4, max: 90, t: 0, life: .6, col: '#ffd166' });
       Snd.sfx.boom();
@@ -312,7 +317,7 @@ const Game = (() => {
     if (id === 'fire') { st.radius *= 1 + .08 * card('fireR'); st.burn *= (1 + .1 * card('fireB')) * (mi === 'pyro' ? 1.2 : 1); if (mi === 'pyro') st.dmg *= 1.2; st.extra = card('fireD'); }
     if (id === 'frost') { st.cd *= Math.pow(.95, card('frostC')); st.freeze = Math.min(1, .05 * card('frostF')) + (mi === 'cryo' ? .1 : 0); if (mi === 'cryo') { st.slow = .7; st.dur *= 1.25; } }
     if (id === 'bolt') { st.chain += 2 * card('boltC'); st.dmg *= 1 + .1 * card('boltS'); st.cd *= Math.pow(.95, card('boltS')); }
-    if (id === 'meteor') { st.n += 2 * card('metR'); st.dmg *= 1 + .1 * card('metP'); }
+    if (id === 'meteor') { st.n = Math.min(16, st.n + 2 * card('metR')); st.dmg *= 1 + .1 * card('metP'); }
     if (id === 'poison') { st.dmg *= 1 + .1 * card('poisA'); st.radius *= 1 + .08 * card('poisB'); st.dur *= 1 + .08 * card('poisB'); }
     if (id === 'roots') { st.dmg *= 1 + .1 * card('rootA'); st.n += card('rootB'); st.dur += .3 * card('rootB'); }
     return st;
@@ -428,7 +433,7 @@ const Game = (() => {
       // meteoro vem de cima: atinge voadores na coluna do impacto
       const air = sky && e.fly, d = air ? Math.abs(e.x - x) : Math.hypot(e.x - x, cy(e) - y);
       if (air && d <= r + e.w / 2) { burst(e.x, e.y, ['#ffd166', '#ff7a1a', '#fff'], 10, 90, .4, 2, 0); FX.push({ k: 'ring', x: e.x, y: e.y, r: 3, max: 16, t: 0, life: .25, col: '#ffb347', w: 2 }); }
-      if (d <= r + e.w / 2) { hurt(e, dmg * (1 - Math.min(d / (r + e.w / 2), 1) * .35), { nocrit: true }); if (burn) { e.burnT = 3; e.burnD = Math.max(e.burnD, burn); } }
+      if (d <= r + e.w / 2) { hurt(e, dmg * (1 - Math.min(d / (r + e.w / 2), 1) * .35) * (sky && e.boss ? .5 : 1), { nocrit: true }); if (burn) { e.burnT = 3; e.burnD = Math.max(e.burnD, burn); } }
     }
     Snd.sfx.boom(); shake = Math.max(shake, 2.5);
   }
@@ -453,6 +458,7 @@ const Game = (() => {
       if (wv.bossSpawn && wv.t >= wv.bossSpawn.t) {
         const b = wv.bossSpawn; wv.bossSpawn = null;
         wv.boss = spawn(null, { tpl: b.tpl, boss: true, hpMul: b.hpMul, dmgMul: b.dmgMul, goldMul: R.mode === 'boss' ? 2.2 : (R.mode === 'map' ? MAPS[R.map].gold : 1) });
+        wv.boss.born = T;
         wv.boss.ctx = { hpMul: b.hpMul, dmgMul: b.dmgMul, goldMul: wv.ctx.goldMul };
       }
       if (!wv.q.length && !wv.bossSpawn && !E.some(e => e.alive)) {
@@ -487,6 +493,7 @@ const Game = (() => {
     // efeitos
     for (const f of FX) {
       f.t += dt;
+      if (f.k === 'meteor' && !f.done && f.t < 0 && !E.some(e => e.alive)) f.done = true;
       if (f.k === 'meteor' && !f.done && f.t >= 0) {
         const p = Math.min(1, f.t / f.fall);
         f.x = lerp(f.tx + 90, f.tx, p); f.y = lerp(-20, f.ty, p);
