@@ -6,7 +6,7 @@ const Save = {
   d: null,
   def() {
     return {
-      v: 1, gems: 0, best: { inf: 0, boss: 0 }, cleared: 0, lastMap: 0,
+      v: 1, gems: 0, best: { inf: 0, boss: 0 }, cleared: 0, lastMap: 0, run: null,
       owned: { mage: ['apprentice'], castle: ['stone'], pet: ['none'] },
       equip: { mage: 'apprentice', castle: 'stone', pet: 'none' },
       set: { music: .6, sfx: .8, shake: true, nums: true, auto: true },
@@ -16,7 +16,7 @@ const Save = {
     const d = this.def();
     try {
       const s = JSON.parse(localStorage.getItem('fortmancer.save') || 'null');
-      if (s) for (const k of Object.keys(d)) if (s[k] !== undefined) d[k] = (typeof d[k] === 'object' && !Array.isArray(d[k])) ? Object.assign(d[k], s[k]) : s[k];
+      if (s) for (const k of Object.keys(d)) if (s[k] !== undefined) d[k] = (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k])) ? Object.assign(d[k], s[k]) : s[k];
     } catch (e) { }
     this.d = d; return d;
   },
@@ -99,8 +99,25 @@ const Game = (() => {
   function startRun(mode, map) {
     demo = false; Save.d.lastMap = map; Save.store();
     newRun(mode, map); state = 'prep'; paused = false;
+    saveRun();
     Snd.play('calm');
     hooks.prep && hooks.prep();
+  }
+
+  /* ---------- salvar / continuar ---------- */
+  function saveRun() {
+    if (!R || R.over || demo || state !== 'prep') return false;
+    try { Save.d.run = JSON.parse(JSON.stringify(R)); Save.store(); return true; } catch (e) { return false; }
+  }
+  function resumeRun() {
+    const s = Save.d.run; if (!s) return false;
+    demo = false; R = JSON.parse(JSON.stringify(s)); R.over = false;
+    mapIdx = R.map; Save.d.lastMap = R.map; setMap(R.map);
+    for (const k in petObj) delete petObj[k];
+    reset(); recalc(false); state = 'prep'; paused = false;
+    Snd.play('calm');
+    if (R.pendingCard && hooks.waveClear) hooks.waveClear(0, true); else hooks.prep && hooks.prep();
+    return true;
   }
 
   /* ================= ondas ================= */
@@ -729,6 +746,8 @@ const Game = (() => {
     state = 'prep';
     healCastle(R.castle.max * .3);
     R.castle.barrier = R.castle.bmax;
+    R.pendingCard = R.mode !== 'map';
+    saveRun();
     hooks.waveClear && hooks.waveClear(bonus, R.mode !== 'map');
   }
   function calcGems(win) {
@@ -744,7 +763,7 @@ const Game = (() => {
     if (R.mode === 'infinite' && res.wave > Save.d.best.inf) { Save.d.best.inf = res.wave; res.newBest = true; }
     if (R.mode === 'boss' && R.bosses > Save.d.best.boss) { Save.d.best.boss = R.bosses; res.newBest = true; }
     if (R.mode === 'map' && win && Save.d.cleared < R.map + 1) { Save.d.cleared = R.map + 1; res.unlocked = R.map + 1 < MAPS.length; }
-    Save.store();
+    Save.d.run = null; Save.store();
     state = 'over'; wv.active = false;
     win ? Snd.sfx.win() : Snd.sfx.lose();
     Snd.stop();
@@ -797,6 +816,7 @@ const Game = (() => {
       R.gold -= pay; c.hp = Math.min(c.max, c.hp + heal); Snd.sfx.buy(); return true;
     },
   };
+  for (const k of Object.keys(buy)) { const f = buy[k]; buy[k] = (...a) => { const r = f(...a); if (r !== false) saveRun(); return r; }; }
   function checkTier() {
     const n = R.up.wall + R.up.barrier + R.up.thorns, t = Art.tierFor(n);
     if (t > R.tier) {
@@ -821,7 +841,7 @@ const Game = (() => {
     return out;
   }
   function pickCard(id) {
-    R.cards[id] = (R.cards[id] || 0) + 1; recalc(false); Snd.sfx.card();
+    R.cards[id] = (R.cards[id] || 0) + 1; recalc(false); Snd.sfx.card(); R.pendingCard = false; saveRun();
   }
 
   /* ================= renderização (tudo em pixel) ================= */
@@ -1152,7 +1172,7 @@ const Game = (() => {
   }
 
   return {
-    init, hooks, startDemo, startRun, beginWave, buy, cast, drawCards, checkTier, pickCard, finish, setMap, repairCost,
+    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, finish, setMap, repairCost,
     get R() { return R; }, get state() { return state; }, get demo() { return demo; },
     get paused() { return paused; }, set paused(v) { paused = v; },
     get speed() { return speed; }, set speed(v) { speed = v; },

@@ -66,6 +66,11 @@ const UI = (() => {
   function show(html, cls) { ui.innerHTML = html; ui.className = cls || ''; }
   function clearUI() { ui.innerHTML = ''; ui.className = ''; }
 
+  function runInfo() {
+    const r = Save.d.run; if (!r) return '';
+    const m = r.mode === 'map' ? 'Campanha — ' + MAPS[r.map].name : r.mode === 'infinite' ? 'Infinito' : 'Boss Rush';
+    return `${m} · ${r.mode === 'boss' ? r.bosses + ' chefes' : 'onda ' + (r.wave + 1)}`;
+  }
   function showMenu() {
     showHud(false); closeModal(); Game.startDemo();
     const g = Save.d.gems;
@@ -73,7 +78,8 @@ const UI = (() => {
         <div class="logo">FORT<span>MANCER</span></div>
         <div class="tag">DEFENDA O CASTELO MÁGICO</div>
         <div class="btns">
-          <button class="btn big" data-a="play">${ic('play')}JOGAR</button>
+          ${Save.d.run ? `<button class="btn big green" data-a="cont">${ic('play')}CONTINUAR</button><div class="sub" style="font-size:calc(var(--u)*6);margin-top:calc(var(--u)*-2)">${runInfo()}</div>` : ''}
+          <button class="btn big${Save.d.run ? ' dark' : ''}" data-a="play">${ic('play')}${Save.d.run ? 'NOVO JOGO' : 'JOGAR'}</button>
           <button class="btn violet" data-a="shop">${ic('hat')}LOJA DE SKINS</button>
         </div>
       </div>
@@ -165,6 +171,7 @@ const UI = (() => {
         <div class="chip">${coin}<b>${fmt(R.gold)}</b></div></div>
         <div class="grid">${prepBody()}</div>
         <div class="pbar"><div class="nextinfo">${info.boss ? `${ic('warn')}<b>CHEFE:</b> ${info.boss.name}` : `Próxima: ${labelFor(w)}`} · Castelo ${Math.ceil(R.castle.hp)}/${R.castle.max}</div>
+        <button class="btn sm dark" data-a="savequit">Salvar e sair</button>
         <button class="btn big green" data-a="go">${ic('play')}${info.boss ? 'ENFRENTAR CHEFE' : 'INICIAR ' + labelFor(w).toUpperCase()}</button></div>
       </div>`, 'screen');
     const g = ui.querySelector('.grid'); if (g) g.scrollTop = st;
@@ -234,7 +241,7 @@ const UI = (() => {
     if (Game.state !== 'wave') return;
     Game.paused = true; modal.classList.remove('hidden');
     modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*12)">PAUSADO</div>
-      <button class="btn green" data-a="closem">${ic('play')}Continuar</button><button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
+      <button class="btn green" data-a="closem">${ic('play')}Continuar</button><button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
   }
   function fullscreen() {
     const d = document, el = d.documentElement;
@@ -273,6 +280,8 @@ const UI = (() => {
       case 'cast': Game.cast(d.id); break;
       case 'pause': showPause(); break;
       case 'speed': { Game.speed = Game.speed === 1 ? 2 : 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
+      case 'cont': Snd.sfx.click(); Game.resumeRun(); break;
+      case 'savequit': Snd.sfx.back(); Game.saveRun(); closeModal(); Game.paused = false; showMenu(); break;
       case 'quit': closeModal(); Game.paused = false; Game.finish(false); break;
       case 'stab': Snd.sfx.click(); shopTab = d.t; showShop(); break;
       case 'sbuy': {
