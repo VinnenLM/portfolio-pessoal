@@ -332,9 +332,26 @@ const Game = (() => {
       Snd.sfx.bolt();
     } else if (id === 'meteor') {
       if (!living().length) return false;
-      const tg = E.filter(e => e.alive && e.x < W - 10);
+      const tg = E.filter(e => e.alive && e.x < W - 10 && e.x > CASTLE_X - 10);
+      const chosen = [], single = tg.length === 1 || (tg.length > 0 && tg.every(e => e.boss));
       for (let i = 0; i < st.n; i++) {
-        const base = tg.length ? pick(tg) : null, tx = base ? clamp(base.x + rand(-20, 20), 120, W - 10) : rand(160, 420);
+        const delay = .55 + i * .22;
+        // posição prevista do alvo no momento do impacto
+        const aim = e => e.rootT > 0 || e.freezeT > 0 ? e.x : Math.max(e.stopX || CASTLE_X + 20, e.x - e.spd * (e.slowT > 0 ? 1 - e.slowF : 1) * delay);
+        let tx;
+        if (!tg.length) tx = rand(180, 420);
+        else if (single) { const b = tg.find(e => e.boss) || tg[0]; tx = aim(b) + rand(-5, 5); }
+        else {
+          let best = null, bs = -1;
+          for (const e of tg) {
+            const ex = aim(e);
+            let s = tg.reduce((a, o) => a + (Math.abs(aim(o) - ex) < st.radius * 1.1 ? (o.boss ? 6 : 1) : 0), 0);
+            if (chosen.some(c => Math.abs(c - ex) < st.radius * .7)) s *= .25;
+            if (s > bs) { bs = s; best = ex; }
+          }
+          tx = best + rand(-4, 4);
+        }
+        tx = clamp(tx, CASTLE_X + 8, W - 10); chosen.push(tx);
         FX.push({ k: 'meteor', vt, tx, ty: GY + rand(2, 12), x: tx + 90, y: -20, t: -i * .22, life: 0, fall: .55, dmg: st.dmg, r: st.radius, done: false });
       }
       Snd.sfx.meteor();
