@@ -168,7 +168,9 @@ const Game = (() => {
   }
   const INF_POOL = [['slime', 1], ['goblin', 2], ['bat', 3], ['skeleton', 5], ['witch', 8], ['ogre', 10], ['darkmage', 14], ['troll', 16]];
 
+  let waveSnap = null;
   function beginWave() {
+    if (R.mode === 'map') waveSnap = JSON.stringify(R);
     R.wave++; const w = R.wave, m = MAPS[R.map];
     const info = nextWaveInfoFor(w);
     let list = [];
@@ -782,8 +784,21 @@ const Game = (() => {
     if (R.mode === 'infinite') return Math.floor(w * 1.5 + R.bosses * 6);
     return Math.floor(R.bosses * 8);
   }
+  function retryWave() {
+    const cur = R, snap = JSON.parse(waveSnap), gain = Math.max(0, Math.round(cur.gold - snap.gold));
+    R = snap; R.over = false; R.gold += gain; R.earned += gain; R.retries = (R.retries || 0) + 1;
+    R.castle.hp = R.castle.max; R.castle.barrier = R.castle.bmax;
+    for (const k in petObj) delete petObj[k];
+    reset(); recalc(false); state = 'prep'; paused = false;
+    saveRun(); Snd.play('calm');
+    hooks.retry && hooks.retry(R.wave + 1, gain);
+  }
   function finish(win) {
     if (R.over) return; R.over = true;
+    if (!win && R.mode === 'map' && waveSnap) {
+      state = 'over'; wv.active = false; Snd.sfx.lose(); Snd.stop();
+      setTimeout(retryWave, 1100); return;
+    }
     const gems = calcGems(win), res = { win, mode: R.mode, map: R.map, wave: Math.max(0, R.wave - (win ? 0 : 1)), bosses: R.bosses, kills: R.kills, gems, earned: Math.round(R.earned), newBest: false, unlocked: false };
     Save.d.gems += gems;
     if (R.mode === 'infinite' && res.wave > Save.d.best.inf) { Save.d.best.inf = res.wave; res.newBest = true; }

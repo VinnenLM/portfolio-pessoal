@@ -471,6 +471,15 @@ const UI = (() => {
     clrT = setTimeout(next, 2200); clrNext = next;
   };
   let clrT = null, clrNext = null;
+  Game.hooks.retry = (w, gain) => {
+    showHud(false);
+    show(`<div class="result panel clearmsg" data-a="clrskip"><div class="title lose">O CASTELO CAIU!</div><div class="sub">Não desista — volte e tente a onda ${w} de novo</div>
+      <div class="stats"><div><span>Seus upgrades</span>mantidos</div><div><span>Ouro da tentativa</span>+${fmt(gain)}</div></div>
+      <div class="sub" style="font-size:calc(var(--u)*6.5)">Use o ouro para reforçar as defesas antes de tentar</div></div>`, 'screen');
+    clearAuto(); let done = false;
+    const next = () => { if (done) return; done = true; clearTimeout(clrT); renderPrep(); };
+    clrT = setTimeout(next, 3200); clrNext = next;
+  };
   Game.hooks.over = res => showResult(res);
   Game.hooks.tierUp = t => toast('Castelo evoluiu! Nível ' + t, 'castle');
   Game.buy = Game.buy || {};
