@@ -204,3 +204,12 @@ h1, h2, h3, p { margin: 0; }
 .cd3.sel { transform: translateY(calc(var(--u) * -6)) scale(1.07); border-color: var(--gold); background: #3a2d68; box-shadow: inset 0 0 0 calc(var(--u) * 1.5) var(--rc), 0 0 0 calc(var(--u) * 2) var(--gold), 0 calc(var(--u) * 3) 0 var(--ink); transition: all .2s steps(4); position: relative; z-index: 2; animation: selpulse .3s steps(2) infinite alternate; }
 .cd3.sel::after { content: 'ESCOLHIDA'; position: absolute; left: 50%; top: calc(var(--u) * -9); transform: translateX(-50%); background: var(--gold); color: var(--ink); font-size: calc(var(--u) * 6); padding: calc(var(--u) * 1.5) calc(var(--u) * 5); border: calc(var(--u) * 1.2) solid var(--ink); white-space: nowrap; }
 @keyframes selpulse { to { filter: brightness(1.25); } }
+
+.tut { width: calc(var(--u) * 230); display: flex; flex-direction: column; gap: calc(var(--u) * 7); text-align: center; align-items: center; }
+.tut p { font-size: calc(var(--u) * 8); line-height: 1.5; color: #e9e3ff; font-weight: 400; }
+.tut p b { color: var(--gold); font-weight: 400; }
+.tut .dots { display: flex; gap: calc(var(--u) * 4); }
+.tut .dots i { width: calc(var(--u) * 6); height: calc(var(--u) * 6); background: #3d3170; border: calc(var(--u) * 1) solid var(--ink); }
+.tut .dots i.on { background: var(--gold); }
+.tut .row { display: flex; gap: calc(var(--u) * 6); justify-content: center; }
+.clearmsg { cursor: pointer; }

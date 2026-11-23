@@ -10,6 +10,7 @@ const Save = {
       owned: { mage: ['apprentice'], castle: ['stone'], pet: ['none'] },
       equip: { mage: 'apprentice', castle: 'stone', pet: 'none' },
       set: { music: .6, sfx: .8, shake: true, nums: true, auto: true, autoNext: false },
+      tut: false,
     };
   },
   load() {
@@ -87,6 +88,7 @@ const Game = (() => {
     for (const k of Object.keys(UPGRADES)) R.up[k] = 0;
     if (mode === 'map') { ['frost', 'bolt', 'meteor'].slice(0, map).forEach(k => R.skills[k] = 1); if (map >= 3) R.skills.fire = 2; }
     if (mode === 'boss') { Object.assign(R.skills, { fire: 2, frost: 1, bolt: 1, meteor: 1 }); R.gold = 260; }
+    R.autoBought = false;
     recalc(true);
     reset();
   }
@@ -125,6 +127,7 @@ const Game = (() => {
   function resumeRun(mode) {
     const s = Save.d.runs[mode]; if (!s) return false;
     demo = false; R = JSON.parse(JSON.stringify(s)); R.over = false;
+    if (R.autoBought === undefined) R.autoBought = true;   // partidas antigas já tinham a conjuração automática
     mapIdx = R.map; Save.d.lastMap = R.map; setMap(R.map);
     for (const k in petObj) delete petObj[k];
     reset(); recalc(false); state = 'prep'; paused = false;
@@ -476,7 +479,7 @@ const Game = (() => {
     mage.atk -= dt;
     if (mage.atk <= 0 && E.some(e => e.alive && e.x < W - 2)) { if (fireBasic()) mage.atk = .75 / spdMul(); else mage.atk = .1; }
     for (const id of Object.keys(R.cd)) if (R.cd[id] > 0) R.cd[id] -= dt;
-    if ((Save.d.set.auto || demo) && state !== 'prep') autoCast();
+    if (((R.autoBought && Save.d.set.auto) || demo) && state !== 'prep') autoCast();
 
     // pet e aliados
     updatePet(dt);
@@ -841,6 +844,11 @@ const Game = (() => {
       if (!maxProgress().all) return false;
       const c = rerollPrice(); if (R.gold < c) { Snd.sfx.nope(); return false; }
       R.gold -= c; Snd.sfx.click(); refreshOffers(); return true;
+    },
+    auto() {
+      if (R.autoBought) return false;
+      if (R.gold < AUTO_COST) { Snd.sfx.nope(); return false; }
+      R.gold -= AUTO_COST; R.autoBought = true; Snd.sfx.buy(); return true;
     },
     repair() {
       const c = R.castle, need = c.max - c.hp, cost = Math.ceil(need * .5);

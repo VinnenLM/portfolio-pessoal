@@ -95,6 +95,7 @@ const UI = (() => {
         <div class="btns">
           <button class="btn big" data-a="play">${ic('play')}JOGAR</button>
           <button class="btn violet" data-a="shop">${ic('hat')}LOJA DE SKINS</button>
+          <button class="btn sm dark" data-a="tut">${ic('star')}COMO JOGAR</button>
         </div>
       </div>
       <div class="corner l"><div class="chip" data-a="gems">${ic('gem')}<b>${fmt(g)}</b></div></div>
@@ -144,6 +145,11 @@ const UI = (() => {
     const R = Game.R, u = UPGRADES[id], lvl = R.up[id], mx = lvl >= u.max, c = upCost(id, lvl);
     return `<div class="it"><div class="ic">${ic(u.icon)}</div><div class="tx"><div class="nm">${u.name}<em>Nv ${lvl}/${u.max}</em></div><div class="ds">${u.desc}</div></div><div class="act">${mx ? '<span class="sub">MÁX</span>' : costBtn('up', `data-id="${id}"`, c, R.gold >= c)}</div></div>`;
   }
+  function autoItem() {
+    const R = Game.R, on = Save.d.set.auto;
+    const act = !R.autoBought ? costBtn('buyauto', '', AUTO_COST, R.gold >= AUTO_COST, 'Comprar ') : `<button class="btn sm ${on ? 'green' : 'dark'}" data-a="autoskill">${on ? 'LIGADA' : 'DESLIGADA'}</button>`;
+    return `<div class="it ${R.autoBought ? 'on' : ''}" style="grid-column:1/-1"><div class="ic">${ic('gear')}</div><div class="tx"><div class="nm">Conjuração Automática<em>${R.autoBought ? 'Comprada' : 'Bloqueada'}</em></div><div class="ds">${R.autoBought ? 'O mago usa suas habilidades sozinho, em combinações inteligentes (raízes + veneno + meteoros).' : 'Aprenda a usar as habilidades manualmente primeiro. Depois compre para que o mago as use por você.'}</div></div><div class="act">${act}</div></div>`;
+  }
   function skillItem(id) {
     const R = Game.R, s = SKILLS[id], l = R.skills[id], mx = l >= SKILL_MAX;
     const c = l === 0 ? s.unlock : Math.round(s.base * Math.pow(s.grow, l - 1));
@@ -180,7 +186,7 @@ const UI = (() => {
       const empty = offers ? '' : `<div class="sub" style="grid-column:1/-1">Todas as cartas estão no máximo.</div>`;
       return head + (offers || empty) + `<div class="sub" style="grid-column:1/-1;margin-top:calc(var(--u)*4)">SEUS UPGRADES</div>` + myCardsHtml();
     }
-    if (prepTab === 'hab') return SKILL_KEYS.map(skillItem).join('');
+    if (prepTab === 'hab') return autoItem() + SKILL_KEYS.map(skillItem).join('');
     if (prepTab === 'ali') return Object.keys(ALLIES).map(allyItem).join('') + Object.keys(PET_COST).map(petItem).join('');
     if (prepTab === 'arm') {
       return R.slots.map((s, i) => {
@@ -216,6 +222,26 @@ const UI = (() => {
     }
   }
   const autoBtn = () => `<button class="btn sm ${Save.d.set.autoNext ? 'green' : 'dark'}" data-a="autotog">Onda automática: ${Save.d.set.autoNext ? 'LIGADA' : 'DESLIGADA'}</button>`;
+  /* ---------- tutorial ---------- */
+  const TUT = [
+    ['castle', 'O OBJETIVO', 'Monstros chegam pela direita e atacam o castelo. Se a vida dele chegar a zero, a partida acaba. O mago atira sozinho — o seu trabalho é <b>usar as habilidades</b> e <b>investir o ouro</b> entre as ondas.'],
+    ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 7</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes.'],
+    ['roots', 'COMBINE AS HABILIDADES', '<b>Raízes</b> prendem os inimigos (e puxam voadores ao chão). Solte <b>Veneno</b> e <b>Meteoros</b> em cima de quem está preso. <b>Gelo</b> deixa a horda lenta, o <b>Relâmpago</b> salta entre vários e a <b>Luz</b> cura o castelo. Meteoros acertam em cheio os chefes.'],
+    ['coin', 'A LOJA ENTRE ONDAS', 'Ao vencer uma onda, a loja abre. Gaste o ouro em melhorias do <b>Mago</b>, <b>Habilidades</b>, <b>Aliados</b> e pets, <b>Armadilhas</b> (uma de cada tipo por espaço) e <b>Castelo</b> — ele evolui visualmente conforme você melhora as muralhas.'],
+    ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> e no <b>Boss Rush</b> você escolhe uma carta a cada onda (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas!'],
+    ['gear', 'AUTOMÁTICO', 'Depois de aprender a usar as habilidades, compre a <b>Conjuração Automática</b> na aba Habilidades: o jogo passa a usá-las por você, de forma inteligente. Nos modos infinito e Boss Rush há também a <b>Onda automática</b> (botão no preparo). Sua partida é salva sozinha entre as ondas.'],
+  ];
+  let tutI = 0;
+  function showTut(i) {
+    tutI = i == null ? 0 : i; const t = TUT[tutI], last = tutI === TUT.length - 1;
+    if (Game.state === 'wave') Game.paused = true;
+    modal.classList.remove('hidden');
+    modal.innerHTML = `<div class="panel tut"><div class="title" style="font-size:calc(var(--u)*11)">${ic(t[0])} ${t[1]}</div>
+      <p>${t[2]}</p>
+      <div class="dots">${TUT.map((_, k) => `<i class="${k === tutI ? 'on' : ''}"></i>`).join('')}</div>
+      <div class="row">${tutI > 0 ? `<button class="btn sm dark" data-a="tutprev">${ic('left')}Voltar</button>` : `<button class="btn sm dark" data-a="tutend">Pular</button>`}<button class="btn ${last ? 'green' : ''}" data-a="${last ? 'tutend' : 'tutnext'}">${last ? 'Entendi, jogar!' : 'Próximo'}</button></div></div>`;
+  }
+  function endTut() { Save.d.tut = true; Save.store(); Snd.sfx.click(); closeModal(); if (Game.state === 'wave') showPause(); }
   function showCards(bonus) {
     const R = Game.R, cards = Game.drawCards();
     show(`<div class="cardwrap"><div class="title">ESCOLHA UMA CARTA</div><div class="sub" style="font-size:calc(var(--u)*7)">${labelFor(R.wave)} concluída · +${fmt(bonus)} de ouro</div>
@@ -318,7 +344,7 @@ const UI = (() => {
     if (Game.state !== 'wave') return;
     Game.paused = true; modal.classList.remove('hidden');
     modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*12)">PAUSADO</div>
-      <button class="btn green" data-a="closem">${ic('play')}Continuar</button>${Game.R && Game.R.mode !== 'map' ? `<button class="btn" data-a="mycards">${ic('star')}Meus upgrades</button>` : ''}${Game.R && Game.R.mode !== 'map' ? autoBtn() : ''}<button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
+      <button class="btn green" data-a="closem">${ic('play')}Continuar</button>${Game.R && Game.R.mode !== 'map' ? `<button class="btn" data-a="mycards">${ic('star')}Meus upgrades</button>` : ''}${Game.R && Game.R.mode !== 'map' ? autoBtn() : ''}<button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn dark" data-a="tut">Como jogar</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
   }
   function fullscreen() {
     const d = document, el = d.documentElement;
@@ -367,6 +393,13 @@ const UI = (() => {
         setTimeout(() => { Game.pickCard(d.id); renderPrep(); }, 750); break;
       }
       case 'autotog': Save.d.set.autoNext = !Save.d.set.autoNext; Save.store(); Snd.sfx.click(); if (Game.state === 'wave') showPause(); else { clearAuto(); renderPrep(); } break;
+      case 'clrskip': clrNext && clrNext(); break;
+      case 'buyauto': Game.buy.auto(); renderPrep(); break;
+      case 'autoskill': Save.d.set.auto = !Save.d.set.auto; Save.store(); Snd.sfx.click(); renderPrep(); break;
+      case 'tutnext': Snd.sfx.click(); showTut(tutI + 1); break;
+      case 'tutprev': Snd.sfx.click(); showTut(tutI - 1); break;
+      case 'tutend': endTut(); break;
+      case 'tut': Snd.sfx.click(); showTut(0); break;
       case 'cast': Game.cast(d.id); break;
       case 'pause': showPause(); break;
       case 'speed': { Game.speed = Game.speed === 1 ? 2 : 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
@@ -422,9 +455,22 @@ const UI = (() => {
 
   /* ---------- ganchos do jogo ---------- */
   Game.hooks.hud = updateHud;
-  Game.hooks.prep = () => { prepTab = 'mago'; renderPrep(); };
+  Game.hooks.prep = () => { prepTab = 'mago'; renderPrep(); if (!Save.d.tut) showTut(0); };
   Game.hooks.wave = () => { buildSkills(); showHud(true); $('#btnSpeed').textContent = 'x' + Game.speed; };
-  Game.hooks.waveClear = (bonus, cards) => { if (cards) showCards(bonus); else { renderPrep(); toast(`+${fmt(bonus)} de ouro`); } };
+  Game.hooks.waveClear = (bonus, cards) => {
+    const go = () => { if (cards) showCards(bonus); else renderPrep(); };
+    if (!bonus) return go();
+    const R = Game.R, boss = R.mode === 'boss' || (R.mode === 'infinite' && R.wave % 10 === 0) || (R.mode === 'map' && R.wave >= CAMPAIGN_WAVES);
+    showHud(false);
+    show(`<div class="result panel clearmsg" data-a="clrskip"><div class="title win">${boss ? 'CHEFE DERROTADO!' : 'ONDA CONCLUÍDA!'}</div><div class="sub">${labelFor(R.wave)}</div>
+      <div class="stats"><div><span>Ouro de bônus</span>+${fmt(bonus)}</div><div><span>Castelo</span>${Math.ceil(R.castle.hp)}/${R.castle.max}</div><div><span>Monstros</span>${R.kills}</div></div>
+      <div class="sub" style="font-size:calc(var(--u)*6.5)">Castelo recuperado e barreira renovada</div></div>`, 'screen');
+    Snd.sfx.win();
+    clearAuto(); let done = false;
+    const next = () => { if (done) return; done = true; clearTimeout(clrT); go(); };
+    clrT = setTimeout(next, 2200); clrNext = next;
+  };
+  let clrT = null, clrNext = null;
   Game.hooks.over = res => showResult(res);
   Game.hooks.tierUp = t => toast('Castelo evoluiu! Nível ' + t, 'castle');
   Game.buy = Game.buy || {};

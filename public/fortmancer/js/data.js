@@ -54,6 +54,7 @@ const SKILLS = {
 };
 const SKILL_KEYS = Object.keys(SKILLS);
 const SKILL_MAX = 8;
+const AUTO_COST = 350;   // compra da conjuração automática (por partida)
 const skillStats = (id, l) => {
   const g = l - 1;
   switch (id) {
