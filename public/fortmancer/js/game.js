@@ -78,8 +78,8 @@ const Game = (() => {
     R = {
       mode, map, wave: 0, kills: 0, bosses: 0, earned: 0, over: false,
       gold: (mode === 'boss' ? 160 : mode === 'infinite' ? 100 : m.start),
-      up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0, armag: 0 },
-      cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0, armag: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1, sand: 1, armag: 1 },
+      up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0, armag: 0, dragon: 0 },
+      cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0, armag: 0, dragon: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1, sand: 1, armag: 1, dragon: 1 },
       slots: TRAP_X.map((_, i) => ({ type: TRAP_ORDER[i], lvl: 0, cd: 0, t: 0 })),
       pets: {}, allies: { archer: 0, frostmage: 0, ballista: 0, cleric: 0 }, allyCd: { archer: .5, frostmage: .8, ballista: 1, cleric: 2 }, allyHcd: 1, allyKick: {},
       tier: 0,
@@ -129,6 +129,7 @@ const Game = (() => {
     demo = false; R = JSON.parse(JSON.stringify(s)); R.over = false;
     R.skills.sand = R.skills.sand || 0; R.cd.sand = R.cd.sand || 0; R.cdMax.sand = R.cdMax.sand || 1;
     R.skills.armag = R.skills.armag || 0; R.cd.armag = R.cd.armag || 0; R.cdMax.armag = R.cdMax.armag || 1;
+    R.skills.dragon = R.skills.dragon || 0; R.cd.dragon = R.cd.dragon || 0; R.cdMax.dragon = R.cdMax.dragon || 1;
     if (R.autoBought === undefined) R.autoBought = true;   // partidas antigas já tinham a conjuração automática
     mapIdx = R.map; Save.d.lastMap = R.map; setMap(R.map);
     for (const k in petObj) delete petObj[k];
@@ -363,6 +364,7 @@ const Game = (() => {
     return st;
   }
   const UNDEAD = { skeleton: 1, darkmage: 1, demon: 1 };
+  const payCost = () => Math.round(90 + 32 * Math.max(1, R.wave));
   function cast(id) {
     const l = R.skills[id];
     if (!l || R.cd[id] > 0) return false;
@@ -435,6 +437,12 @@ const Game = (() => {
       let best = g[0], bc = -1; for (const e of g) { const c = g.reduce((s, o) => s + (Math.abs(o.x - e.x) < st.radius ? (o.rootT > 0 ? 3 : 1) : 0), 0); if (c > bc) { bc = c; best = e; } }
       FX.push({ k: 'flask', sx: tipX, sy: tipY, tx: clamp(best.x, 130, W - 20), ty: GY + 6, t: 0, life: .55, st, done: false });
       Snd.sfx.poison();
+    } else if (id === 'dragon') {
+      if (!living().length) return false;
+      const cost = payCost(); if (R.gold < cost) { Snd.sfx.nope(); return false; }
+      R.gold -= cost;
+      FX.push({ k: 'dragon', t: 0, life: 4.6, x: -90, y: 58, dmg: st.dmg, hit: [], fx: 0, tk: 0 });
+      Snd.sfx.boss(); shake = Math.max(shake, 3);
     } else if (id === 'armag') {
       if (!living().length) return false;
       FX.push({ k: 'armag', t: 0, life: 2.4, fall: 1.4, tx: Math.round(W * .6), dmg: st.dmg, done: false });
@@ -442,7 +450,7 @@ const Game = (() => {
     } else if (id === 'sand') {
       const lv = E.filter(e => e.alive && e.x < W - 12 && e.x > CASTLE_X - 6); if (!lv.length) return false;
       const sx = CASTLE_X - 6, ex = W - 24;   // nasce junto ao castelo e varre a tela da esquerda para a direita
-      ZN.push({ k: 'sand', x: sx, vx: (ex - sx) / st.dur, r: st.radius, dps: st.dmg, push: st.push, t: 0, life: st.dur, vt: st.vt, ph: rand(0, 6) });
+      ZN.push({ k: 'sand', x: sx, sx, ex, vx: 2 * (ex - sx) / (st.dur * 1), r: st.radius, dps: st.dmg, push: st.push, t: 0, life: st.dur, vt: st.vt, ph: rand(0, 6) });
       shake = Math.max(shake, 2); Snd.sfx.sand();
     } else if (id === 'roots') {
       const live = E.filter(e => e.alive && e.x < W - 6 && !e.pulled);
@@ -548,12 +556,32 @@ const Game = (() => {
     // efeitos
     for (const f of FX) {
       f.t += dt;
+      if (f.k === 'dragon') {
+        const p = f.t / f.life; f.x = lerp(-90, W + 70, p); f.y = 56 + Math.sin(f.t * 3) * 6;
+        const mx = f.x + 52, my = f.y - 12, tx = mx + (GY - my) * .45; f.fx = tx;
+        if (f.t > .25 && p < .96) {
+          f.tk -= dt;
+          for (const e of E) {
+            if (!e.alive || f.hit.includes(e)) continue;
+            if (Math.abs(e.x - tx) <= 34 + e.w / 2) {
+              f.hit.push(e); hurt(e, f.dmg * (e.boss ? .8 : 1), { nocrit: true }); if (e.alive) { e.burnT = 4; e.burnD = Math.max(e.burnD, f.dmg * .03); }
+              burst(e.x, cy(e), ['#ffd166', '#ff7a1a', '#ff3b1a'], 10, 110, .5, 2, 40);
+            }
+          }
+          if (f.tk <= 0) { f.tk = .07; FX.push({ k: 'firecol', x: tx + rand(-14, 14), y: GY + 4, t: 0, life: .5 }); if (PT.length < 470) for (let i = 0; i < 4; i++) PT.push({ x: lerp(mx, tx, Math.random()), y: lerp(my, GY, Math.random()), vx: rand(-20, 40), vy: rand(-20, 20), life: rand(.3, .6), t: 0, col: pick(['#ffd166', '#ff7a1a', '#ff3b1a']), size: 2, g: 0 }); shake = Math.max(shake, 2); }
+        }
+      }
       if (f.k === 'armag' && !f.done && f.t >= f.fall) {
         f.done = true; shake = 16; FX.push({ k: 'flash', t: 0, life: .5, col: '#fff3d0' });
         for (let i = 0; i < 4; i++) FX.push({ k: 'ring', x: f.tx, y: GY - 6, r: 6, max: 140 + i * 90, t: -i * .12, life: .8, col: i % 2 ? '#ffd166' : '#ff7a1a', w: 5 - i });
         burst(f.tx, GY - 10, ['#ffd166', '#ff7a1a', '#ff3b1a', '#ffffff'], 140, 260, 1.1, 3, 120);
         FX.push({ k: 'scorch', x: f.tx, y: GY + 4, rx: 70, t: 0, life: 2.4 });
         Snd.sfx.boom(); Snd.sfx.boom();
+        FX.push({ k: 'mushroom', x: f.tx, t: 0, life: 2.6 });
+        FX.push({ k: 'flash', t: 0, life: 1.1, col: '#ffffff' });
+        FX.push({ k: 'shock', x: f.tx, t: 0, life: 1.0 });
+        for (let i = 0; i < 14; i++) FX.push({ k: 'firecol', x: 24 + i * ((W - 40) / 13) + rand(-6, 6), y: GY + 4, t: -Math.abs(i - 6.5) * .05, life: .9 });
+        for (let i = 0; i < 70; i++) PT.length < 480 && PT.push({ x: f.tx + rand(-30, 30), y: GY - rand(0, 20), vx: rand(-160, 160), vy: -rand(120, 330), life: rand(.8, 1.8), t: 0, col: pick(['#ff7a1a', '#ffd166', '#6e4520', '#3a2a2a']), size: Math.random() < .4 ? 3 : 2, g: 260 });
         for (const e of E) {
           if (!e.alive) continue;
           const d = Math.abs(e.x - f.tx), m = 1 - Math.min(d / W, 1) * .3;
@@ -695,7 +723,7 @@ const Game = (() => {
   function updateZones(dt) {
     for (const z of ZN) {
       if (z.k === 'sand') {
-        z.t += dt; z.x = Math.min(W - 24, z.x + z.vx * dt);
+        z.t += dt; z.x += z.vx * dt; if (z.x >= z.ex) { z.x = z.ex; z.vx = -Math.abs(z.vx); } else if (z.x <= z.sx) { z.x = z.sx; z.vx = Math.abs(z.vx); }
         for (const e of E) {
           if (!e.alive || Math.abs(e.x - z.x) > z.r + e.w / 2) continue;
           e.sandT = .2; e.x = Math.min(W - 6, e.x + z.push * (e.boss ? .6 : 1) * dt);
@@ -1228,6 +1256,31 @@ const Game = (() => {
       PX.line(cx, '#ff4d2a', f.x, f.y, f.x + 22 + vt * 8, f.y - 14 - vt * 5, 3 + vt); PX.line(cx, '#ffb347', f.x, f.y, f.x + 16 + vt * 6, f.y - 10 - vt * 4, 1 + (vt >= 2 ? 1 : 0));
       PX.halo(cx, '#ff8a3a', f.x, f.y, s + 5, (T * 24) | 0);
       disc(f.x, f.y, s, '#c0261d'); disc(f.x, f.y, s - 1, '#ff5a1a'); disc(f.x, f.y, s - 3, '#ffb347'); disc(f.x, f.y, Math.max(1, s - 5), '#fff');
+    } else if (f.k === 'dragon') {
+      const fr = Art.flyDragon(), idx = [0, 1, 2, 3, 2, 1][((T * 9) | 0) % 6], img = fr[idx], s = .75, p = f.t / f.life;
+      const mx = f.x + 52, my = f.y - 12, tx = f.fx, fa = f.t > .25 && p < .96 ? 1 : 0;
+      cx.globalAlpha = .25; PX.ell(cx, '#000', f.x, GY + 6, 46, 5); cx.globalAlpha = 1;
+      if (fa) {
+        // jato de fogo em camadas, do focinho até o chão
+        const L = [['#ff3b1a', 9, 0], ['#ff7a1a', 6, 1.5], ['#ffd166', 3.5, 3], ['#fff3b0', 1.6, 5]];
+        for (const [col, w, o] of L) {
+          let px0 = mx, py0 = my;
+          for (let i = 1; i <= 14; i++) { const q = i / 14, nx = lerp(mx, tx, q) + Math.sin(T * 26 + i * 1.3 + o) * (1 + q * 5), ny = lerp(my, GY, q) + Math.cos(T * 22 + i) * q * 2; PX.line(cx, col, px0, py0, nx, ny, Math.max(1, Math.round(w * (.5 + q * .9)))); px0 = nx; py0 = ny; }
+        }
+        PX.halo(cx, '#ffb347', tx, GY - 6, 26, (T * 20) | 0);
+        for (let i = 0; i < 6; i++) { const q = (i + (T * 6) % 1) / 6; disc(lerp(mx, tx, q) + Math.sin(T * 17 + i * 2) * 5, lerp(my, GY, q), 2 + q * 5, i % 2 ? '#ff7a1a' : '#ffd166'); }
+      }
+      cx.drawImage(img, Math.round(f.x - 80 * s), Math.round(f.y - 106 * s), Math.round(img.width * s), Math.round(img.height * s));
+      if (fa) { PX.halo(cx, '#ffd166', mx + 2, my, 7, (T * 20) | 0); }
+    } else if (f.k === 'mushroom') {
+      const q = Math.min(1, f.t / f.life), e1 = 1 - Math.pow(1 - q, 2), h = e1 * 120, r = 12 + e1 * 40, a = 1 - Math.max(0, q - .55) / .45;
+      cx.globalAlpha = a * .9;
+      for (let y = 0; y < h; y += 4) { const w = 6 + Math.sin(y * .1 + T * 8) * 1.5 + (1 - y / h) * 4; rc(y < h * .5 ? '#ff7a1a' : '#a84a2a', f.x - w, GY - y, w * 2, 4); }
+      PX.ell(cx, '#3a2a2a', f.x, GY - h - 4, r, r * .55); PX.ell(cx, '#a84a2a', f.x, GY - h - 6, r * .85, r * .42); PX.ell(cx, '#ff7a1a', f.x, GY - h - 8, r * .6, r * .3); PX.ell(cx, '#ffd166', f.x, GY - h - 9, r * .3, r * .16);
+      cx.globalAlpha = 1;
+    } else if (f.k === 'shock') {
+      const q = f.t / f.life, rr = q * W * 1.1;
+      cx.globalAlpha = (1 - q) * .7; PX.ellRing(cx, '#fff3d0', f.x, GY, rr, rr * .16, 2); PX.ellRing(cx, '#ffd166', f.x, GY - 2, rr * .86, rr * .13, 2); cx.globalAlpha = 1;
     } else if (f.k === 'armag') {
       if (f.t < f.fall) {
         const q = f.t / f.fall, x = lerp(f.tx + 190, f.tx, q), y = lerp(-50, GY - 8, q);
@@ -1364,7 +1417,7 @@ const Game = (() => {
   }
 
   return {
-    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, pickCards, autoBuyCards, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
+    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, pickCards, autoBuyCards, payCost, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
     get R() { return R; }, get state() { return state; }, get demo() { return demo; },
     get paused() { return paused; }, set paused(v) { paused = v; },
     get speed() { return speed; }, set speed(v) { speed = v; },

@@ -64,6 +64,7 @@ const UI = (() => {
       const id = b.dataset.id, cd = R.cd[id], mx = R.cdMax[id] || 1;
       b.querySelector('.cd').style.height = cd > 0 ? Math.min(100, cd / mx * 100) + '%' : '0';
       b.classList.toggle('ready', cd <= 0);
+      if (id === 'dragon') { const c = Game.payCost(), lv = b.querySelector('.lv'); lv.textContent = fmt(c); b.classList.toggle('poor', R.gold < c); }
     });
   }
   // o contador de ouro precisa de um <b>: garante o elemento
@@ -232,7 +233,7 @@ const UI = (() => {
   /* ---------- tutorial ---------- */
   const TUT = [
     ['castle', 'O OBJETIVO', 'Monstros chegam pela direita e atacam o castelo. Se a vida dele chegar a zero, a partida acaba. O mago atira sozinho — o seu trabalho é <b>usar as habilidades</b> e <b>investir o ouro</b> entre as ondas.'],
-    ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 9</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes.'],
+    ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 9</b> e <b>0</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes. O <b>Dragão de Fogo</b> (tecla 0) é uma habilidade <b>paga</b>: não tem recarga, mas cada uso custa ouro.'],
     ['roots', 'COMBINE AS HABILIDADES', '<b>Raízes</b> prendem os inimigos (e puxam voadores ao chão). Solte <b>Veneno</b> e <b>Meteoros</b> em cima de quem está preso. <b>Gelo</b> deixa a horda lenta, o <b>Relâmpago</b> salta entre vários e a <b>Luz</b> cura o castelo. Meteoros acertam em cheio os chefes.'],
     ['coin', 'A LOJA ENTRE ONDAS', 'Ao vencer uma onda, a loja abre. Gaste o ouro em melhorias do <b>Mago</b>, <b>Habilidades</b>, <b>Aliados</b> e pets, <b>Armadilhas</b> (uma de cada tipo por espaço) e <b>Castelo</b> — ele evolui visualmente conforme você melhora as muralhas.'],
     ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> você escolhe uma carta depois de cada chefe (a cada 10 ondas) e no <b>Boss Rush</b> a cada chefe (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas! De tempos em tempos surge uma <b>onda bônus</b>: 2–3 chefes mais fracos, sem risco de perder — se vencer, ouro extra e 2 cartas!'],
@@ -474,7 +475,7 @@ const UI = (() => {
   addEventListener('keydown', e => {
     unlockAudio(); if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') && e.key !== 'Escape') return;
     const k = e.key;
-    if (k >= '1' && k <= '9' && Game.state === 'wave' && !Game.paused) { Game.cast(SKILL_KEYS[+k - 1]); }
+    if (/^[0-9]$/.test(k) && Game.state === 'wave' && !Game.paused) { const id = SKILL_KEYS.find(s => SKILLS[s].key === k); if (id) Game.cast(id); }
     else if (k === 'Escape' || k === 'p' || k === 'P') { if (!modal.classList.contains('hidden')) closeModal(); else showPause(); }
     else if ((k === ' ' || k === 'Enter') && Game.state === 'prep' && ui.querySelector('.prep') && modal.classList.contains('hidden')) { e.preventDefault(); act('go', {}); }
   });

@@ -372,6 +372,7 @@ const Art = (() => {
     meteor: ['.......o..', '......oo.o', '.....ooo.o', '....oooo..', '...orroo..', '..orrrroo.', '.orryyrro.', '.orywyyro.', '..orrrro..', '...oooo...'],
     poison: ['...kkkk...', '....SS....', '....SS....', '...SggS...', '..SggwgS..', '.SgGgggGS.', '.SgggggGS.', '.SgGggGgS.', '..SgggGS..', '...SSSS...'],
     armag: ['.o.....o..', '..oo..oo..', '...rrrr...', '..rrrrrro.', '.orryyrro.', 'orryywyrro', 'orryywyrro', '.orryyrro.', '..orrrro..', '...oooo...'],
+    dragon: ['..r....rr.', '.rrr..rrrr', 'rrRrrrrRrr', '.rrrrrrrry', '..rRrrrryy', '.rrrrrrrro', '.rr..rrro.', '.r....rr..', 'o.........', '..........'],
     sand: ['yyyyyyyyyy', '.nYYYYYYn.', '..yyyyyY..', '...YyyyY..', '...nYYyn..', '....yyY...', '....YyY...', '.....yY...', '....nYy...', '....yyY...'],
     roots: ['...gg.gg..', '..gGggGgg.', '..gggggg..', '...gGgg...', '....nn....', '....nn....', '...nnNn...', '..nn.nNn..', '.nN...nn..', 'nN.....nN.'],
     light: ['....yy....', '.y..yy..y.', '..y.yy.y..', '...wwww...', 'yyywwwwyyy', 'yyywwwwyyy', '...wwww...', '..y.yy.y..', '.y..yy..y.', '....yy....'],
@@ -905,6 +906,100 @@ const Art = (() => {
       SPR[k] = bake(GRIDS[k], PALS[k]);
     }
   }
+
+  /* ---------- dragão voador (skill paga) — pintado por formas e convertido em pixel art ---------- */
+  let flyDragonFrames = null;
+  function flyDragon() {
+    if (flyDragonFrames) return flyDragonFrames;
+    const TAU = Math.PI * 2, lerp = (a, b, t) => a + (b - a) * t;
+    const CW2 = 160, CH2 = 170, frames = [];
+    for (let fi = 0; fi < 4; fi++) {
+      const c = mk(CW2, CH2), x = c.getContext('2d');
+      x.imageSmoothingEnabled = false; x.translate(8, 62);
+      const poly = (pts, col) => { x.fillStyle = col; x.beginPath(); pts.forEach((p, i) => i ? x.lineTo(p[0], p[1]) : x.moveTo(p[0], p[1])); x.closePath(); x.fill(); };
+      const circ = (cx0, cy0, r, col) => { x.fillStyle = col; x.beginPath(); x.arc(cx0, cy0, r, 0, TAU); x.fill(); };
+      const ell = (cx0, cy0, rx, ry, rot, col) => { x.fillStyle = col; x.beginPath(); x.ellipse(cx0, cy0, rx, ry, rot, 0, TAU); x.fill(); };
+      const line = (a, b, c2, d, w, col) => { x.strokeStyle = col; x.lineWidth = w; x.lineCap = 'round'; x.beginPath(); x.moveTo(a, b); x.lineTo(c2, d); x.stroke(); };
+      const SC = '#b3201a', SD = '#6e0f12', SH = '#e2492c', BELLY = '#e9bf7e', BELLYD = '#c48a4a', MEM = '#7a1722', MEMD = '#4a0c14', BONE = '#2f070b', HORN = '#efe0b8';
+      const wingAt = (sx, sy, a, scale, mem, memd) => {
+        const phi = -2.05 - 2.2 * a, L1 = 26 * scale;
+        const wx = sx + Math.cos(phi) * L1, wy = sy + Math.sin(phi) * L1;
+        const tips = [-.62, -.22, .18, .55].map((d, k) => { const l = (40 - k * 3) * scale, ang = phi + d + (a - .5) * .25; return [wx + Math.cos(ang) * l, wy + Math.sin(ang) * l]; });
+        const rear = [sx - 16 * scale, sy + 12 * scale];
+        // membrana com borda recortada entre as pontas
+        const pts = [[sx, sy], [wx, wy], tips[0]];
+        for (let k = 0; k < 3; k++) { const mx = (tips[k][0] + tips[k + 1][0]) / 2, my = (tips[k][1] + tips[k + 1][1]) / 2; pts.push([mx + (wx - mx) * .22, my + (wy - my) * .22], tips[k + 1]); }
+        pts.push([(tips[3][0] + rear[0]) / 2 + (sx - (tips[3][0] + rear[0]) / 2) * .15, (tips[3][1] + rear[1]) / 2 + (sy - (tips[3][1] + rear[1]) / 2) * .15], rear);
+        poly(pts, mem);
+        // sombreado da membrana junto ao corpo
+        poly([[sx, sy], [wx, wy], [(wx + tips[1][0]) / 2, (wy + tips[1][1]) / 2], rear], memd);
+        // ossos
+        line(sx, sy, wx, wy, 3 * scale, BONE);
+        tips.forEach(t => line(wx, wy, t[0], t[1], 1.6 * scale, BONE));
+        circ(wx, wy, 2.2 * scale, '#c9a050'); tips.forEach(t => circ(t[0], t[1], 1.2 * scale, HORN));
+      };
+      const a = [0, .33, .66, 1][fi];
+      // asa distante (menor e mais escura)
+      wingAt(72, 36, Math.min(1, a * .9 + .08), 1.05, '#4d0f19', '#2e0810');
+      // cauda: série de círculos afinando + espinhos dorsais
+      const tail = []; for (let i = 0; i <= 18; i++) { const t = i / 18; tail.push([46 - t * 40, 46 + Math.sin(t * 3.1 + .3) * 9 - t * 12 + (t > .7 ? -(t - .7) * 30 : 0), lerp(9, 1.4, Math.pow(t, .8))]); }
+      tail.forEach(p => circ(p[0], p[1], p[2], SC));
+      tail.forEach((p, i) => { if (i % 3 === 1 && i < 16) poly([[p[0] - 2, p[1] - p[2] + 1], [p[0] + 1, p[1] - p[2] - 5], [p[0] + 3, p[1] - p[2] + 1]], SD); });
+      const tp = tail[18]; poly([[tp[0], tp[1] - 8], [tp[0] + 7, tp[1]], [tp[0], tp[1] + 8], [tp[0] - 3, tp[1]]], SD);   // ponta em lança
+      ell(48, 50, 6, 3, .5, SD);
+      // perna traseira
+      poly([[56, 52], [64, 54], [60, 66], [52, 72], [47, 71], [52, 63]], SD);
+      [[47, 71, 43, 76], [50, 72, 48, 77], [53, 71, 53, 76]].forEach(g => line(g[0], g[1], g[2], g[3], 1.6, HORN));
+      // tronco
+      ell(72, 44, 27, 13.5, -.12, SC);
+      ell(72, 38, 24, 7, -.12, SH);                 // luz no dorso
+      ell(72, 52, 22, 6.5, -.06, BELLY);            // barriga clara
+      for (let i = 0; i < 7; i++) line(54 + i * 6, 49, 55 + i * 6, 57, 1, BELLYD);
+      // espinhos no dorso
+      for (let i = 0; i < 8; i++) { const bx = 54 + i * 5.5, by = 32 - Math.sin(i / 7 * Math.PI) * 0 + i * -.7; poly([[bx - 2, by + 2], [bx + 1, by - 6 + (i % 2)], [bx + 3, by + 2]], SD); }
+      // pescoço curvo
+      const neck = []; for (let i = 0; i <= 8; i++) { const t = i / 8; neck.push([88 + t * 20, 40 - t * 18 - Math.sin(t * Math.PI) * 4, lerp(10, 6.5, t)]); }
+      neck.forEach(p => circ(p[0], p[1], p[2], SC));
+      neck.forEach(p => circ(p[0] + 1, p[1] + p[2] * .55, p[2] * .55, BELLY));
+      neck.forEach((p, i) => { if (i > 0 && i < 8) poly([[p[0] - 3, p[1] - p[2] + 1], [p[0] - 1, p[1] - p[2] - 5], [p[0] + 2, p[1] - p[2] + 1]], SD); });
+      // cabeça: crânio, focinho e mandíbula (aberta, soltando fogo)
+      poly([[104, 14], [114, 11], [128, 16], [141, 22], [142, 27], [128, 29], [112, 30], [103, 26]], SC);
+      poly([[106, 14], [114, 12], [128, 16], [138, 21], [120, 20], [108, 20]], SH);
+      poly([[110, 29], [130, 29], [141, 31], [137, 38], [124, 40], [111, 36]], SD);   // mandíbula inferior
+      poly([[108, 29], [141, 29], [140, 31], [110, 31]], '#3a0a0c');                  // boca escura
+      for (let i = 0; i < 6; i++) poly([[114 + i * 4.4, 29], [116 + i * 4.4, 29], [115 + i * 4.4, 34 - (i > 3 ? 1 : 0)]], '#f4ecd6');   // dentes
+      for (let i = 0; i < 5; i++) poly([[116 + i * 4.8, 31], [118 + i * 4.8, 31], [117 + i * 4.8, 27]], '#f4ecd6');
+      circ(139, 23, 1.3, '#1a0305');                                                   // narina
+      // chifres e franja
+      poly([[104, 15], [96, 6], [84, 2], [93, 10], [100, 17]], HORN);
+      poly([[108, 14], [102, 4], [92, 0], [99, 9], [106, 16]], HORN);
+      poly([[103, 18], [93, 15], [85, 17], [96, 22]], SD); poly([[103, 23], [93, 24], [86, 28], [99, 27]], SD);
+      // olho
+      poly([[112, 16], [120, 15], [122, 19], [113, 20]], '#1a0305'); circ(117, 17.4, 2.3, '#ffcc33'); circ(117.6, 17.4, 1, '#1a0305');
+      line(111, 13.5, 123, 14, 1.4, SD);
+      // perna dianteira encolhida
+      poly([[84, 52], [92, 50], [96, 60], [90, 66], [86, 65], [88, 58]], SC);
+      [[90, 66, 95, 70], [87, 66, 90, 71], [85, 65, 85, 70]].forEach(g => line(g[0], g[1], g[2], g[3], 1.6, HORN));
+      // asa próxima (por cima do corpo)
+      wingAt(66, 33, a, 1.35, MEM, MEMD);
+      // binariza (sem suavização) e aplica textura de escamas
+      const id = x.getImageData(0, 0, CW2, CH2), d = id.data;
+      for (let j = 0; j < CH2; j++) for (let i = 0; i < CW2; i++) {
+        const k = (j * CW2 + i) * 4;
+        if (d[k + 3] < 130) { d[k + 3] = 0; continue; }
+        d[k + 3] = 255;
+        if (d[k] > 120 && d[k + 1] < 90 && ((i + (j & 1) * 2) % 4 === 0) && (j % 3 === 0)) { d[k] = Math.round(d[k] * .78); d[k + 1] = Math.round(d[k + 1] * .7); d[k + 2] = Math.round(d[k + 2] * .7); }
+      }
+      x.putImageData(id, 0, 0);
+      // contorno escuro de 1px
+      const out = mk(CW2 + 2, CH2 + 2), ox = out.getContext('2d');
+      ox.fillStyle = '#12040a';
+      for (let j = 0; j < CH2; j++) for (let i = 0; i < CW2; i++) if (d[(j * CW2 + i) * 4 + 3]) for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) ox.fillRect(i + 1 + dx, j + 1 + dy, 1, 1);
+      ox.drawImage(c, 1, 1);
+      frames.push(out);
+    }
+    return (flyDragonFrames = frames);
+  }
   // coroa dos chefes
   function crown(ctx, cx, y) {
     rect(ctx, OUT, cx - 6, y - 5, 13, 7);
@@ -913,5 +1008,5 @@ const Art = (() => {
     rect(ctx, '#ff4d6d', cx - 1, y - 2, 3, 2); rect(ctx, '#fff3b0', cx - 5, y - 3, 11, 1);
   }
 
-  return { init, SPR, mage, magePalette, pet, PETS, castle, CASTLES, CH, CW, CTOP, tierFor, TIER_AT, drawCracks, map, crown, rect, mix, rng, tint, MAGE_PAL, bake, GRIDS, PALS, px, text, icon, iconURL, ICONS, ally };
+  return { init, flyDragon, SPR, mage, magePalette, pet, PETS, castle, CASTLES, CH, CW, CTOP, tierFor, TIER_AT, drawCracks, map, crown, rect, mix, rng, tint, MAGE_PAL, bake, GRIDS, PALS, px, text, icon, iconURL, ICONS, ally };
 })();

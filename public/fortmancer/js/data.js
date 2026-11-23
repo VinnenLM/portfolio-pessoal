@@ -50,9 +50,10 @@ const SKILLS = {
   meteor: { name: 'Chuva de Meteoros', icon: 'meteor', color: '#ff4d6d', key: '4', unlock: 435, base: 204, grow: 1.6,  desc: 'Meteoros caem do céu esmagando a horda.' },
   poison: { name: 'Nuvem Venenosa',    icon: 'poison', color: '#7bdc4a', key: '5', unlock: 190, base: 115,  grow: 1.55, desc: 'Frasco que cria uma nuvem tóxica: dano contínuo em área.' },
   roots:  { name: 'Raízes do Druida',  icon: 'roots',  color: '#4fae56', key: '6', unlock: 272, base: 142, grow: 1.55, desc: 'Raízes prendem os inimigos no chão e os ferem.' },
+  light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 354, base: 170, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
   sand:   { name: 'Tempestade de Areia', icon: 'sand',  color: '#e0b66a', key: '8', unlock: 520, base: 245, grow: 1.55, desc: 'Furacão de areia: dano baixo, mas empurra os inimigos para trás. Ótimo contra chefes colados no castelo.' },
   armag:  { name: 'Armagedom',          icon: 'armag', color: '#ff3b3b', key: '9', unlock: 900, base: 480, grow: 1.6, desc: 'Um meteoro gigante cai do céu e explode em toda a tela: dano alto em tudo. Recarga muito longa.' },
-  light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 354, base: 170, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
+  dragon: { name: 'Dragão de Fogo',     icon: 'dragon', color: '#ff6a2a', key: '0', unlock: 1500, base: 1100, grow: 1.6, pay: true, desc: 'SKILL PAGA: cada uso custa ouro (sem espera). Um dragão cruza a tela soltando fogo da esquerda para a direita e queima tudo.' },
 };
 const SKILL_KEYS = Object.keys(SKILLS);
 const SKILL_MAX = 8;
@@ -67,7 +68,8 @@ const skillStats = (id, l) => {
     case 'poison': return { dmg: 11 * (1 + .35 * g), radius: 32 + 2.5 * l, dur: 5 + .35 * l, cd: 8 * Math.pow(.93, g) };
     case 'roots':  return { dmg: 12 * (1 + .30 * g), n: 3 + Math.floor(l / 2), dur: 2.2 + .3 * l, cd: 11 * Math.pow(.93, g) };
     case 'sand':   return { dmg: 9 * (1 + .30 * g), radius: 24 + 2 * l, dur: 9.5 + .25 * l, push: 60 + 5 * l, cd: 30 * Math.pow(.94, g) };
-    case 'armag':  return { dmg: 300 * (1 + .5 * g), cd: Math.max(60, 80 * Math.pow(.95, g)) };
+    case 'armag':  return { dmg: 300 * (1 + .5 * g), cd: 60 - g * (15 / 7) };
+    case 'dragon': return { dmg: 330 * (1 + .5 * g), cd: 4 };
     case 'light':  return { heal: .08 + .015 * l, dmg: 30 * (1 + .35 * g), radius: 120 + 6 * l, cd: 16 * Math.pow(.93, g) };
   }
 };
@@ -78,6 +80,7 @@ const skillText = (id, l) => {
     case 'roots':  return `prende ${s.n} · ${s.dur.toFixed(1)}s`;
     case 'sand':   return `${Math.round(s.dmg)} dano/s · empurra ${Math.round(s.push)} · ${s.dur.toFixed(1)}s`;
     case 'armag':  return `${Math.round(s.dmg)} de dano em toda a tela`;
+    case 'dragon': return `${Math.round(s.dmg)} de dano em tudo · paga ouro por uso`;
     case 'light':  return `cura ${Math.round(s.heal * 100)}% · dano ${Math.round(s.dmg)}`;
     default:       return `Dano ${Math.round(s.dmg)}`;
   }
