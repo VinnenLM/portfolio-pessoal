@@ -212,7 +212,7 @@ const Game = (() => {
     const mapMode = R.mode === 'map';
     const scaleHp = waveScale(w) * (mapMode ? m.hp * .72 : 1) * (R.mode === 'infinite' && w > 15 ? Math.pow(1.07, w - 15) : 1) * (R.mode === 'infinite' && w > 40 ? Math.pow(1.025, w - 40) : 1);
     const ctxW = { hpMul: scaleHp, dmgMul: 1 + .1 * (w - 1) + (mapMode ? .08 * R.map : 0), goldMul: (1 + .1 * (w - 1)) * (mapMode ? m.gold * 1.3 : 1) };
-    if (R.mode !== 'boss') list = buildList(w, mapMode ? m.pool : INF_POOL, (info.boss ? .55 : 1) * (R.mode === 'infinite' ? 1.9 : 1), R.mode === 'infinite' ? 1.25 : 1);
+    if (R.mode !== 'boss') list = buildList(w, mapMode ? m.pool : INF_POOL, (info.boss ? .55 : 1) * (R.mode === 'infinite' ? 1.9 : mapMode ? 1 + .12 * (R.map + 1) : 1), R.mode === 'infinite' ? 1.25 : mapMode ? 1 + .03 * R.map : 1);   // campanha: mais inimigos a cada mapa
     wv = { q: list, t: 0, active: true, boss: null, endT: 0, ctx: ctxW, total: list.length + (info.boss ? 1 : 0) };
     if (info.boss) {
       let hpMul;
