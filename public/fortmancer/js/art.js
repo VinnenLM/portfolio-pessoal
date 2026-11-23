@@ -371,6 +371,7 @@ const Art = (() => {
     bolt: ['.....yyy..', '....yyy...', '...yyy....', '..yyyyyy..', '...yyyy...', '.....yy...', '....yy....', '...yy.....', '..yy......', '..y.......'],
     meteor: ['.......o..', '......oo.o', '.....ooo.o', '....oooo..', '...orroo..', '..orrrroo.', '.orryyrro.', '.orywyyro.', '..orrrro..', '...oooo...'],
     poison: ['...kkkk...', '....SS....', '....SS....', '...SggS...', '..SggwgS..', '.SgGgggGS.', '.SgggggGS.', '.SgGggGgS.', '..SgggGS..', '...SSSS...'],
+    armag: ['.o.....o..', '..oo..oo..', '...rrrr...', '..rrrrrro.', '.orryyrro.', 'orryywyrro', 'orryywyrro', '.orryyrro.', '..orrrro..', '...oooo...'],
     sand: ['yyyyyyyyyy', '.nYYYYYYn.', '..yyyyyY..', '...YyyyY..', '...nYYyn..', '....yyY...', '....YyY...', '.....yY...', '....nYy...', '....yyY...'],
     roots: ['...gg.gg..', '..gGggGgg.', '..gggggg..', '...gGgg...', '....nn....', '....nn....', '...nnNn...', '..nn.nNn..', '.nN...nn..', 'nN.....nN.'],
     light: ['....yy....', '.y..yy..y.', '..y.yy.y..', '...wwww...', 'yyywwwwyyy', 'yyywwwwyyy', '...wwww...', '..y.yy.y..', '.y..yy..y.', '....yy....'],

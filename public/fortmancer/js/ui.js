@@ -161,7 +161,7 @@ const UI = (() => {
     const a = skillStats(id, Math.max(1, l)), b = skillStats(id, Math.min(SKILL_MAX, l + 1));
     const prev = (l === 0 || mx) ? `${skillText(id, Math.max(1, l))} · recarga ${a.cd.toFixed(1)}s` : `${skillText(id, l)} → ${skillText(id, l + 1)} · recarga ${a.cd.toFixed(1)}s → ${b.cd.toFixed(1)}s`;
     const fx = l > 0 ? `<br>Efeito visual: nível ${fxTier(l) + 1}/4${fxTier(l) < 3 ? ' (evolui no Nv ' + [3, 5, 7][fxTier(l)] + ')' : ''}` : '';
-    return `<div class="it ${l ? 'on' : ''}"><div class="ic">${ic(s.icon)}</div><div class="tx"><div class="nm">${s.name} <span class="gold">[${s.key}]</span><em>${l ? `Nv ${l}/${SKILL_MAX}` : 'Bloqueada'}</em></div><div class="ds">${s.desc}<br>${prev}${fx}</div></div><div class="act">${mx ? '<span class="sub">MÁX</span>' : costBtn('skill', `data-id="${id}"`, c, R.gold >= c, l === 0 ? 'Abrir ' : '')}</div></div>`;
+    return `<div class="it rc ${l ? 'on' : ''}" style="--rc:${s.color}"><div class="ic">${ic(s.icon)}</div><div class="tx"><div class="nm">${s.name} <span class="gold">[${s.key}]</span><em>${l ? `Nv ${l}/${SKILL_MAX}` : 'Bloqueada'}</em></div><div class="ds">${s.desc}<br>${prev}${fx}</div></div><div class="act">${mx ? '<span class="sub">MÁX</span>' : costBtn('skill', `data-id="${id}"`, c, R.gold >= c, l === 0 ? 'Abrir ' : '')}</div></div>`;
   }
   function allyItem(id) {
     const R = Game.R, a = ALLIES[id], l = R.allies[id], mx = l >= a.max, c = allyCost(id, l);
@@ -184,12 +184,13 @@ const UI = (() => {
       if (!R.offers || !R.offers.length) Game.refreshOffers();
       const offers = (R.offers || []).map(id => {
         const c = CARDS.find(x => x.id === id), p = Game.cardPrice(id), n = R.cards[id] || 0;
-        return `<div class="it" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>${RARITY[c.rar].n}${n ? ' · você tem x' + n : ''}</em></div><div class="ds">${c.desc}</div></div><div class="act">${costBtn('cardbuy', `data-id="${id}"`, p, R.gold >= p, 'Comprar ')}</div></div>`;
+        return `<div class="it rc" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>${RARITY[c.rar].n}${n ? ' · você tem x' + n : ''}</em></div><div class="ds">${c.desc}</div></div><div class="act">${costBtn('cardbuy', `data-id="${id}"`, p, R.gold >= p, 'Comprar ')}</div></div>`;
       }).join('');
       const rr = Game.rerollPrice();
+      const autoRow = `<div class="it ${R.autoCards ? 'on' : ''}" style="grid-column:1/-1"><div class="ic">${ic('gear')}</div><div class="tx"><div class="nm">Compra automática de cartas<em>${R.autoCards ? 'LIGADA' : 'DESLIGADA'}</em></div><div class="ds"><b>Atenção:</b> paga <b>50% mais caro</b> e a carta é <b>aleatória</b> entre as ofertas. Compra sozinho ao fim de cada onda, enquanto houver ouro.</div></div><div class="act"><button class="btn sm ${R.autoCards ? 'green' : 'dark'}" data-a="autocard">${R.autoCards ? 'Desligar' : 'Ligar'}</button></div></div>`;
       const head = `<div class="sub" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u)*4)"><span>LOJA DE CARTAS — compre upgrades com ouro</span>${costBtn('cardroll', '', rr, R.gold >= rr, 'Trocar ofertas ')}</div>`;
       const empty = offers ? '' : `<div class="sub" style="grid-column:1/-1">Todas as cartas estão no máximo.</div>`;
-      return head + (offers || empty) + `<div class="sub" style="grid-column:1/-1;margin-top:calc(var(--u)*4)">SEUS UPGRADES</div>` + myCardsHtml();
+      return autoRow + head + (offers || empty) + `<div class="sub" style="grid-column:1/-1;margin-top:calc(var(--u)*4)">SEUS UPGRADES</div>` + myCardsHtml();
     }
     if (prepTab === 'hab') return autoItem() + SKILL_KEYS.map(skillItem).join('');
     if (prepTab === 'ali') return Object.keys(ALLIES).map(allyItem).join('') + Object.keys(PET_COST).map(petItem).join('');
@@ -221,6 +222,7 @@ const UI = (() => {
     const g = ui.querySelector('.grid'); if (g) g.scrollTop = st;
     hydrateCanvases();
     showHud(false);
+    if (R.lastAuto) { toast('Compra automática: ' + R.lastAuto + ' carta' + (R.lastAuto > 1 ? 's' : ''), 'star'); R.lastAuto = 0; }
     if (autoOn() && Game.state === 'prep') {
       const sp = ui.querySelector('[data-a=go]'), tag = document.createElement('span'); tag.className = 'autocd'; sp.appendChild(tag);
       startAuto(3, t => { tag.textContent = ' (' + Math.ceil(t) + ')'; }, () => act('go', {}), true);
@@ -230,7 +232,7 @@ const UI = (() => {
   /* ---------- tutorial ---------- */
   const TUT = [
     ['castle', 'O OBJETIVO', 'Monstros chegam pela direita e atacam o castelo. Se a vida dele chegar a zero, a partida acaba. O mago atira sozinho — o seu trabalho é <b>usar as habilidades</b> e <b>investir o ouro</b> entre as ondas.'],
-    ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 8</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes.'],
+    ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 9</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes.'],
     ['roots', 'COMBINE AS HABILIDADES', '<b>Raízes</b> prendem os inimigos (e puxam voadores ao chão). Solte <b>Veneno</b> e <b>Meteoros</b> em cima de quem está preso. <b>Gelo</b> deixa a horda lenta, o <b>Relâmpago</b> salta entre vários e a <b>Luz</b> cura o castelo. Meteoros acertam em cheio os chefes.'],
     ['coin', 'A LOJA ENTRE ONDAS', 'Ao vencer uma onda, a loja abre. Gaste o ouro em melhorias do <b>Mago</b>, <b>Habilidades</b>, <b>Aliados</b> e pets, <b>Armadilhas</b> (uma de cada tipo por espaço) e <b>Castelo</b> — ele evolui visualmente conforme você melhora as muralhas.'],
     ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> você escolhe uma carta depois de cada chefe (a cada 10 ondas) e no <b>Boss Rush</b> a cada chefe (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas! De tempos em tempos surge uma <b>onda bônus</b>: 2–3 chefes mais fracos, sem risco de perder — se vencer, ouro extra e 2 cartas!'],
@@ -353,7 +355,7 @@ const UI = (() => {
     if (!list.length) return `<div class="sub" style="grid-column:1/-1;text-align:center;padding:calc(var(--u)*20)">Você ainda não pegou nenhuma carta. Elas aparecem depois de cada chefe.</div>`;
     return `<div class="sub" style="grid-column:1/-1">${total} carta${total > 1 ? 's' : ''} em ${list.length} tipo${list.length > 1 ? 's' : ''}</div>` + list.map(c => {
       const n = R.cards[c.id];
-      return `<div class="it on" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>x${n}${c.max ? '/' + c.max : ''}</em></div><div class="ds">${c.desc}<br><span class="gold">Total: ${n} carta${n > 1 ? 's' : ''} · ${RARITY[c.rar].n}</span></div></div></div>`;
+      return `<div class="it rc" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>x${n}${c.max ? '/' + c.max : ''}</em></div><div class="ds">${c.desc}<br><span class="gold">Total: ${n} carta${n > 1 ? 's' : ''} · ${RARITY[c.rar].n}</span></div></div></div>`;
     }).join('');
   }
   function showMyCards() {
@@ -378,6 +380,7 @@ const UI = (() => {
       case 'play': Snd.sfx.click(); showModes(); break;
       case 'menu': Snd.sfx.back(); showMenu(); break;
       case 'shop': Snd.sfx.click(); shopTab = 'mage'; showShop(); break;
+      case 'autocard': Game.R.autoCards = !Game.R.autoCards; Snd.sfx.click(); if (Game.R.autoCards) Game.autoBuyCards(); Game.saveRun(); renderPrep(); break;
       case 'cardbuy': Game.buy.card(d.id); renderPrep(); break;
       case 'cardroll': Game.buy.reroll(); renderPrep(); break;
       case 'mycards': Snd.sfx.click(); showMyCards(); break;
@@ -471,7 +474,7 @@ const UI = (() => {
   addEventListener('keydown', e => {
     unlockAudio(); if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') && e.key !== 'Escape') return;
     const k = e.key;
-    if (k >= '1' && k <= '8' && Game.state === 'wave' && !Game.paused) { Game.cast(SKILL_KEYS[+k - 1]); }
+    if (k >= '1' && k <= '9' && Game.state === 'wave' && !Game.paused) { Game.cast(SKILL_KEYS[+k - 1]); }
     else if (k === 'Escape' || k === 'p' || k === 'P') { if (!modal.classList.contains('hidden')) closeModal(); else showPause(); }
     else if ((k === ' ' || k === 'Enter') && Game.state === 'prep' && ui.querySelector('.prep') && modal.classList.contains('hidden')) { e.preventDefault(); act('go', {}); }
   });

@@ -78,8 +78,8 @@ const Game = (() => {
     R = {
       mode, map, wave: 0, kills: 0, bosses: 0, earned: 0, over: false,
       gold: (mode === 'boss' ? 160 : mode === 'infinite' ? 100 : m.start),
-      up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0 },
-      cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1, sand: 1 },
+      up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0, armag: 0 },
+      cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0, armag: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1, sand: 1, armag: 1 },
       slots: TRAP_X.map((_, i) => ({ type: TRAP_ORDER[i], lvl: 0, cd: 0, t: 0 })),
       pets: {}, allies: { archer: 0, frostmage: 0, ballista: 0, cleric: 0 }, allyCd: { archer: .5, frostmage: .8, ballista: 1, cleric: 2 }, allyHcd: 1, allyKick: {},
       tier: 0,
@@ -128,6 +128,7 @@ const Game = (() => {
     const s = Save.d.runs[mode]; if (!s) return false;
     demo = false; R = JSON.parse(JSON.stringify(s)); R.over = false;
     R.skills.sand = R.skills.sand || 0; R.cd.sand = R.cd.sand || 0; R.cdMax.sand = R.cdMax.sand || 1;
+    R.skills.armag = R.skills.armag || 0; R.cd.armag = R.cd.armag || 0; R.cdMax.armag = R.cdMax.armag || 1;
     if (R.autoBought === undefined) R.autoBought = true;   // partidas antigas já tinham a conjuração automática
     mapIdx = R.map; Save.d.lastMap = R.map; setMap(R.map);
     for (const k in petObj) delete petObj[k];
@@ -189,7 +190,7 @@ const Game = (() => {
   function bonusWin() {
     wv.active = false; const w = R.wave;
     const bonus = Math.round((20 + 8 * w) * goldMul() * 8);
-    R.gold += bonus; R.earned += bonus; R.bonusActive = false; R.bonusN = (R.bonusN || 0) + 1;
+    R.gold += bonus; R.earned += bonus; R.bonusActive = false; autoBuyCards(); R.bonusN = (R.bonusN || 0) + 1;
     Snd.sfx.win(); Snd.play('calm'); state = 'prep';
     healCastle(R.castle.max * .3); R.castle.barrier = R.castle.bmax;
     R.pendingCard = 2; refreshOffers(); saveRun();
@@ -434,6 +435,10 @@ const Game = (() => {
       let best = g[0], bc = -1; for (const e of g) { const c = g.reduce((s, o) => s + (Math.abs(o.x - e.x) < st.radius ? (o.rootT > 0 ? 3 : 1) : 0), 0); if (c > bc) { bc = c; best = e; } }
       FX.push({ k: 'flask', sx: tipX, sy: tipY, tx: clamp(best.x, 130, W - 20), ty: GY + 6, t: 0, life: .55, st, done: false });
       Snd.sfx.poison();
+    } else if (id === 'armag') {
+      if (!living().length) return false;
+      FX.push({ k: 'armag', t: 0, life: 2.4, fall: 1.4, tx: Math.round(W * .6), dmg: st.dmg, done: false });
+      Snd.sfx.meteor(); shake = Math.max(shake, 3);
     } else if (id === 'sand') {
       const lv = E.filter(e => e.alive && e.x < W - 12 && e.x > CASTLE_X - 6); if (!lv.length) return false;
       const sx = CASTLE_X - 6, ex = W - 24;   // nasce junto ao castelo e varre a tela da esquerda para a direita
@@ -543,6 +548,19 @@ const Game = (() => {
     // efeitos
     for (const f of FX) {
       f.t += dt;
+      if (f.k === 'armag' && !f.done && f.t >= f.fall) {
+        f.done = true; shake = 16; FX.push({ k: 'flash', t: 0, life: .5, col: '#fff3d0' });
+        for (let i = 0; i < 4; i++) FX.push({ k: 'ring', x: f.tx, y: GY - 6, r: 6, max: 140 + i * 90, t: -i * .12, life: .8, col: i % 2 ? '#ffd166' : '#ff7a1a', w: 5 - i });
+        burst(f.tx, GY - 10, ['#ffd166', '#ff7a1a', '#ff3b1a', '#ffffff'], 140, 260, 1.1, 3, 120);
+        FX.push({ k: 'scorch', x: f.tx, y: GY + 4, rx: 70, t: 0, life: 2.4 });
+        Snd.sfx.boom(); Snd.sfx.boom();
+        for (const e of E) {
+          if (!e.alive) continue;
+          const d = Math.abs(e.x - f.tx), m = 1 - Math.min(d / W, 1) * .3;
+          hurt(e, f.dmg * m * (e.boss ? .8 : 1), { nocrit: true });
+          if (e.alive) { e.burnT = 4; e.burnD = Math.max(e.burnD, f.dmg * .03); }
+        }
+      }
       if (f.k === 'meteor' && !f.done && f.t < 0 && !E.some(e => e.alive)) f.done = true;
       if (f.k === 'meteor' && !f.done && f.t >= 0) {
         const p = Math.min(1, f.t / f.fall);
@@ -599,7 +617,7 @@ const Game = (() => {
     const live = living();
     const hasRoots = R.skills.roots > 0;
     // ordem pensada: raízes primeiro (prende), depois veneno/meteoros em cima de quem está preso
-    for (const id of ['roots', 'poison', 'frost', 'meteor', 'fire', 'bolt', 'sand', 'light']) {
+    for (const id of ['roots', 'poison', 'frost', 'meteor', 'fire', 'bolt', 'sand', 'armag', 'light']) {
       if (!R.skills[id] || R.cd[id] > 0) continue;
       if (id === 'light') {
         const c = R.castle;
@@ -607,11 +625,12 @@ const Game = (() => {
         continue;
       }
       if (!live.length) continue;
-      if (id === 'sand') { const near = live.filter(e => e.x < CASTLE_X + 100); if (near.some(e => e.boss) || near.length >= 4) cast(id); continue; }
+      if (id === 'sand') { const near = live.filter(e => e.x < CASTLE_X + 170); if (near.some(e => e.boss) || near.length >= 3) cast(id); continue; }
+      if (id === 'armag') { if (live.some(e => e.boss && e.x < W - 40) || live.length >= 7 || live.filter(e => e.x < CASTLE_X + 120).length >= 4) cast(id); continue; }
       const rooted = live.filter(e => e.rootT > 0), boss = live.some(e => e.boss && e.x < W - 30);
       if (id === 'roots') {
         const flyer = live.some(e => e.fly && !e.pulled && e.x < CASTLE_X + 280);
-        if (!(flyer || live.some(e => !e.fly && e.x < CASTLE_X + 150))) continue;
+        if (!(flyer || live.some(e => !e.pulled && e.x < CASTLE_X + 320))) continue;
       }
       if (id === 'poison') {
         // com raízes: só solta a nuvem em cima de inimigos presos (ou se as raízes demoram muito)
@@ -827,6 +846,7 @@ const Game = (() => {
     const w = R.wave, m = MAPS[R.map];
     const bonus = Math.round((20 + 8 * w) * (R.mode === 'map' ? m.gold : 1) * goldMul());
     R.gold += bonus; R.earned += bonus;
+    autoBuyCards();
     Snd.sfx.win(); Snd.play('calm');
     if (R.mode === 'map' && w >= CAMPAIGN_WAVES) { finish(true); return; }
     state = 'prep';
@@ -976,6 +996,18 @@ const Game = (() => {
   const cardPrice = id => Math.round([110, 200, 340][CARDS.find(c => c.id === id).rar] * Math.pow(1.12, R.cardBuys || 0));
   const rerollPrice = () => Math.round(40 * Math.pow(1.08, R.cardBuys || 0));
   function refreshOffers() { R.offers = drawCards().map(c => c.id); }
+  function autoBuyCards() {
+    if (!R.autoCards || !maxProgress().all) return 0;
+    let n = 0;
+    for (let g = 0; g < 60; g++) {
+      if (!R.offers || !R.offers.length) refreshOffers();
+      if (!R.offers.length) break;
+      const aff = R.offers.filter(id => R.gold >= Math.round(cardPrice(id) * 1.5)); if (!aff.length) break;
+      const id = pick(aff); R.gold -= Math.round(cardPrice(id) * 1.5); R.cardBuys = (R.cardBuys || 0) + 1; R.cards[id] = (R.cards[id] || 0) + 1; n++; refreshOffers();
+    }
+    if (n) { recalc(false); Snd.sfx.buy(); R.lastAuto = (R.lastAuto || 0) + n; }
+    return n;
+  }
   function pickCards(ids) {
     for (const id of ids) R.cards[id] = (R.cards[id] || 0) + 1;
     recalc(false); Snd.sfx.card(); R.pendingCard = false; saveRun();
@@ -1196,6 +1228,14 @@ const Game = (() => {
       PX.line(cx, '#ff4d2a', f.x, f.y, f.x + 22 + vt * 8, f.y - 14 - vt * 5, 3 + vt); PX.line(cx, '#ffb347', f.x, f.y, f.x + 16 + vt * 6, f.y - 10 - vt * 4, 1 + (vt >= 2 ? 1 : 0));
       PX.halo(cx, '#ff8a3a', f.x, f.y, s + 5, (T * 24) | 0);
       disc(f.x, f.y, s, '#c0261d'); disc(f.x, f.y, s - 1, '#ff5a1a'); disc(f.x, f.y, s - 3, '#ffb347'); disc(f.x, f.y, Math.max(1, s - 5), '#fff');
+    } else if (f.k === 'armag') {
+      if (f.t < f.fall) {
+        const q = f.t / f.fall, x = lerp(f.tx + 190, f.tx, q), y = lerp(-50, GY - 8, q);
+        cx.globalAlpha = .55; PX.ellRing(cx, '#ff3b3b', f.tx, GY + 6, lerp(10, 90, q), lerp(3, 18, q), 3); cx.globalAlpha = 1;
+        PX.line(cx, '#ff4d2a', x, y, x + 70, y - 38, 12); PX.line(cx, '#ffb347', x, y, x + 52, y - 28, 6);
+        PX.halo(cx, '#ff8a3a', x, y, 30, (T * 24) | 0);
+        disc(x, y, 17, '#7a140f'); disc(x, y, 15, '#c0261d'); disc(x, y, 12, '#ff5a1a'); disc(x, y, 8, '#ffb347'); disc(x, y, 4, '#fff');
+      }
     } else if (f.k === 'icicle') {
       if (f.t < 0) return;
       const h = Math.round(f.h * (p < .25 ? p / .25 : p > .75 ? (1 - p) / .25 : 1)), bx = Math.round(f.x), by = GY + 5;
@@ -1324,7 +1364,7 @@ const Game = (() => {
   }
 
   return {
-    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, pickCards, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
+    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, pickCards, autoBuyCards, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
     get R() { return R; }, get state() { return state; }, get demo() { return demo; },
     get paused() { return paused; }, set paused(v) { paused = v; },
     get speed() { return speed; }, set speed(v) { speed = v; },
