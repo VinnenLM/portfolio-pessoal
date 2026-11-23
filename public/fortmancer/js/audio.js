@@ -80,6 +80,12 @@ const Snd = (() => {
     win()   { [0, 4, 7, 12, 7, 12, 16].forEach((s, i) => tone({ f: mtof(64 + s), t: .22, d: i * .13, type: 'square', v: .16 })); },
     lose()  { [0, -2, -4, -7, -12].forEach((s, i) => tone({ f: mtof(57 + s), t: .4, d: i * .22, type: 'triangle', v: .22 })); },
     summon(){ tone({ f: 200, f2: 400, t: .3, type: 'sawtooth', v: .12 }); },
+    poison(){ for (let i = 0; i < 4; i++) tone({ f: 300 + i * 90, f2: 700 + i * 120, t: .12, d: i * .07, type: 'sine', v: .12 }); noise({ f: 900, f2: 300, t: .35, v: .12, q: .6 }); },
+    roots() { noise({ f: 250, f2: 120, t: .4, v: .3, q: .8 }); tone({ f: 110, f2: 70, t: .35, type: 'sawtooth', v: .13 }); tone({ f: 330, f2: 200, t: .15, d: .1, type: 'square', v: .06 }); },
+    light() { [0, 4, 7, 12, 16].forEach((st, i) => tone({ f: mtof(72 + st), t: .5, d: i * .05, type: 'triangle', v: .12 })); noise({ f: 5000, ft: 'highpass', t: .4, v: .06 }); },
+    arrow() { if (!gate('arrow', 50)) return; noise({ f: 2600, f2: 1400, t: .06, v: .12, q: 1.5 }); tone({ f: 400, f2: 250, t: .05, type: 'triangle', v: .06 }); },
+    ballista() { if (!gate('ball', 80)) return; tone({ f: 130, f2: 60, t: .18, type: 'sawtooth', v: .22 }); noise({ f: 1200, f2: 300, t: .12, v: .2, q: .8 }); },
+    tier()  { [0, 4, 7, 12, 16, 19].forEach((st, i) => tone({ f: mtof(60 + st), t: .3, d: i * .09, type: 'square', v: .13 })); noise({ f: 300, f2: 80, t: .5, v: .25 }); },
   };
 
   /* ---------- música procedural ---------- */

@@ -2,7 +2,7 @@
 /* ============================================================
    FORTMANCER — dados do jogo (inimigos, habilidades, mapas, loja)
    ============================================================ */
-const W = 480, H = 270, GY = 206, CASTLE_X = 92;
+const W = 480, H = 270, GY = 206, CASTLE_X = 108;
 const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const irand = (a, b) => Math.floor(rand(a, b + 1));
@@ -37,11 +37,15 @@ const BOSSES = [
 
 /* ---------- Habilidades ativas ---------- */
 const SKILLS = {
-  fire:   { name: 'Bola de Fogo',   icon: '🔥', color: '#ff7a1a', key: '1', unlock: 0,   base: 70,  grow: 1.55, desc: 'Explode ao atingir o alvo e queima os inimigos.' },
-  frost:  { name: 'Nova de Gelo',   icon: '❄',  color: '#7fe0ff', key: '2', unlock: 90,  base: 60,  grow: 1.55, desc: 'Onda gelada em volta do mago: dano e lentidão.' },
-  bolt:   { name: 'Relâmpago',      icon: '⚡', color: '#ffe066', key: '3', unlock: 160, base: 90,  grow: 1.55, desc: 'Raio que salta entre vários inimigos.' },
-  meteor: { name: 'Chuva de Meteoros', icon: '☄', color: '#ff4d6d', key: '4', unlock: 320, base: 150, grow: 1.6, desc: 'Meteoros caem do céu esmagando a horda.' },
+  fire:   { name: 'Bola de Fogo',      icon: 'fire',   color: '#ff7a1a', key: '1', unlock: 0,   base: 70,  grow: 1.55, desc: 'Explode ao atingir o alvo e queima os inimigos.' },
+  frost:  { name: 'Nova de Gelo',      icon: 'frost',  color: '#7fe0ff', key: '2', unlock: 90,  base: 60,  grow: 1.55, desc: 'Onda gelada em volta do mago: dano e lentidão.' },
+  bolt:   { name: 'Relâmpago',         icon: 'bolt',   color: '#ffe066', key: '3', unlock: 160, base: 90,  grow: 1.55, desc: 'Raio que salta entre vários inimigos.' },
+  meteor: { name: 'Chuva de Meteoros', icon: 'meteor', color: '#ff4d6d', key: '4', unlock: 320, base: 150, grow: 1.6,  desc: 'Meteoros caem do céu esmagando a horda.' },
+  poison: { name: 'Nuvem Venenosa',    icon: 'poison', color: '#7bdc4a', key: '5', unlock: 140, base: 85,  grow: 1.55, desc: 'Frasco que cria uma nuvem tóxica: dano contínuo em área.' },
+  roots:  { name: 'Raízes do Druida',  icon: 'roots',  color: '#4fae56', key: '6', unlock: 200, base: 105, grow: 1.55, desc: 'Raízes prendem os inimigos no chão e os ferem.' },
+  light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 260, base: 125, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
 };
+const SKILL_KEYS = Object.keys(SKILLS);
 const SKILL_MAX = 8;
 const skillStats = (id, l) => {
   const g = l - 1;
@@ -50,58 +54,107 @@ const skillStats = (id, l) => {
     case 'frost':  return { dmg: 20 * (1 + .30 * g), radius: 118 + 8 * l, cd: 9 * Math.pow(.92, g), slow: .55, dur: 3 + .3 * l };
     case 'bolt':   return { dmg: 40 * (1 + .35 * g), chain: 3 + Math.floor(l / 2), cd: 5.5 * Math.pow(.93, g) };
     case 'meteor': return { dmg: 85 * (1 + .40 * g), radius: 40, n: 3 + Math.floor(l / 2), cd: 15 * Math.pow(.93, g) };
+    case 'poison': return { dmg: 11 * (1 + .35 * g), radius: 32 + 2.5 * l, dur: 5 + .35 * l, cd: 8 * Math.pow(.93, g) };
+    case 'roots':  return { dmg: 12 * (1 + .30 * g), n: 3 + Math.floor(l / 2), dur: 2.2 + .3 * l, cd: 11 * Math.pow(.93, g) };
+    case 'light':  return { heal: .08 + .015 * l, dmg: 30 * (1 + .35 * g), radius: 120 + 6 * l, cd: 16 * Math.pow(.93, g) };
   }
 };
+const skillText = (id, l) => {
+  const s = skillStats(id, l);
+  switch (id) {
+    case 'poison': return `${Math.round(s.dmg)} dano/s · ${s.dur.toFixed(1)}s`;
+    case 'roots':  return `prende ${s.n} · ${s.dur.toFixed(1)}s`;
+    case 'light':  return `cura ${Math.round(s.heal * 100)}% · dano ${Math.round(s.dmg)}`;
+    default:       return `Dano ${Math.round(s.dmg)}`;
+  }
+};
+// nível visual do efeito da habilidade (0-3), cresce com o nível da skill
+const fxTier = l => l >= 7 ? 3 : l >= 5 ? 2 : l >= 3 ? 1 : 0;
 
 /* ---------- Melhorias da partida (compradas com ouro) ---------- */
 const UPGRADES = {
   // mago
-  dmg:     { group: 'mago',   name: 'Poder Arcano',  icon: '✦', desc: '+15% de dano em tudo', base: 22, grow: 1.33, max: 20 },
-  spd:     { group: 'mago',   name: 'Cadência',      icon: '≫', desc: '+10% de velocidade de ataque', base: 24, grow: 1.34, max: 15 },
-  crit:    { group: 'mago',   name: 'Crítico',       icon: '✸', desc: '+5% chance de crítico (x2)', base: 40, grow: 1.45, max: 10 },
-  gold:    { group: 'mago',   name: 'Ganância',      icon: '¢', desc: '+10% de ouro dos monstros', base: 35, grow: 1.5, max: 10 },
-  pet:     { group: 'mago',   name: 'Treino do Pet', icon: '♥', desc: '+25% de dano do pet', base: 35, grow: 1.45, max: 10 },
+  dmg:     { group: 'mago',   name: 'Poder Arcano',  icon: 'wand', desc: '+15% de dano em tudo', base: 22, grow: 1.33, max: 20 },
+  spd:     { group: 'mago',   name: 'Cadência',      icon: 'chev', desc: '+10% de velocidade de ataque', base: 24, grow: 1.34, max: 15 },
+  crit:    { group: 'mago',   name: 'Crítico',       icon: 'crit', desc: '+5% chance de crítico (x2)', base: 40, grow: 1.45, max: 10 },
+  gold:    { group: 'mago',   name: 'Ganância',      icon: 'coin', desc: '+10% de ouro dos monstros', base: 35, grow: 1.5, max: 10 },
+  pet:     { group: 'mago',   name: 'Treino do Pet', icon: 'paw', desc: '+25% de dano do pet', base: 35, grow: 1.45, max: 10 },
   // castelo
-  wall:    { group: 'castelo', name: 'Muralha',       icon: '▥', desc: '+25% de vida máxima do castelo', base: 32, grow: 1.4, max: 15 },
-  barrier: { group: 'castelo', name: 'Barreira Mágica', icon: '◈', desc: 'Escudo que absorve dano e recarrega', base: 55, grow: 1.5, max: 10 },
-  thorns:  { group: 'castelo', name: 'Espinhos Arcanos', icon: '✧', desc: 'Reflete dano em quem ataca a muralha', base: 45, grow: 1.5, max: 10 },
+  wall:    { group: 'castelo', name: 'Muralha',       icon: 'wall', desc: '+25% de vida máxima do castelo', base: 32, grow: 1.4, max: 15 },
+  barrier: { group: 'castelo', name: 'Barreira Mágica', icon: 'shield', desc: 'Escudo que absorve dano e recarrega', base: 55, grow: 1.5, max: 10 },
+  thorns:  { group: 'castelo', name: 'Espinhos Arcanos', icon: 'thorns', desc: 'Reflete dano em quem ataca a muralha', base: 45, grow: 1.5, max: 10 },
 };
 const upCost = (id, lvl) => Math.round(UPGRADES[id].base * Math.pow(UPGRADES[id].grow, lvl));
 
-/* ---------- Armadilhas ---------- */
+/* ---------- Armadilhas (cada espaço do caminho tem 1 tipo fixo) ---------- */
 const TRAPS = {
-  spikes: { name: 'Espinhos',      icon: '▲', color: '#c0c6d6', cost: 55,  desc: 'Fere quem passa por cima.' },
-  frost:  { name: 'Runa de Gelo',  icon: '❄', color: '#7fe0ff', cost: 70,  desc: 'Deixa os inimigos lentos.' },
-  fire:   { name: 'Runa de Fogo',  icon: '♨', color: '#ff7a1a', cost: 80,  desc: 'Incendeia quem pisa nela.' },
-  bomb:   { name: 'Bomba Arcana',  icon: '●', color: '#ff4d6d', cost: 100, desc: 'Explode com inimigos por perto (recarrega).' },
+  spikes: { name: 'Espinhos',      icon: 'spikes', color: '#c0c6d6', cost: 55,  desc: 'Fere quem passa por cima.' },
+  frost:  { name: 'Runa de Gelo',  icon: 'rfrost', color: '#7fe0ff', cost: 70,  desc: 'Deixa os inimigos lentos.' },
+  fire:   { name: 'Runa de Fogo',  icon: 'rfire',  color: '#ff7a1a', cost: 80,  desc: 'Incendeia quem pisa nela.' },
+  bomb:   { name: 'Bomba Arcana',  icon: 'bomb',   color: '#ff4d6d', cost: 100, desc: 'Explode com inimigos por perto (recarrega).' },
 };
-const TRAP_X = [128, 188, 252, 322];
+const TRAP_ORDER = ['spikes', 'frost', 'fire', 'bomb'];
+const TRAP_X = [136, 196, 260, 330];
 const TRAP_MAX = 5;
 const trapCost = (type, lvl) => Math.round(TRAPS[type].cost * (lvl === 0 ? 1 : Math.pow(1.6, lvl)));
 
+/* ---------- Aliados (suportes que ficam no castelo) ---------- */
+const ALLIES = {
+  archer:    { name: 'Arqueiro',          icon: 'bow',      unlock: 90,  base: 70,  grow: 1.5,  max: 8, x: 58, cy: 96, desc: 'Dispara flechas rápidas no inimigo mais próximo.' },
+  frostmage: { name: 'Aprendiz de Gelo',  icon: 'snow',     unlock: 190, base: 120, grow: 1.5,  max: 8, x: 70, cy: 96, desc: 'Estilhaços de gelo que deixam os inimigos lentos.' },
+  ballista:  { name: 'Balista',           icon: 'ballista', unlock: 230, base: 140, grow: 1.55, max: 8, x: 84, cy: 96, desc: 'Virote pesado que atravessa vários inimigos.' },
+  cleric:    { name: 'Clérigo',           icon: 'cross',    unlock: 150, base: 100, grow: 1.5,  max: 8, x: 40, cy: 30, desc: 'Cura o castelo aos poucos e atira luz sagrada.' },
+};
+const allyCost = (id, l) => l === 0 ? ALLIES[id].unlock : Math.round(ALLIES[id].base * Math.pow(ALLIES[id].grow, l - 1));
+const allyStats = (id, l) => {
+  const g = l - 1;
+  switch (id) {
+    case 'archer':    return { dmg: 7 * (1 + .35 * g), cd: .85 / (1 + .09 * g), n: l >= 5 ? 2 : 1 };
+    case 'frostmage': return { dmg: 6 * (1 + .3 * g), cd: 1.5 / (1 + .08 * g), slow: .3 + .03 * g, dur: 1.6 };
+    case 'ballista':  return { dmg: 40 * (1 + .4 * g), cd: 3.4 / (1 + .07 * g), pierce: 2 + Math.floor(l / 3) };
+    case 'cleric':    return { heal: .012 + .004 * l, cd: 4.2, dmg: 6 * (1 + .3 * g), hcd: 1.9 / (1 + .06 * g) };
+  }
+};
+const allyText = (id, l) => {
+  const s = allyStats(id, l);
+  switch (id) {
+    case 'archer':    return `Dano ${Math.round(s.dmg)} · ${(1 / s.cd).toFixed(1)} tiros/s`;
+    case 'frostmage': return `Dano ${Math.round(s.dmg)} · lentidão ${Math.round(s.slow * 100)}%`;
+    case 'ballista':  return `Dano ${Math.round(s.dmg)} · atravessa ${s.pierce}`;
+    case 'cleric':    return `Cura ${(s.heal * 100).toFixed(1)}% a cada ${s.cd}s`;
+  }
+};
+
 /* ---------- Cartas (modo infinito / boss rush) ---------- */
 const CARDS = [
-  { id: 'power',   name: 'Poder Arcano',       rar: 0, icon: '✦', desc: '+20% de dano global.' },
-  { id: 'cadence', name: 'Cadência',           rar: 0, icon: '≫', desc: '+15% de velocidade de ataque.' },
-  { id: 'multi',   name: 'Projéteis Duplos',   rar: 1, icon: '⁞', desc: '+1 projétil no ataque básico.', max: 3 },
-  { id: 'pierce',  name: 'Perfurante',         rar: 1, icon: '➤', desc: 'Projéteis atravessam +1 inimigo.', max: 4 },
-  { id: 'crit',    name: 'Olho Arcano',        rar: 0, icon: '✸', desc: '+10% de chance de crítico.' },
-  { id: 'fireR',   name: 'Fogo: Explosão',     rar: 0, icon: '🔥', desc: 'Bola de Fogo com +25% de área.', req: 'fire' },
-  { id: 'fireB',   name: 'Fogo: Brasas',       rar: 0, icon: '🔥', desc: 'Queimadura +50% mais forte.', req: 'fire' },
-  { id: 'fireD',   name: 'Fogo: Dupla',        rar: 2, icon: '🔥', desc: 'Lança uma bola de fogo extra.', req: 'fire', max: 3 },
-  { id: 'frostF',  name: 'Gelo: Congelar',     rar: 1, icon: '❄', desc: '+20% de chance de congelar tudo.', req: 'frost', max: 5 },
-  { id: 'frostC',  name: 'Gelo: Geada Rápida', rar: 0, icon: '❄', desc: 'Nova de Gelo recarrega 20% mais rápido.', req: 'frost', max: 4 },
-  { id: 'boltC',   name: 'Raio: Cadeia',       rar: 1, icon: '⚡', desc: 'Relâmpago salta +2 vezes.', req: 'bolt' },
-  { id: 'boltS',   name: 'Raio: Tempestade',   rar: 2, icon: '⚡', desc: 'Relâmpago +40% dano e recarrega 20% mais rápido.', req: 'bolt', max: 3 },
-  { id: 'metR',    name: 'Meteoro: Chuva',     rar: 1, icon: '☄', desc: '+2 meteoros por chuva.', req: 'meteor' },
-  { id: 'metP',    name: 'Meteoro: Cratera',   rar: 0, icon: '☄', desc: '+30% de dano dos meteoros.', req: 'meteor' },
-  { id: 'trap',    name: 'Armadilhas Afiadas', rar: 0, icon: '▲', desc: '+40% de dano das armadilhas.' },
-  { id: 'regen',   name: 'Muralha Viva',       rar: 1, icon: '♥', desc: 'Castelo regenera 1 de vida por segundo.' },
-  { id: 'greed',   name: 'Chuva de Ouro',      rar: 0, icon: '¢', desc: '+25% de ouro.' },
-  { id: 'siphon',  name: 'Sifão de Vida',      rar: 2, icon: '✚', desc: 'Cada morte cura 1 de vida do castelo.', max: 5 },
-  { id: 'thorn',   name: 'Reflexo',            rar: 0, icon: '✧', desc: '+10 de dano refletido.' },
-  { id: 'pet',     name: 'Pet Furioso',        rar: 0, icon: '♥', desc: '+50% de dano do pet.' },
-  { id: 'shield',  name: 'Cúpula',             rar: 1, icon: '◈', desc: '+60 de escudo máximo.' },
+  { id: 'power',   name: 'Poder Arcano',       rar: 0, icon: 'wand',   desc: '+20% de dano global.' },
+  { id: 'cadence', name: 'Cadência',           rar: 0, icon: 'chev',   desc: '+15% de velocidade de ataque.' },
+  { id: 'multi',   name: 'Projéteis Duplos',   rar: 1, icon: 'multi',  desc: '+1 projétil no ataque básico.', max: 3 },
+  { id: 'pierce',  name: 'Perfurante',         rar: 1, icon: 'pierce', desc: 'Projéteis atravessam +1 inimigo.', max: 4 },
+  { id: 'crit',    name: 'Olho Arcano',        rar: 0, icon: 'crit',   desc: '+10% de chance de crítico.' },
+  { id: 'fireR',   name: 'Fogo: Explosão',     rar: 0, icon: 'fire',   desc: 'Bola de Fogo com +25% de área.', req: 'fire' },
+  { id: 'fireB',   name: 'Fogo: Brasas',       rar: 0, icon: 'fire',   desc: 'Queimadura +50% mais forte.', req: 'fire' },
+  { id: 'fireD',   name: 'Fogo: Dupla',        rar: 2, icon: 'fire',   desc: 'Lança uma bola de fogo extra.', req: 'fire', max: 3 },
+  { id: 'frostF',  name: 'Gelo: Congelar',     rar: 1, icon: 'frost',  desc: '+20% de chance de congelar tudo.', req: 'frost', max: 5 },
+  { id: 'frostC',  name: 'Gelo: Geada',        rar: 0, icon: 'frost',  desc: 'Nova de Gelo recarrega 20% mais rápido.', req: 'frost', max: 4 },
+  { id: 'boltC',   name: 'Raio: Cadeia',       rar: 1, icon: 'bolt',   desc: 'Relâmpago salta +2 vezes.', req: 'bolt' },
+  { id: 'boltS',   name: 'Raio: Tempestade',   rar: 2, icon: 'bolt',   desc: 'Relâmpago +40% de dano e recarga 20% menor.', req: 'bolt', max: 3 },
+  { id: 'metR',    name: 'Meteoro: Chuva',     rar: 1, icon: 'meteor', desc: '+2 meteoros por chuva.', req: 'meteor' },
+  { id: 'metP',    name: 'Meteoro: Cratera',   rar: 0, icon: 'meteor', desc: '+30% de dano dos meteoros.', req: 'meteor' },
+  { id: 'poisA',   name: 'Veneno: Corrosivo',  rar: 0, icon: 'poison', desc: 'Nuvem venenosa com +40% de dano.', req: 'poison' },
+  { id: 'poisB',   name: 'Veneno: Densa',      rar: 1, icon: 'poison', desc: 'Nuvem 30% maior e 30% mais longa.', req: 'poison', max: 3 },
+  { id: 'rootA',   name: 'Raízes: Espinhos',   rar: 0, icon: 'roots',  desc: 'Raízes com +50% de dano.', req: 'roots' },
+  { id: 'rootB',   name: 'Raízes: Enredar',    rar: 1, icon: 'roots',  desc: '+1 inimigo preso e +0,6s de duração.', req: 'roots', max: 3 },
+  { id: 'lightH',  name: 'Luz: Bênção',        rar: 1, icon: 'light',  desc: 'Luz Sagrada cura +40%.', req: 'light', max: 3 },
+  { id: 'lightR',  name: 'Luz: Radiante',      rar: 0, icon: 'light',  desc: 'Luz Sagrada +40% de dano e recarga 15% menor.', req: 'light', max: 3 },
+  { id: 'allyUp',  name: 'Treino de Aliados',  rar: 1, icon: 'ally',   desc: '+30% de dano e velocidade dos aliados.', ally: true, max: 4 },
+  { id: 'trap',    name: 'Armadilhas Afiadas', rar: 0, icon: 'spikes', desc: '+40% de dano das armadilhas.' },
+  { id: 'regen',   name: 'Muralha Viva',       rar: 1, icon: 'heart',  desc: 'Castelo regenera 1 de vida por segundo.' },
+  { id: 'greed',   name: 'Chuva de Ouro',      rar: 0, icon: 'coin',   desc: '+25% de ouro.' },
+  { id: 'siphon',  name: 'Sifão de Vida',      rar: 2, icon: 'drop',   desc: 'Cada morte cura 1 de vida do castelo.', max: 5 },
+  { id: 'thorn',   name: 'Reflexo',            rar: 0, icon: 'thorns', desc: '+10 de dano refletido.' },
+  { id: 'pet',     name: 'Pet Furioso',        rar: 0, icon: 'paw',    desc: '+50% de dano do pet.' },
+  { id: 'shield',  name: 'Cúpula',             rar: 1, icon: 'shield', desc: '+60 de escudo máximo.' },
 ];
 const RARITY = [{ n: 'Comum', c: '#8fd3ff' }, { n: 'Rara', c: '#c58bff' }, { n: 'Épica', c: '#ffc857' }];
 
@@ -149,13 +202,5 @@ const SKINS = {
     { id: 'dragon', name: 'Dragãozinho',    cost: 80, desc: 'Cospe fogo que queima.' },
   ],
 };
-const BLESS = {
-  gold:  { name: 'Cofre Inicial',  icon: '¢', desc: '+40 de ouro inicial por nível', base: 20, grow: 1.5, max: 10 },
-  hp:    { name: 'Fortaleza',      icon: '▥', desc: '+10% de vida do castelo por nível', base: 25, grow: 1.5, max: 10 },
-  dmg:   { name: 'Poder Ancestral', icon: '✦', desc: '+5% de dano por nível', base: 30, grow: 1.55, max: 10 },
-  luck:  { name: 'Sorte do Mago',  icon: '☘', desc: '+5% de ouro por nível', base: 25, grow: 1.5, max: 10 },
-};
-const blessCost = (id, l) => Math.round(BLESS[id].base * Math.pow(BLESS[id].grow, l));
-
 /* ---------- Escala de dificuldade ---------- */
 const waveScale = w => 1 + 0.12 * (w - 1) + 0.008 * (w - 1) * (w - 1);
