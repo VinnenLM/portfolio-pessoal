@@ -50,6 +50,7 @@ const SKILLS = {
   meteor: { name: 'Chuva de Meteoros', icon: 'meteor', color: '#ff4d6d', key: '4', unlock: 435, base: 204, grow: 1.6,  desc: 'Meteoros caem do céu esmagando a horda.' },
   poison: { name: 'Nuvem Venenosa',    icon: 'poison', color: '#7bdc4a', key: '5', unlock: 190, base: 115,  grow: 1.55, desc: 'Frasco que cria uma nuvem tóxica: dano contínuo em área.' },
   roots:  { name: 'Raízes do Druida',  icon: 'roots',  color: '#4fae56', key: '6', unlock: 272, base: 142, grow: 1.55, desc: 'Raízes prendem os inimigos no chão e os ferem.' },
+  sand:   { name: 'Tempestade de Areia', icon: 'sand',  color: '#e0b66a', key: '8', unlock: 520, base: 245, grow: 1.55, desc: 'Furacão de areia: dano baixo, mas empurra os inimigos para trás. Ótimo contra chefes colados no castelo.' },
   light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 354, base: 170, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
 };
 const SKILL_KEYS = Object.keys(SKILLS);
@@ -64,6 +65,7 @@ const skillStats = (id, l) => {
     case 'meteor': return { dmg: 85 * (1 + .40 * g), radius: 40, n: 3 + Math.floor(l / 2), cd: 15 * Math.pow(.93, g) };
     case 'poison': return { dmg: 11 * (1 + .35 * g), radius: 32 + 2.5 * l, dur: 5 + .35 * l, cd: 8 * Math.pow(.93, g) };
     case 'roots':  return { dmg: 12 * (1 + .30 * g), n: 3 + Math.floor(l / 2), dur: 2.2 + .3 * l, cd: 11 * Math.pow(.93, g) };
+    case 'sand':   return { dmg: 9 * (1 + .30 * g), radius: 24 + 2 * l, dur: 4.5 + .25 * l, push: 60 + 5 * l, cd: 30 * Math.pow(.94, g) };
     case 'light':  return { heal: .08 + .015 * l, dmg: 30 * (1 + .35 * g), radius: 120 + 6 * l, cd: 16 * Math.pow(.93, g) };
   }
 };
@@ -72,6 +74,7 @@ const skillText = (id, l) => {
   switch (id) {
     case 'poison': return `${Math.round(s.dmg)} dano/s · ${s.dur.toFixed(1)}s`;
     case 'roots':  return `prende ${s.n} · ${s.dur.toFixed(1)}s`;
+    case 'sand':   return `${Math.round(s.dmg)} dano/s · empurra ${Math.round(s.push)} · ${s.dur.toFixed(1)}s`;
     case 'light':  return `cura ${Math.round(s.heal * 100)}% · dano ${Math.round(s.dmg)}`;
     default:       return `Dano ${Math.round(s.dmg)}`;
   }

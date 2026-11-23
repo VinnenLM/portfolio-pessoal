@@ -78,8 +78,8 @@ const Game = (() => {
     R = {
       mode, map, wave: 0, kills: 0, bosses: 0, earned: 0, over: false,
       gold: (mode === 'boss' ? 160 : mode === 'infinite' ? 100 : m.start),
-      up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0 },
-      cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1 },
+      up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0 },
+      cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0, sand: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1, sand: 1 },
       slots: TRAP_X.map((_, i) => ({ type: TRAP_ORDER[i], lvl: 0, cd: 0, t: 0 })),
       pets: {}, allies: { archer: 0, frostmage: 0, ballista: 0, cleric: 0 }, allyCd: { archer: .5, frostmage: .8, ballista: 1, cleric: 2 }, allyHcd: 1, allyKick: {},
       tier: 0,
@@ -127,6 +127,7 @@ const Game = (() => {
   function resumeRun(mode) {
     const s = Save.d.runs[mode]; if (!s) return false;
     demo = false; R = JSON.parse(JSON.stringify(s)); R.over = false;
+    R.skills.sand = R.skills.sand || 0; R.cd.sand = R.cd.sand || 0; R.cdMax.sand = R.cdMax.sand || 1;
     if (R.autoBought === undefined) R.autoBought = true;   // partidas antigas já tinham a conjuração automática
     mapIdx = R.map; Save.d.lastMap = R.map; setMap(R.map);
     for (const k in petObj) delete petObj[k];
@@ -400,6 +401,12 @@ const Game = (() => {
       let best = g[0], bc = -1; for (const e of g) { const c = g.reduce((s, o) => s + (Math.abs(o.x - e.x) < st.radius ? (o.rootT > 0 ? 3 : 1) : 0), 0); if (c > bc) { bc = c; best = e; } }
       FX.push({ k: 'flask', sx: tipX, sy: tipY, tx: clamp(best.x, 130, W - 20), ty: GY + 6, t: 0, life: .55, st, done: false });
       Snd.sfx.poison();
+    } else if (id === 'sand') {
+      const lv = E.filter(e => e.alive && e.x < W - 12 && e.x > CASTLE_X - 6); if (!lv.length) return false;
+      const lead = lv.reduce((a, b) => a.x < b.x ? a : b);
+      const sx = clamp(lead.x - st.radius * .5, CASTLE_X + 20, W - 50);
+      ZN.push({ k: 'sand', x: sx, r: st.radius, dps: st.dmg, push: st.push, t: 0, life: st.dur, vt: st.vt, ph: rand(0, 6) });
+      shake = Math.max(shake, 2); Snd.sfx.sand();
     } else if (id === 'roots') {
       const live = E.filter(e => e.alive && e.x < W - 6 && !e.pulled);
       const fl = live.filter(e => e.fly).sort((a, b) => (b.boss - a.boss) || (a.x - b.x)), gr = live.filter(e => !e.fly).sort((a, b) => a.x - b.x);
@@ -554,7 +561,7 @@ const Game = (() => {
     const live = living();
     const hasRoots = R.skills.roots > 0;
     // ordem pensada: raízes primeiro (prende), depois veneno/meteoros em cima de quem está preso
-    for (const id of ['roots', 'poison', 'frost', 'meteor', 'fire', 'bolt', 'light']) {
+    for (const id of ['roots', 'poison', 'frost', 'meteor', 'fire', 'bolt', 'sand', 'light']) {
       if (!R.skills[id] || R.cd[id] > 0) continue;
       if (id === 'light') {
         const c = R.castle;
@@ -562,6 +569,7 @@ const Game = (() => {
         continue;
       }
       if (!live.length) continue;
+      if (id === 'sand') { const near = live.filter(e => e.x < CASTLE_X + 100); if (near.some(e => e.boss) || near.length >= 4) cast(id); continue; }
       const rooted = live.filter(e => e.rootT > 0), boss = live.some(e => e.boss && e.x < W - 30);
       if (id === 'roots') {
         const flyer = live.some(e => e.fly && !e.pulled && e.x < CASTLE_X + 280);
@@ -628,6 +636,16 @@ const Game = (() => {
   }
   function updateZones(dt) {
     for (const z of ZN) {
+      if (z.k === 'sand') {
+        z.t += dt; z.x = Math.min(W - 24, z.x + 38 * dt);
+        for (const e of E) {
+          if (!e.alive || Math.abs(e.x - z.x) > z.r + e.w / 2) continue;
+          e.sandT = .2; e.x = Math.min(W - 6, e.x + z.push * (e.boss ? .6 : 1) * dt);
+          hurtRaw(e, z.dps * dt);
+        }
+        if (PT.length < 460 && Math.random() < dt * (30 + z.vt * 8)) { const h = rand(0, 85); PT.push({ x: z.x + rand(-1, 1) * (z.r * (.35 + h / 120)), y: GY + 4 - h, vx: rand(-30, 30), vy: rand(-10, 10), life: rand(.35, .7), t: 0, col: pick(['#e0b66a', '#c9964a', '#f2d9a0']), size: Math.random() < .4 ? 2 : 1, g: 0 }); }
+        continue;
+      }
       z.t += dt; z.tick -= dt;
       if (z.tick <= 0) { z.tick = .2; for (const e of E) if (e.alive && Math.abs(e.x - z.x) <= z.r + e.w / 2) { e.poisT = Math.max(e.poisT, .45); e.poisD = Math.max(e.poisD, z.dps); } }
       if (PT.length < 460 && Math.random() < dt * (10 + z.vt * 7)) PT.push({ x: z.x + rand(-z.r, z.r), y: GY + rand(2, 10), vx: rand(-6, 6), vy: -rand(10, 28), life: rand(.5, 1), t: 0, col: pick(['#7bdc4a', '#b8f06a', '#4aa83a']), size: Math.random() < .3 ? 2 : 1, g: 0 });
@@ -663,6 +681,7 @@ const Game = (() => {
     if (!e.alive) return;
     if (tpl.regen) e.hp = Math.min(e.max, e.hp + e.max * tpl.regen * dt);
     if (e.freezeT > 0) { e.freezeT -= dt; return; }
+    if (e.sandT > 0) e.sandT -= dt;
     const sf = e.slowT > 0 ? (1 - e.slowF) : 1; if (e.slowT > 0) e.slowT -= dt;
     const rooted = e.rootT > 0;
     if (tpl.fly) {
@@ -674,7 +693,7 @@ const Game = (() => {
     }
     if (rooted) { e.rootT -= dt; e.rootAge += dt; hurtRaw(e, e.rootD * dt); if (!e.alive) return; }
     if (e.x > e.stopX) {
-      if (!rooted) {
+      if (!rooted && !(e.sandT > 0)) {
         e.x -= e.spd * sf * dt; if (e.x < e.stopX) e.x = e.stopX;
       }
     } else {
@@ -1156,6 +1175,18 @@ const Game = (() => {
     }
   }
   function drawZone(z) {
+    if (z.k === 'sand') {
+      const fade = clamp(Math.min(z.t / .3, (z.life - z.t) / .6), 0, 1), r = z.r;
+      cx.globalAlpha = .45 * fade; PX.ell(cx, '#8a6a32', z.x, GY + 6, r * 1.1, r * .3);
+      const n = 11;
+      for (let i = 0; i < n; i++) {
+        const h = i * 8, w = r * (.3 + i * .085), sw = Math.sin(z.t * 7 + i * .9 + z.ph) * (3 + i * .5);
+        cx.globalAlpha = (1 - i * .03) * fade;
+        PX.ell(cx, i % 2 ? '#e0b66a' : '#c9964a', z.x + sw, GY + 2 - h, w, 3.5 + i * .25);
+        cx.globalAlpha = .7 * fade; rc('#f6e3b0', z.x + sw + Math.cos(z.t * 9 + i * 1.7) * w * .8, GY + 1 - h, 2, 1);
+      }
+      cx.globalAlpha = 1; return;
+    }
     const fade = clamp(Math.min(z.t / .3, (z.life - z.t) / .8), 0, 1), r = z.r;
     cx.globalAlpha = .55 * fade; PX.ell(cx, '#3a8a2a', z.x, GY + 6, r, r * .3);
     cx.globalAlpha = .75 * fade; PX.halo(cx, '#9be85a', z.x, GY - r * .1, r * .85, 0);
