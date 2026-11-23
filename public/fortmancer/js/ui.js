@@ -47,6 +47,7 @@ const UI = (() => {
     $('#shBar').style.display = c.bmax > 0 ? '' : 'none';
     setW($('#shFill'), (c.bmax ? c.barrier / c.bmax * 100 : 0) + '%');
     setTxt($('#waveTxt'), Game.waveLabel());
+    setW($('#waveFill'), Game.waveProgress() * 100 + '%');
     setTxt($('#goldTxt').querySelector('b') || $('#goldTxt'), fmt(R.gold));
     const bb = Game.bossBar();
     $('#bossBar').classList.toggle('hidden', !bb);

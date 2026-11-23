@@ -37,13 +37,13 @@ const BOSSES = [
 
 /* ---------- Habilidades ativas ---------- */
 const SKILLS = {
-  fire:   { name: 'Bola de Fogo',      icon: 'fire',   color: '#ff7a1a', key: '1', unlock: 0,   base: 70,  grow: 1.55, desc: 'Explode ao atingir o alvo e queima os inimigos.' },
-  frost:  { name: 'Nova de Gelo',      icon: 'frost',  color: '#7fe0ff', key: '2', unlock: 90,  base: 60,  grow: 1.55, desc: 'Onda gelada em volta do mago: dano e lentidão.' },
-  bolt:   { name: 'Relâmpago',         icon: 'bolt',   color: '#ffe066', key: '3', unlock: 160, base: 90,  grow: 1.55, desc: 'Raio que salta entre vários inimigos.' },
-  meteor: { name: 'Chuva de Meteoros', icon: 'meteor', color: '#ff4d6d', key: '4', unlock: 320, base: 150, grow: 1.6,  desc: 'Meteoros caem do céu esmagando a horda.' },
-  poison: { name: 'Nuvem Venenosa',    icon: 'poison', color: '#7bdc4a', key: '5', unlock: 140, base: 85,  grow: 1.55, desc: 'Frasco que cria uma nuvem tóxica: dano contínuo em área.' },
-  roots:  { name: 'Raízes do Druida',  icon: 'roots',  color: '#4fae56', key: '6', unlock: 200, base: 105, grow: 1.55, desc: 'Raízes prendem os inimigos no chão e os ferem.' },
-  light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 260, base: 125, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
+  fire:   { name: 'Bola de Fogo',      icon: 'fire',   color: '#ff7a1a', key: '1', unlock: 0,   base: 95,  grow: 1.55, desc: 'Explode ao atingir o alvo e queima os inimigos.' },
+  frost:  { name: 'Nova de Gelo',      icon: 'frost',  color: '#7fe0ff', key: '2', unlock: 122,  base: 82,  grow: 1.55, desc: 'Onda gelada em volta do mago: dano e lentidão.' },
+  bolt:   { name: 'Relâmpago',         icon: 'bolt',   color: '#ffe066', key: '3', unlock: 218, base: 122,  grow: 1.55, desc: 'Raio que salta entre vários inimigos.' },
+  meteor: { name: 'Chuva de Meteoros', icon: 'meteor', color: '#ff4d6d', key: '4', unlock: 435, base: 204, grow: 1.6,  desc: 'Meteoros caem do céu esmagando a horda.' },
+  poison: { name: 'Nuvem Venenosa',    icon: 'poison', color: '#7bdc4a', key: '5', unlock: 190, base: 115,  grow: 1.55, desc: 'Frasco que cria uma nuvem tóxica: dano contínuo em área.' },
+  roots:  { name: 'Raízes do Druida',  icon: 'roots',  color: '#4fae56', key: '6', unlock: 272, base: 142, grow: 1.55, desc: 'Raízes prendem os inimigos no chão e os ferem.' },
+  light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 354, base: 170, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
 };
 const SKILL_KEYS = Object.keys(SKILLS);
 const SKILL_MAX = 8;
@@ -74,15 +74,15 @@ const fxTier = l => l >= 7 ? 3 : l >= 5 ? 2 : l >= 3 ? 1 : 0;
 /* ---------- Melhorias da partida (compradas com ouro) ---------- */
 const UPGRADES = {
   // mago
-  dmg:     { group: 'mago',   name: 'Poder Arcano',  icon: 'wand', desc: '+15% de dano em tudo', base: 22, grow: 1.33, max: 20 },
-  spd:     { group: 'mago',   name: 'Cadência',      icon: 'chev', desc: '+10% de velocidade de ataque', base: 24, grow: 1.34, max: 15 },
-  crit:    { group: 'mago',   name: 'Crítico',       icon: 'crit', desc: '+5% chance de crítico (x2)', base: 40, grow: 1.45, max: 10 },
-  gold:    { group: 'mago',   name: 'Ganância',      icon: 'coin', desc: '+10% de ouro dos monstros', base: 35, grow: 1.5, max: 10 },
-  pet:     { group: 'mago',   name: 'Treino do Pet', icon: 'paw', desc: '+25% de dano do pet', base: 35, grow: 1.45, max: 10 },
+  dmg:     { group: 'mago',   name: 'Poder Arcano',  icon: 'wand', desc: '+15% de dano em tudo', base: 30, grow: 1.33, max: 20 },
+  spd:     { group: 'mago',   name: 'Cadência',      icon: 'chev', desc: '+10% de velocidade de ataque', base: 33, grow: 1.34, max: 15 },
+  crit:    { group: 'mago',   name: 'Crítico',       icon: 'crit', desc: '+5% chance de crítico (x2)', base: 54, grow: 1.45, max: 10 },
+  gold:    { group: 'mago',   name: 'Ganância',      icon: 'coin', desc: '+10% de ouro dos monstros', base: 48, grow: 1.5, max: 10 },
+  pet:     { group: 'mago',   name: 'Treino do Pet', icon: 'paw', desc: '+25% de dano do pet', base: 48, grow: 1.45, max: 10 },
   // castelo
-  wall:    { group: 'castelo', name: 'Muralha',       icon: 'wall', desc: '+25% de vida máxima do castelo', base: 32, grow: 1.4, max: 15 },
-  barrier: { group: 'castelo', name: 'Barreira Mágica', icon: 'shield', desc: 'Escudo que absorve dano e recarrega', base: 55, grow: 1.5, max: 10 },
-  thorns:  { group: 'castelo', name: 'Espinhos Arcanos', icon: 'thorns', desc: 'Reflete dano em quem ataca a muralha', base: 45, grow: 1.5, max: 10 },
+  wall:    { group: 'castelo', name: 'Muralha',       icon: 'wall', desc: '+25% de vida máxima do castelo', base: 43, grow: 1.4, max: 15 },
+  barrier: { group: 'castelo', name: 'Barreira Mágica', icon: 'shield', desc: 'Escudo que absorve dano e recarrega', base: 75, grow: 1.5, max: 10 },
+  thorns:  { group: 'castelo', name: 'Espinhos Arcanos', icon: 'thorns', desc: 'Reflete dano em quem ataca a muralha', base: 61, grow: 1.5, max: 10 },
 };
 const upCost = (id, lvl) => Math.round(UPGRADES[id].base * Math.pow(UPGRADES[id].grow, lvl));
 
@@ -96,14 +96,14 @@ const TRAPS = {
 const TRAP_ORDER = ['spikes', 'frost', 'fire', 'bomb'];
 const TRAP_X = [136, 196, 260, 330];
 const TRAP_MAX = 5;
-const trapCost = (type, lvl) => Math.round(TRAPS[type].cost * (lvl === 0 ? 1 : Math.pow(1.6, lvl)));
+const trapCost = (type, lvl) => Math.round(TRAPS[type].cost * 1.3 * (lvl === 0 ? 1 : Math.pow(1.65, lvl)));
 
 /* ---------- Aliados (suportes que ficam no castelo) ---------- */
 const ALLIES = {
-  archer:    { name: 'Arqueiro',          icon: 'bow',      unlock: 90,  base: 70,  grow: 1.5,  max: 8, x: 58, cy: 96, desc: 'Dispara flechas rápidas no inimigo mais próximo.' },
-  frostmage: { name: 'Aprendiz de Gelo',  icon: 'snow',     unlock: 190, base: 120, grow: 1.5,  max: 8, x: 70, cy: 96, desc: 'Estilhaços de gelo que deixam os inimigos lentos.' },
-  ballista:  { name: 'Balista',           icon: 'ballista', unlock: 230, base: 140, grow: 1.55, max: 8, x: 84, cy: 96, desc: 'Virote pesado que atravessa vários inimigos.' },
-  cleric:    { name: 'Clérigo',           icon: 'cross',    unlock: 150, base: 100, grow: 1.5,  max: 8, x: 40, cy: 30, desc: 'Cura o castelo aos poucos e atira luz sagrada.' },
+  archer:    { name: 'Arqueiro',          icon: 'bow',      unlock: 135,  base: 105,  grow: 1.5,  max: 8, x: 58, cy: 96, desc: 'Dispara flechas rápidas no inimigo mais próximo.' },
+  frostmage: { name: 'Aprendiz de Gelo',  icon: 'snow',     unlock: 285, base: 180, grow: 1.5,  max: 8, x: 70, cy: 96, desc: 'Estilhaços de gelo que deixam os inimigos lentos.' },
+  ballista:  { name: 'Balista',           icon: 'ballista', unlock: 345, base: 210, grow: 1.55, max: 8, x: 84, cy: 96, desc: 'Virote pesado que atravessa vários inimigos.' },
+  cleric:    { name: 'Clérigo',           icon: 'cross',    unlock: 225, base: 150, grow: 1.5,  max: 8, x: 40, cy: 30, desc: 'Cura o castelo aos poucos e atira luz sagrada.' },
 };
 const allyCost = (id, l) => l === 0 ? ALLIES[id].unlock : Math.round(ALLIES[id].base * Math.pow(ALLIES[id].grow, l - 1));
 const allyStats = (id, l) => {

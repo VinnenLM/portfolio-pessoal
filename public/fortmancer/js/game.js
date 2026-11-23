@@ -39,8 +39,8 @@ const Game = (() => {
   /* ================= estatísticas derivadas ================= */
   const card = id => (R && R.cards[id]) || 0;
   const mageId = () => Save.d.equip.mage;
-  const dmgMul = () => (1 + .15 * R.up.dmg) * (1 + .2 * card('power')) * (mageId() === 'archmage' ? 1.08 : 1);
-  const spdMul = () => 1 + .1 * R.up.spd + .15 * card('cadence');
+  const dmgMul = () => (1 + .12 * R.up.dmg) * (1 + .2 * card('power')) * (mageId() === 'archmage' ? 1.08 : 1);
+  const spdMul = () => 1 + .08 * R.up.spd + .12 * card('cadence');
   const critCh = () => .03 + .05 * R.up.crit + .1 * card('crit');
   const goldMul = () => (1 + .1 * R.up.gold) * (1 + .25 * card('greed')) * (mageId() === 'necro' ? 1.12 : 1);
   const castleMax = () => Math.round(260 * (1 + .25 * R.up.wall));
@@ -136,10 +136,10 @@ const Game = (() => {
     const info = nextWaveInfoFor(w);
     let list = [];
     const mapMode = R.mode === 'map';
-    const scaleHp = waveScale(w) * (mapMode ? m.hp * .85 : 1) * (R.mode === 'infinite' && w > 15 ? Math.pow(1.07, w - 15) : 1);
+    const scaleHp = waveScale(w) * (mapMode ? m.hp * .72 : 1) * (R.mode === 'infinite' && w > 15 ? Math.pow(1.07, w - 15) : 1);
     const ctxW = { hpMul: scaleHp, dmgMul: 1 + .1 * (w - 1) + (mapMode ? .08 * R.map : 0), goldMul: (1 + .1 * (w - 1)) * (mapMode ? m.gold * 1.3 : 1) };
     if (R.mode !== 'boss') list = buildList(w, mapMode ? m.pool : INF_POOL, info.boss ? .55 : 1);
-    wv = { q: list, t: 0, active: true, boss: null, endT: 0, ctx: ctxW };
+    wv = { q: list, t: 0, active: true, boss: null, endT: 0, ctx: ctxW, total: list.length + (info.boss ? 1 : 0) };
     if (info.boss) {
       let hpMul;
       if (R.mode === 'boss') hpMul = 1 + .6 * Math.floor((w - 1) / BOSSES.length);
@@ -1087,6 +1087,7 @@ const Game = (() => {
     get speed() { return speed; }, set speed(v) { speed = v; },
     waveLabel, nextWaveInfo, goldMul, dmgMul, castleMax,
     bossBar() { const b = wv.boss; return b && b.alive ? { name: b.tpl.name, hp: b.hp, max: b.max } : null; },
+    waveProgress() { if (state !== 'wave' || !wv.total) return 0; const left = E.filter(e => e.alive).length + wv.q.length + (wv.bossSpawn ? 1 : 0); return Math.max(0, Math.min(1, 1 - left / Math.max(wv.total, left))); },
     enemiesLeft() { return E.length + wv.q.length + (wv.bossSpawn ? 1 : 0); },
     get mapIdx() { return mapIdx; },
     quit() { Snd.stop(); startDemo(); },
