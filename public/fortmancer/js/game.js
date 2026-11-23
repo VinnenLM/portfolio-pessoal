@@ -747,6 +747,7 @@ const Game = (() => {
     healCastle(R.castle.max * .3);
     R.castle.barrier = R.castle.bmax;
     R.pendingCard = R.mode !== 'map';
+    if (R.mode !== 'map') refreshOffers();
     saveRun();
     hooks.waveClear && hooks.waveClear(bonus, R.mode !== 'map');
   }
@@ -808,6 +809,16 @@ const Game = (() => {
       const p = petOf(id); p.x = mage.x + 10; p.y = mage.foot - 10; burst(p.x, p.y, ['#ffd84a', '#ffffff'], 14, 60, .6, 1, -40);
       return true;
     },
+    card(id) {
+      if (!R.offers || !R.offers.includes(id)) return false;
+      const c = cardPrice(id); if (R.gold < c) { Snd.sfx.nope(); return false; }
+      R.gold -= c; R.cardBuys = (R.cardBuys || 0) + 1; R.cards[id] = (R.cards[id] || 0) + 1; recalc(false); Snd.sfx.buy();
+      refreshOffers(); return true;
+    },
+    reroll() {
+      const c = rerollPrice(); if (R.gold < c) { Snd.sfx.nope(); return false; }
+      R.gold -= c; Snd.sfx.click(); refreshOffers(); return true;
+    },
     repair() {
       const c = R.castle, need = c.max - c.hp, cost = Math.ceil(need * .5);
       if (need < 1) return false;
@@ -840,6 +851,9 @@ const Game = (() => {
     }
     return out;
   }
+  const cardPrice = id => Math.round([110, 200, 340][CARDS.find(c => c.id === id).rar] * Math.pow(1.12, R.cardBuys || 0));
+  const rerollPrice = () => Math.round(40 * Math.pow(1.08, R.cardBuys || 0));
+  function refreshOffers() { R.offers = drawCards().map(c => c.id); }
   function pickCard(id) {
     R.cards[id] = (R.cards[id] || 0) + 1; recalc(false); Snd.sfx.card(); R.pendingCard = false; saveRun();
   }
@@ -1172,7 +1186,7 @@ const Game = (() => {
   }
 
   return {
-    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, finish, setMap, repairCost,
+    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
     get R() { return R; }, get state() { return state; }, get demo() { return demo; },
     get paused() { return paused; }, set paused(v) { paused = v; },
     get speed() { return speed; }, set speed(v) { speed = v; },

@@ -147,7 +147,17 @@ const UI = (() => {
       const hasPet = Object.keys(R.pets).length > 0;
       return ['dmg', 'spd', 'crit', 'gold'].map(upItem).join('') + (hasPet ? upItem('pet') : `<div class="it"><div class="ic">${ic('paw')}</div><div class="tx"><div class="nm">Treino do Pet</div><div class="ds">Compre um pet na aba Aliados para treiná-lo aqui.</div></div></div>`);
     }
-    if (prepTab === 'car') return myCardsHtml();
+    if (prepTab === 'car') {
+      if (!R.offers || !R.offers.length) Game.refreshOffers();
+      const offers = (R.offers || []).map(id => {
+        const c = CARDS.find(x => x.id === id), p = Game.cardPrice(id), n = R.cards[id] || 0;
+        return `<div class="it" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>${RARITY[c.rar].n}${n ? ' · você tem x' + n : ''}</em></div><div class="ds">${c.desc}</div></div><div class="act">${costBtn('cardbuy', `data-id="${id}"`, p, R.gold >= p, 'Comprar ')}</div></div>`;
+      }).join('');
+      const rr = Game.rerollPrice();
+      const head = `<div class="sub" style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:calc(var(--u)*4)"><span>LOJA DE CARTAS — compre upgrades com ouro</span>${costBtn('cardroll', '', rr, R.gold >= rr, 'Trocar ofertas ')}</div>`;
+      const empty = offers ? '' : `<div class="sub" style="grid-column:1/-1">Todas as cartas estão no máximo.</div>`;
+      return head + (offers || empty) + `<div class="sub" style="grid-column:1/-1;margin-top:calc(var(--u)*4)">SEUS UPGRADES</div>` + myCardsHtml();
+    }
     if (prepTab === 'hab') return SKILL_KEYS.map(skillItem).join('');
     if (prepTab === 'ali') return Object.keys(ALLIES).map(allyItem).join('') + Object.keys(PET_COST).map(petItem).join('');
     if (prepTab === 'arm') {
@@ -269,6 +279,8 @@ const UI = (() => {
       case 'play': Snd.sfx.click(); showModes(); break;
       case 'menu': Snd.sfx.back(); showMenu(); break;
       case 'shop': Snd.sfx.click(); shopTab = 'mage'; showShop(); break;
+      case 'cardbuy': Game.buy.card(d.id); renderPrep(); break;
+      case 'cardroll': Game.buy.reroll(); renderPrep(); break;
       case 'mycards': Snd.sfx.click(); showMyCards(); break;
       case 'mycardsback': Snd.sfx.back(); showPause(); break;
       case 'settings': Snd.sfx.click(); showSettings(); break;
