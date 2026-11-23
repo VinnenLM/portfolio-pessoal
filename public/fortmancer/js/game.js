@@ -364,7 +364,7 @@ const Game = (() => {
     return st;
   }
   const UNDEAD = { skeleton: 1, darkmage: 1, demon: 1 };
-  const payCost = () => Math.round(90 + 32 * Math.max(1, R.wave));
+  const payCost = () => Math.round(5000 + 120 * Math.max(1, R.wave));
   function cast(id) {
     const l = R.skills[id];
     if (!l || R.cd[id] > 0) return false;
@@ -441,7 +441,7 @@ const Game = (() => {
       if (!living().length) return false;
       const cost = payCost(); if (R.gold < cost) { Snd.sfx.nope(); return false; }
       R.gold -= cost;
-      FX.push({ k: 'dragon', t: 0, life: 4.6, x: -90, y: 58, dmg: st.dmg, hit: [], fx: 0, tk: 0 });
+      FX.push({ k: 'dragon', t: 0, life: 9.2, x: -90, y: 58, dmg: st.dmg, hit: [], fx: 0, tk: 0 });
       Snd.sfx.boss(); shake = Math.max(shake, 3);
     } else if (id === 'armag') {
       if (!living().length) return false;

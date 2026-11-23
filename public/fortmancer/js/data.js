@@ -53,7 +53,7 @@ const SKILLS = {
   light:  { name: 'Luz Sagrada',       icon: 'light',  color: '#fff0a0', key: '7', unlock: 354, base: 170, grow: 1.55, desc: 'Pilar de luz: cura o castelo, restaura a barreira e fere os inimigos.' },
   sand:   { name: 'Tempestade de Areia', icon: 'sand',  color: '#e0b66a', key: '8', unlock: 520, base: 245, grow: 1.55, desc: 'Furacão de areia: dano baixo, mas empurra os inimigos para trás. Ótimo contra chefes colados no castelo.' },
   armag:  { name: 'Armagedom',          icon: 'armag', color: '#ff3b3b', key: '9', unlock: 900, base: 480, grow: 1.6, desc: 'Um meteoro gigante cai do céu e explode em toda a tela: dano alto em tudo. Recarga muito longa.' },
-  dragon: { name: 'Dragão de Fogo',     icon: 'dragon', color: '#ff6a2a', key: '0', unlock: 1500, base: 1100, grow: 1.6, pay: true, desc: 'SKILL PAGA: cada uso custa ouro (sem espera). Um dragão cruza a tela soltando fogo da esquerda para a direita e queima tudo.' },
+  dragon: { name: 'Dragão de Fogo',     icon: 'dragon', color: '#ff6a2a', key: '0', unlock: 3500, base: 2500, grow: 1.6, pay: true, desc: 'SKILL PAGA: cada uso custa ouro (sem espera). Um dragão cruza a tela soltando fogo da esquerda para a direita e queima tudo.' },
 };
 const SKILL_KEYS = Object.keys(SKILLS);
 const SKILL_MAX = 8;
@@ -67,9 +67,9 @@ const skillStats = (id, l) => {
     case 'meteor': return { dmg: 85 * (1 + .40 * g), radius: 40, n: 3 + Math.floor(l / 2), cd: 15 * Math.pow(.93, g) };
     case 'poison': return { dmg: 11 * (1 + .35 * g), radius: 32 + 2.5 * l, dur: 5 + .35 * l, cd: 8 * Math.pow(.93, g) };
     case 'roots':  return { dmg: 12 * (1 + .30 * g), n: 3 + Math.floor(l / 2), dur: 2.2 + .3 * l, cd: 11 * Math.pow(.93, g) };
-    case 'sand':   return { dmg: 9 * (1 + .30 * g), radius: 24 + 2 * l, dur: 9.5 + .25 * l, push: 60 + 5 * l, cd: 30 * Math.pow(.94, g) };
+    case 'sand':   return { dmg: 9 * (1 + .30 * g), radius: 24 + 2 * l, dur: 9.5 + .25 * l, push: 60 + 5 * l, cd: 40 * Math.pow(.94, g) };
     case 'armag':  return { dmg: 300 * (1 + .5 * g), cd: 60 - g * (15 / 7) };
-    case 'dragon': return { dmg: 330 * (1 + .5 * g), cd: 4 };
+    case 'dragon': return { dmg: 330 * (1 + .5 * g), cd: 45 };
     case 'light':  return { heal: .08 + .015 * l, dmg: 30 * (1 + .35 * g), radius: 120 + 6 * l, cd: 16 * Math.pow(.93, g) };
   }
 };
