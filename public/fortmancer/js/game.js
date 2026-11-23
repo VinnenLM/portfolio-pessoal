@@ -403,7 +403,7 @@ const Game = (() => {
     FX.push({ k: 'ring', x: mage.x + 3, y: mage.foot - 2, r: 3, max: 18, t: 0, life: .3, col: SKILLS[id].color, w: 2 });
     return true;
   }
-  function explode(x, y, r, dmg, burn, col, vt) {
+  function explode(x, y, r, dmg, burn, col, vt, sky) {
     vt = vt || 0; col = col || '#ffb347';
     FX.push({ k: 'ring', x, y, r: 3, max: r * 1.2, t: 0, life: .35, col, w: 3 + (vt > 1 ? 1 : 0) });
     FX.push({ k: 'glow', x, y, r: r * 1.1, t: 0, life: .22, col });
@@ -412,7 +412,9 @@ const Game = (() => {
     burst(x, y, ['#ffd166', '#ff7a1a', '#ff4d2a'], 22 + vt * 8, 150, .6, 2, 60);
     for (const e of E) {
       if (!e.alive) continue;
-      const d = Math.hypot(e.x - x, cy(e) - y);
+      // meteoro vem de cima: atinge voadores na coluna do impacto
+      const air = sky && e.fly, d = air ? Math.abs(e.x - x) : Math.hypot(e.x - x, cy(e) - y);
+      if (air && d <= r + e.w / 2) { burst(e.x, e.y, ['#ffd166', '#ff7a1a', '#fff'], 10, 90, .4, 2, 0); FX.push({ k: 'ring', x: e.x, y: e.y, r: 3, max: 16, t: 0, life: .25, col: '#ffb347', w: 2 }); }
       if (d <= r + e.w / 2) { hurt(e, dmg * (1 - Math.min(d / (r + e.w / 2), 1) * .35), { nocrit: true }); if (burn) { e.burnT = 3; e.burnD = Math.max(e.burnD, burn); } }
     }
     Snd.sfx.boom(); shake = Math.max(shake, 2.5);
@@ -477,7 +479,7 @@ const Game = (() => {
         f.x = lerp(f.tx + 90, f.tx, p); f.y = lerp(-20, f.ty, p);
         if (PT.length < 480 && Math.random() < .8) PT.push({ x: f.x, y: f.y, vx: rand(-10, 10), vy: rand(-10, 10), life: .3, t: 0, col: pick(['#ffd166', '#ff7a1a']), size: 2, g: 0 });
         if (p >= 1) {
-          f.done = true; explode(f.tx, f.ty - 4, f.r, f.dmg, 4 * R.skills.meteor, '#ff7a1a', f.vt); shake = Math.max(shake, 5 + f.vt);
+          f.done = true; explode(f.tx, f.ty - 4, f.r, f.dmg, 4 * R.skills.meteor, '#ff7a1a', f.vt, true); shake = Math.max(shake, 5 + f.vt);
           FX.push({ k: 'scorch', x: f.tx, y: f.ty, rx: 14 + f.vt * 4, t: 0, life: 1.1 });
           burst(f.tx, f.ty - 2, ['#6e4520', '#a08a6c', '#ff7a1a'], 10 + f.vt * 6, 120, .7, 2, 260);
         }
@@ -552,8 +554,8 @@ const Game = (() => {
       }
       if (id === 'meteor') {
         // meteoros acertam melhor em grupos parados (presos/congelados) ou em chefes
-        const still = live.filter(e => !e.fly && (e.rootT > 0 || e.freezeT > 0 || e.slowF > .4));
-        if (!(still.length >= 2 || live.filter(e => !e.fly).length >= 5 || live.some(e => e.boss && !e.fly))) continue;
+        const still = live.filter(e => e.rootT > 0 || e.freezeT > 0 || e.slowF > .4);
+        if (!(still.length >= 2 || live.length >= 5 || live.some(e => e.boss))) continue;
         if (hasRoots && R.cd.roots <= 0 && !rooted.length && !boss) continue;
       }
       if (id === 'fire' && live.length === 1 && live[0].hp < 6) continue;
