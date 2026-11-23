@@ -723,7 +723,7 @@ const Game = (() => {
   function updateZones(dt) {
     for (const z of ZN) {
       if (z.k === 'sand') {
-        z.t += dt; z.x += z.vx * dt; if (z.x >= z.ex) { z.x = z.ex; z.vx = -Math.abs(z.vx); } else if (z.x <= z.sx) { z.x = z.sx; z.vx = Math.abs(z.vx); }
+        z.t += dt; z.x += z.vx * dt; if (z.x >= z.ex) { z.x = z.ex; z.life = z.t; }   // uma única passada, da esquerda para a direita
         for (const e of E) {
           if (!e.alive || Math.abs(e.x - z.x) > z.r + e.w / 2) continue;
           e.sandT = .2; e.x = Math.min(W - 6, e.x + z.push * (e.boss ? .6 : 1) * dt);
