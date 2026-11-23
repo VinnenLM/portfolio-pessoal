@@ -204,7 +204,7 @@ const UI = (() => {
         <div class="chip">${coin}<b>${fmt(R.gold)}</b></div></div>
         <div class="grid">${prepBody()}</div>
         <div class="pbar"><div class="nextinfo">${info.boss ? `${ic('warn')}<b>CHEFE:</b> ${info.boss.name}` : `Próxima: ${labelFor(w)}`} · Castelo ${Math.ceil(R.castle.hp)}/${R.castle.max}</div>
-        <button class="btn sm dark" data-a="savequit">Salvar e sair</button>
+        <button class="btn sm dark" data-a="savequit">Salvar e sair</button>${R.mode !== 'map' ? autoBtn() : ''}
         <button class="btn big green" data-a="go">${ic('play')}${info.boss ? 'ENFRENTAR CHEFE' : 'INICIAR ' + labelFor(w).toUpperCase()}</button></div>
       </div>`, 'screen');
     const g = ui.querySelector('.grid'); if (g) g.scrollTop = st;
@@ -215,15 +215,16 @@ const UI = (() => {
       startAuto(3, t => { tag.textContent = ' (' + Math.ceil(t) + ')'; }, () => act('go', {}), true);
     }
   }
+  const autoBtn = () => `<button class="btn sm ${Save.d.set.autoNext ? 'green' : 'dark'}" data-a="autotog">Onda automática: ${Save.d.set.autoNext ? 'LIGADA' : 'DESLIGADA'}</button>`;
   function showCards(bonus) {
     const R = Game.R, cards = Game.drawCards();
     show(`<div class="cardwrap"><div class="title">ESCOLHA UMA CARTA</div><div class="sub" style="font-size:calc(var(--u)*7)">${labelFor(R.wave)} concluída · +${fmt(bonus)} de ouro</div>
       <div class="cards">${cards.map(c => `<div class="cd3" data-a="card" data-id="${c.id}" style="--rc:${RARITY[c.rar].c}"><div class="r">${RARITY[c.rar].n.toUpperCase()}</div><div class="ic">${ic(c.icon)}</div><h3>${c.name}</h3><p>${c.desc}</p>${(R.cards[c.id] || 0) ? `<div class="own">Você tem x${R.cards[c.id]}</div>` : ''}</div>`).join('')}</div></div>`, 'screen');
     showHud(false); Snd.sfx.card();
-    if (autoOn()) {
+    {
       const bar = document.createElement('div'); bar.className = 'autobar'; bar.innerHTML = '<i></i><span></span>';
       ui.querySelector('.cardwrap').appendChild(bar);
-      startAuto(3, (t, s) => { bar.firstChild.style.width = (t / s * 100) + '%'; bar.lastChild.textContent = 'Escolha em ' + Math.ceil(t) + 's — ou uma carta aleatória'; },
+      startAuto(5, (t, s) => { bar.firstChild.style.width = (t / s * 100) + '%'; bar.lastChild.textContent = 'Escolha em ' + Math.ceil(t) + 's — ou uma carta aleatória'; },
         () => { const c = pick(cards); act('card', { id: c.id }); });
     }
   }
@@ -317,7 +318,7 @@ const UI = (() => {
     if (Game.state !== 'wave') return;
     Game.paused = true; modal.classList.remove('hidden');
     modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*12)">PAUSADO</div>
-      <button class="btn green" data-a="closem">${ic('play')}Continuar</button>${Game.R && Game.R.mode !== 'map' ? `<button class="btn" data-a="mycards">${ic('star')}Meus upgrades</button>` : ''}<button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
+      <button class="btn green" data-a="closem">${ic('play')}Continuar</button>${Game.R && Game.R.mode !== 'map' ? `<button class="btn" data-a="mycards">${ic('star')}Meus upgrades</button>` : ''}${Game.R && Game.R.mode !== 'map' ? autoBtn() : ''}<button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
   }
   function fullscreen() {
     const d = document, el = d.documentElement;
@@ -365,6 +366,7 @@ const UI = (() => {
         const bar = wrap.querySelector('.autobar'); if (bar) bar.remove();
         setTimeout(() => { Game.pickCard(d.id); renderPrep(); }, 750); break;
       }
+      case 'autotog': Save.d.set.autoNext = !Save.d.set.autoNext; Save.store(); Snd.sfx.click(); if (Game.state === 'wave') showPause(); else { clearAuto(); renderPrep(); } break;
       case 'cast': Game.cast(d.id); break;
       case 'pause': showPause(); break;
       case 'speed': { Game.speed = Game.speed === 1 ? 2 : 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
