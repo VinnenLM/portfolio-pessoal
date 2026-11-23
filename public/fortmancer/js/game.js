@@ -339,13 +339,16 @@ const Game = (() => {
       }
       Snd.sfx.meteor();
     } else if (id === 'poison') {
-      const g = E.filter(e => e.alive && e.x < W - 20 && e.x > CASTLE_X); if (!g.length) return false;
-      let best = g[0], bc = -1; for (const e of g) { const c = g.filter(o => Math.abs(o.x - e.x) < st.radius).length; if (c > bc) { bc = c; best = e; } }
+      const g = E.filter(e => e.alive && !e.fly && e.x < W - 20 && e.x > CASTLE_X); if (!g.length) return false;
+      let best = g[0], bc = -1; for (const e of g) { const c = g.reduce((s, o) => s + (Math.abs(o.x - e.x) < st.radius ? (o.rootT > 0 ? 3 : 1) : 0), 0); if (c > bc) { bc = c; best = e; } }
       FX.push({ k: 'flask', sx: tipX, sy: tipY, tx: clamp(best.x, 130, W - 20), ty: GY + 6, t: 0, life: .55, st, done: false });
       Snd.sfx.poison();
     } else if (id === 'roots') {
-      const g = E.filter(e => e.alive && !e.fly && e.x < W - 6).sort((a, b) => a.x - b.x).slice(0, st.n); if (!g.length) return false;
+      const live = E.filter(e => e.alive && e.x < W - 6 && !e.pulled);
+      const fl = live.filter(e => e.fly).sort((a, b) => (b.boss - a.boss) || (a.x - b.x)), gr = live.filter(e => !e.fly).sort((a, b) => a.x - b.x);
+      const nf = Math.min(fl.length, Math.ceil(st.n / 2)), g = fl.slice(0, nf).concat(gr.slice(0, st.n - nf)); if (!g.length) return false;
       g.forEach(e => {
+        if (e.fly) { e.pulled = true; e.gy = GY + rand(3, 15); burst(e.x, cy(e), ['#4fae56', '#8fe070'], 8, 50, .5, 1, 60); }
         e.rootT = e.boss ? st.dur * .5 : st.dur; e.rootD = st.dmg * .6; e.rootAge = 0;
         hurt(e, st.dmg, { nocrit: true, quiet: true });
         burst(e.x, GY + 6, ['#4fae56', '#8fe070', '#6e4520'], 14 + vt * 4, 70, .6, 2, 90);
@@ -488,7 +491,9 @@ const Game = (() => {
 
   function autoCast() {
     const live = living();
-    for (const id of ['fire', 'bolt', 'poison', 'roots', 'frost', 'meteor', 'light']) {
+    const hasRoots = R.skills.roots > 0;
+    // ordem pensada: raízes primeiro (prende), depois veneno/meteoros em cima de quem está preso
+    for (const id of ['roots', 'poison', 'frost', 'meteor', 'fire', 'bolt', 'light']) {
       if (!R.skills[id] || R.cd[id] > 0) continue;
       if (id === 'light') {
         const c = R.castle;
@@ -496,10 +501,28 @@ const Game = (() => {
         continue;
       }
       if (!live.length) continue;
-      if (id === 'frost') { const r = skillStats('frost', R.skills.frost).radius; if (!live.some(e => Math.abs(e.x - mage.x) < r * .85)) continue; }
-      if (id === 'meteor' && live.length < 3 && !live.some(e => e.boss)) continue;
-      if (id === 'poison' && live.length < 2 && !live.some(e => e.boss)) continue;
-      if (id === 'roots' && !live.some(e => !e.fly && e.x < CASTLE_X + 150)) continue;
+      const rooted = live.filter(e => e.rootT > 0), boss = live.some(e => e.boss && e.x < W - 30);
+      if (id === 'roots') {
+        const flyer = live.some(e => e.fly && !e.pulled && e.x < CASTLE_X + 280);
+        if (!(flyer || live.some(e => !e.fly && e.x < CASTLE_X + 150))) continue;
+      }
+      if (id === 'poison') {
+        // com raízes: só solta a nuvem em cima de inimigos presos (ou se as raízes demoram muito)
+        if (hasRoots && !rooted.length && !(R.cd.roots > 5 && (live.length >= 4 || boss))) continue;
+        if (!hasRoots && live.length < 2 && !boss) continue;
+        if (!live.some(e => !e.fly && e.x < W - 40)) continue;
+      }
+      if (id === 'frost') {
+        const r = skillStats('frost', R.skills.frost).radius, near = live.filter(e => Math.abs(e.x - mage.x) < r * .85);
+        if (!near.length || !near.some(e => e.slowT < .8 && e.freezeT <= 0 && !e.pulled)) continue;
+      }
+      if (id === 'meteor') {
+        // meteoros acertam melhor em grupos parados (presos/congelados) ou em chefes
+        const still = live.filter(e => !e.fly && (e.rootT > 0 || e.freezeT > 0 || e.slowF > .4));
+        if (!(still.length >= 2 || live.filter(e => !e.fly).length >= 5 || live.some(e => e.boss && !e.fly))) continue;
+        if (hasRoots && R.cd.roots <= 0 && !rooted.length && !boss) continue;
+      }
+      if (id === 'fire' && live.length === 1 && live[0].hp < 6) continue;
       cast(id);
     }
   }
@@ -581,11 +604,17 @@ const Game = (() => {
     if (e.freezeT > 0) { e.freezeT -= dt; return; }
     const sf = e.slowT > 0 ? (1 - e.slowF) : 1; if (e.slowT > 0) e.slowT -= dt;
     const rooted = e.rootT > 0;
+    if (tpl.fly) {
+      if (rooted && e.pulled) {
+        if (e.fly) { e.y += 300 * dt; if (e.y >= GY - e.h / 2) { e.fly = false; e.y = e.gy || GY + 8; burst(e.x, GY + 4, ['#c8b89a', '#8a6a42', '#4fae56'], 12, 70, .5, 2, 80); shake = Math.max(shake, e.boss ? 3 : 1); } }
+      } else if (e.pulled && !rooted) {
+        e.pulled = false; if (!e.fly) { e.fly = true; e.y = GY - e.h / 2; }
+      }
+    }
     if (rooted) { e.rootT -= dt; e.rootAge += dt; hurtRaw(e, e.rootD * dt); if (!e.alive) return; }
     if (e.x > e.stopX) {
       if (!rooted) {
         e.x -= e.spd * sf * dt; if (e.x < e.stopX) e.x = e.stopX;
-        if (e.fly) e.y = tpl.fy + Math.sin(e.anim * 4) * 12 + (e.x < 250 ? (e.x - 250) * -.18 : 0);
       }
     } else {
       e.atk -= dt * sf * (rooted ? .5 : 1);
@@ -596,6 +625,7 @@ const Game = (() => {
         } else hitCastle(e.dmg, e);
       }
     }
+    if (tpl.fly && e.fly && !rooted) { const ty = tpl.fy + Math.sin(e.anim * 4) * 12 + (e.x < 250 ? (e.x - 250) * -.18 : 0); e.y += (ty - e.y) * Math.min(1, dt * (e.x > e.stopX ? 20 : 3)); }
     if (e.hit > 0) e.hit -= dt;
     if (tpl.summon && !demo) {
       e.sum -= dt * sf;
@@ -792,13 +822,14 @@ const Game = (() => {
 
   function drawVines(e, dw) {
     const g = Math.min(1, e.rootAge / .25), n = e.scale > 1 ? 5 : 3, k0 = e.scale > 1 ? 1.5 : 1;
-    PX.ell(cx, '#2a1a10', e.x, e.y + 2, dw * .38, 2);
+    const gy = e.fly ? GY + 6 : e.y, reach = e.fly ? Math.max(0, gy - (e.y + e.h / 2)) : 0;
+    PX.ell(cx, '#2a1a10', e.x, gy + 2, dw * .38, 2);
     for (let k = 0; k < n; k++) {
-      const bx = e.x + (k - (n - 1) / 2) * (dw * .75 / n), h = (7 + (k % 2) * 5) * k0 * g, sw = Math.sin(T * 3 + k * 1.7) * 1.4;
-      PX.line(cx, OUT_C, bx, e.y + 2, bx + sw, e.y - h, 3);
-      PX.line(cx, k % 2 ? '#4fae56' : '#2e9c4c', bx, e.y + 2, bx + sw, e.y - h, 1);
-      rc('#8fe070', bx + sw - 1, e.y - h - 1, 3, 2);
-      if (h > 6) { rc('#6e4520', bx + 1, e.y - h * .5, 2, 1); rc('#6e4520', bx - 2, e.y - h * .3, 2, 1); }
+      const bx = e.x + (k - (n - 1) / 2) * (dw * .75 / n), h = (7 + (k % 2) * 5) * k0 * g + reach * g, sw = Math.sin(T * 3 + k * 1.7) * 1.4;
+      PX.line(cx, OUT_C, bx, gy + 2, bx + sw, gy - h, 3);
+      PX.line(cx, k % 2 ? '#4fae56' : '#2e9c4c', bx, gy + 2, bx + sw, gy - h, 1);
+      rc('#8fe070', bx + sw - 1, gy - h - 1, 3, 2);
+      if (h > 6) { rc('#6e4520', bx + 1, gy - h * .5, 2, 1); rc('#6e4520', bx - 2, gy - h * .3, 2, 1); }
     }
   }
 
