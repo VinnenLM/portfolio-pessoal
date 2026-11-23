@@ -147,6 +147,7 @@ const UI = (() => {
       const hasPet = Object.keys(R.pets).length > 0;
       return ['dmg', 'spd', 'crit', 'gold'].map(upItem).join('') + (hasPet ? upItem('pet') : `<div class="it"><div class="ic">${ic('paw')}</div><div class="tx"><div class="nm">Treino do Pet</div><div class="ds">Compre um pet na aba Aliados para treiná-lo aqui.</div></div></div>`);
     }
+    if (prepTab === 'car') return myCardsHtml();
     if (prepTab === 'hab') return SKILL_KEYS.map(skillItem).join('');
     if (prepTab === 'ali') return Object.keys(ALLIES).map(allyItem).join('') + Object.keys(PET_COST).map(petItem).join('');
     if (prepTab === 'arm') {
@@ -165,7 +166,7 @@ const UI = (() => {
     const R = Game.R; if (!R) return;
     const keep = ui.querySelector('.grid'), st = keep ? keep.scrollTop : 0;
     const info = Game.nextWaveInfo(), w = R.wave + 1;
-    const tabs = [['mago', 'hat', 'Mago'], ['hab', 'fire', 'Habilidades'], ['ali', 'bow', 'Aliados'], ['arm', 'spikes', 'Armadilhas'], ['cas', 'castle', 'Castelo']];
+    const tabs = [['mago', 'hat', 'Mago'], ['hab', 'fire', 'Habilidades'], ['ali', 'bow', 'Aliados'], ['arm', 'spikes', 'Armadilhas'], ['cas', 'castle', 'Castelo']].concat(R.mode !== 'map' ? [['car', 'star', 'Upgrades']] : []);
     show(`<div class="prep panel">
         <div class="ptop"><div class="tabs">${tabs.map(t => `<button class="tab ${prepTab === t[0] ? 'on' : ''}" data-a="ptab" data-t="${t[0]}">${ic(t[1])}${t[2]}</button>`).join('')}</div>
         <div class="chip">${coin}<b>${fmt(R.gold)}</b></div></div>
@@ -237,11 +238,24 @@ const UI = (() => {
       <div class="row"><button class="btn sm dark" data-a="fs">${ic('full')}Tela cheia</button><button class="btn sm dark ${resetArm ? 'dis' : ''}" data-a="reset">${resetArm ? 'Toque de novo para apagar' : ic('retry') + 'Apagar progresso'}</button></div>
       <button class="btn" data-a="closem">Fechar</button></div>`;
   }
+  function myCardsHtml() {
+    const R = Game.R, list = CARDS.filter(c => R.cards[c.id] > 0);
+    const total = list.reduce((a, c) => a + R.cards[c.id], 0);
+    if (!list.length) return `<div class="sub" style="grid-column:1/-1;text-align:center;padding:calc(var(--u)*20)">Você ainda não pegou nenhuma carta. Elas aparecem ao fim de cada onda.</div>`;
+    return `<div class="sub" style="grid-column:1/-1">${total} carta${total > 1 ? 's' : ''} em ${list.length} tipo${list.length > 1 ? 's' : ''}</div>` + list.map(c => {
+      const n = R.cards[c.id];
+      return `<div class="it on" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>x${n}${c.max ? '/' + c.max : ''}</em></div><div class="ds">${c.desc}<br><span class="gold">Total: ${n} carta${n > 1 ? 's' : ''} · ${RARITY[c.rar].n}</span></div></div></div>`;
+    }).join('');
+  }
+  function showMyCards() {
+    Game.paused = true; modal.classList.remove('hidden');
+    modal.innerHTML = `<div class="panel pausebox wide"><div class="title" style="font-size:calc(var(--u)*11)">SEUS UPGRADES</div><div class="grid">${myCardsHtml()}</div><button class="btn dark" data-a="mycardsback">${ic('left')}Voltar</button></div>`;
+  }
   function showPause() {
     if (Game.state !== 'wave') return;
     Game.paused = true; modal.classList.remove('hidden');
     modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*12)">PAUSADO</div>
-      <button class="btn green" data-a="closem">${ic('play')}Continuar</button><button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
+      <button class="btn green" data-a="closem">${ic('play')}Continuar</button>${Game.R && Game.R.mode !== 'map' ? `<button class="btn" data-a="mycards">${ic('star')}Meus upgrades</button>` : ''}<button class="btn violet" data-a="settings">${ic('gear')}Opções</button><button class="btn" data-a="savequit">Salvar e sair</button><button class="btn dark" data-a="quit">Desistir da partida</button></div>`;
   }
   function fullscreen() {
     const d = document, el = d.documentElement;
@@ -255,6 +269,8 @@ const UI = (() => {
       case 'play': Snd.sfx.click(); showModes(); break;
       case 'menu': Snd.sfx.back(); showMenu(); break;
       case 'shop': Snd.sfx.click(); shopTab = 'mage'; showShop(); break;
+      case 'mycards': Snd.sfx.click(); showMyCards(); break;
+      case 'mycardsback': Snd.sfx.back(); showPause(); break;
       case 'settings': Snd.sfx.click(); showSettings(); break;
       case 'closem': { Snd.sfx.back(); const fromSet = modal.querySelector('.settings'); closeModal(); if (fromSet && Game.state === 'wave') showPause(); break; }
       case 'fs': fullscreen(); break;

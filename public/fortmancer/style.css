@@ -183,3 +183,6 @@ h1, h2, h3, p { margin: 0; }
 
 .bar.wave { width: calc(var(--u) * 110); height: calc(var(--u) * 6); }
 .bar.wave i { background: #e8b83a; box-shadow: inset 0 calc(var(--u) * 1.5) 0 #fff0a0; width: 0; }
+
+.pausebox.wide { width: calc(var(--u) * 330); max-height: 88%; }
+.pausebox.wide .grid { grid-template-columns: repeat(2, 1fr); max-height: calc(var(--u) * 190); }
