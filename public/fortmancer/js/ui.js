@@ -12,8 +12,13 @@ const UI = (() => {
 
   const isApp = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
   function resize() {
-    const w = innerWidth, h = innerHeight, asp = W / H; let sw = w, sh = w / asp;
+    // celular em pé (sem rotação automática): gira o jogo 90° em vez de pedir para girar o aparelho
+    const portrait = innerHeight > innerWidth && innerWidth <= 800;
+    const w = portrait ? innerHeight : innerWidth, h = portrait ? innerWidth : innerHeight, asp = W / H; let sw = w, sh = w / asp;
     if (sh > h) { sh = h; sw = h * asp; }
+    const st = stage.style;
+    if (portrait) { st.position = 'fixed'; st.left = '50%'; st.top = '50%'; st.transform = 'translate(-50%,-50%) rotate(90deg)'; }
+    else { st.position = ''; st.left = ''; st.top = ''; st.transform = ''; }
     stage.style.width = sw + 'px'; stage.style.height = sh + 'px';
     stage.style.setProperty('--u', (sh / 270) + 'px');
     if (isApp) stage.style.setProperty('--np', (sh / 270 * 12) + 'px');
@@ -450,7 +455,11 @@ const UI = (() => {
     else if (k === 'Escape' || k === 'p' || k === 'P') { if (!modal.classList.contains('hidden')) closeModal(); else showPause(); }
     else if ((k === ' ' || k === 'Enter') && Game.state === 'prep' && ui.querySelector('.prep') && modal.classList.contains('hidden')) { e.preventDefault(); act('go', {}); }
   });
-  document.addEventListener('visibilitychange', () => { if (document.hidden && Game.state === 'wave') showPause(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { Snd.suspend(); if (Game.state === 'wave') showPause(); }
+    else if (audioOn) Snd.resume();
+  });
+  addEventListener('pagehide', () => Snd.suspend());
   addEventListener('resize', resize); addEventListener('orientationchange', () => setTimeout(resize, 200));
 
   /* ---------- ganchos do jogo ---------- */

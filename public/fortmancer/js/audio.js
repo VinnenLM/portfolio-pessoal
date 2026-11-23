@@ -21,6 +21,7 @@ const Snd = (() => {
     const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
     setVolumes(vol.music, vol.sfx);
   }
+  function suspend() { if (ctx && ctx.state === 'running') ctx.suspend().catch(() => { }); }
   function resume() { init(); if (ctx && ctx.state === 'suspended') ctx.resume(); }
   function setVolumes(m, s) {
     vol.music = m; vol.sfx = s;
@@ -159,5 +160,5 @@ const Snd = (() => {
       T.next += stepDur; T.step++;
     }
   }
-  return { init, resume, setVolumes, sfx, play, stop, get ctx() { return ctx; } };
+  return { init, resume, suspend, setVolumes, sfx, play, stop, get ctx() { return ctx; } };
 })();
