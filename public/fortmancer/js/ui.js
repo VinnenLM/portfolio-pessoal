@@ -356,7 +356,15 @@ const UI = (() => {
       case 'pet': Game.buy.pet(d.id); renderPrep(); break;
       case 'repair': Game.buy.repair(); renderPrep(); break;
       case 'go': Snd.sfx.click(); clearUI(); showHud(true); buildSkills(); Game.beginWave(); break;
-      case 'card': Game.pickCard(d.id); renderPrep(); break;
+      case 'card': {
+        const wrap = ui.querySelector('.cardwrap');
+        if (!wrap) { Game.pickCard(d.id); renderPrep(); break; }
+        if (wrap.classList.contains('picked')) break;
+        clearAuto(); wrap.classList.add('picked'); Snd.sfx.click();
+        wrap.querySelectorAll('.cd3').forEach(el => el.classList.add(el.dataset.id === d.id ? 'sel' : 'dim'));
+        const bar = wrap.querySelector('.autobar'); if (bar) bar.remove();
+        setTimeout(() => { Game.pickCard(d.id); renderPrep(); }, 750); break;
+      }
       case 'cast': Game.cast(d.id); break;
       case 'pause': showPause(); break;
       case 'speed': { Game.speed = Game.speed === 1 ? 2 : 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
