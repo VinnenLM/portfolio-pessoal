@@ -212,3 +212,5 @@ h1, h2, h3, p { margin: 0; }
 .tut .dots i.on { background: var(--gold); }
 .tut .row { display: flex; gap: calc(var(--u) * 6); justify-content: center; }
 .clearmsg { cursor: pointer; }
+
+.cardwrap[data-need="2"] .cd3 { width: calc(var(--u) * 82); }

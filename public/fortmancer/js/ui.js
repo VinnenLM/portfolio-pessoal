@@ -214,9 +214,9 @@ const UI = (() => {
         <div class="ptop"><div class="tabs">${tabs.map(t => `<button class="tab ${prepTab === t[0] ? 'on' : ''}" data-a="ptab" data-t="${t[0]}">${ic(t[1])}${t[2]}</button>`).join('')}</div>
         <div class="chip">${coin}<b>${fmt(R.gold)}</b></div></div>
         <div class="grid">${prepBody()}</div>
-        <div class="pbar"><div class="nextinfo">${info.boss ? `${ic('warn')}<b>CHEFE:</b> ${info.boss.name}` : `Próxima: ${labelFor(w)}`} · Castelo ${Math.ceil(R.castle.hp)}/${R.castle.max}</div>
+        <div class="pbar"><div class="nextinfo">${info.bonus ? `${ic('star')}<b>ONDA BÔNUS:</b> ${info.n} chefes · sem risco` : info.boss ? `${ic('warn')}<b>CHEFE:</b> ${info.boss.name}` : `Próxima: ${labelFor(w)}`} · Castelo ${Math.ceil(R.castle.hp)}/${R.castle.max}</div>
         <button class="btn sm dark" data-a="savequit">Salvar e sair</button>${R.mode !== 'map' ? autoBtn() : ''}
-        <button class="btn big green" data-a="go">${ic('play')}${info.boss ? 'ENFRENTAR CHEFE' : 'INICIAR ' + labelFor(w).toUpperCase()}</button></div>
+        <button class="btn big green" data-a="go">${ic('play')}${info.bonus ? 'ONDA BÔNUS' : info.boss ? 'ENFRENTAR CHEFE' : 'INICIAR ' + labelFor(w).toUpperCase()}</button></div>
       </div>`, 'screen');
     const g = ui.querySelector('.grid'); if (g) g.scrollTop = st;
     hydrateCanvases();
@@ -233,7 +233,7 @@ const UI = (() => {
     ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 8</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes.'],
     ['roots', 'COMBINE AS HABILIDADES', '<b>Raízes</b> prendem os inimigos (e puxam voadores ao chão). Solte <b>Veneno</b> e <b>Meteoros</b> em cima de quem está preso. <b>Gelo</b> deixa a horda lenta, o <b>Relâmpago</b> salta entre vários e a <b>Luz</b> cura o castelo. Meteoros acertam em cheio os chefes.'],
     ['coin', 'A LOJA ENTRE ONDAS', 'Ao vencer uma onda, a loja abre. Gaste o ouro em melhorias do <b>Mago</b>, <b>Habilidades</b>, <b>Aliados</b> e pets, <b>Armadilhas</b> (uma de cada tipo por espaço) e <b>Castelo</b> — ele evolui visualmente conforme você melhora as muralhas.'],
-    ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> e no <b>Boss Rush</b> você escolhe uma carta a cada onda (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas!'],
+    ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> e no <b>Boss Rush</b> você escolhe uma carta a cada onda (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas! De tempos em tempos surge uma <b>onda bônus</b>: 2–3 chefes mais fracos, sem risco de perder — se vencer, ouro extra e 2 cartas!'],
     ['gear', 'AUTOMÁTICO', 'Depois de aprender a usar as habilidades, compre a <b>Conjuração Automática</b> na aba Habilidades: o jogo passa a usá-las por você, de forma inteligente. Nos modos infinito e Boss Rush há também a <b>Onda automática</b> (botão no preparo). Sua partida é salva sozinha entre as ondas.'],
   ];
   let tutI = 0;
@@ -247,16 +247,31 @@ const UI = (() => {
       <div class="row">${tutI > 0 ? `<button class="btn sm dark" data-a="tutprev">${ic('left')}Voltar</button>` : `<button class="btn sm dark" data-a="tutend">Pular</button>`}<button class="btn ${last ? 'green' : ''}" data-a="${last ? 'tutend' : 'tutnext'}">${last ? 'Entendi, jogar!' : 'Próximo'}</button></div></div>`;
   }
   function endTut() { Save.d.tut = true; Save.store(); Snd.sfx.click(); closeModal(); if (Game.state === 'wave') showPause(); }
-  function showCards(bonus) {
-    const R = Game.R, cards = Game.drawCards();
-    show(`<div class="cardwrap"><div class="title">ESCOLHA UMA CARTA</div><div class="sub" style="font-size:calc(var(--u)*7)">${labelFor(R.wave)} concluída · +${fmt(bonus)} de ouro</div>
+  function finishPick(ids) {
+    const wrap = ui.querySelector('.cardwrap'); if (!wrap) return;
+    if (wrap.classList.contains('picked')) return;
+    clearAuto(); wrap.classList.add('picked'); Snd.sfx.click();
+    wrap.querySelectorAll('.cd3').forEach(el => { el.classList.remove('sel', 'dim'); el.classList.add(ids.includes(el.dataset.id) ? 'sel' : 'dim'); });
+    const bar = wrap.querySelector('.autobar'); if (bar) bar.remove();
+    setTimeout(() => { Game.pickCards(ids); renderPrep(); }, 750);
+  }
+  function showCards(bonus, need, kind) {
+    need = need || 1;
+    const R = Game.R, cards = Game.drawCards(need > 1 ? 4 : 3);
+    const head = kind === 'bonus' ? `ONDA BÔNUS VENCIDA! · +${fmt(bonus)} de ouro` : `${labelFor(R.wave)} concluída · +${fmt(bonus)} de ouro`;
+    show(`<div class="cardwrap" data-need="${need}"><div class="title">${need > 1 ? 'ESCOLHA ' + need + ' CARTAS' : 'ESCOLHA UMA CARTA'}</div><div class="sub" style="font-size:calc(var(--u)*7)">${head}</div>
       <div class="cards">${cards.map(c => `<div class="cd3" data-a="card" data-id="${c.id}" style="--rc:${RARITY[c.rar].c}"><div class="r">${RARITY[c.rar].n.toUpperCase()}</div><div class="ic">${ic(c.icon)}</div><h3>${c.name}</h3><p>${c.desc}</p>${(R.cards[c.id] || 0) ? `<div class="own">Você tem x${R.cards[c.id]}</div>` : ''}</div>`).join('')}</div></div>`, 'screen');
     showHud(false); Snd.sfx.card();
     {
       const bar = document.createElement('div'); bar.className = 'autobar'; bar.innerHTML = '<i></i><span></span>';
       ui.querySelector('.cardwrap').appendChild(bar);
-      startAuto(5, (t, s) => { bar.firstChild.style.width = (t / s * 100) + '%'; bar.lastChild.textContent = 'Escolha em ' + Math.ceil(t) + 's — ou uma carta aleatória'; },
-        () => { const c = pick(cards); act('card', { id: c.id }); });
+      startAuto(need > 1 ? 8 : 5, (t, s) => { bar.firstChild.style.width = (t / s * 100) + '%'; bar.lastChild.textContent = 'Escolha em ' + Math.ceil(t) + 's — ou ' + (need > 1 ? 'cartas aleatórias' : 'uma carta aleatória'); },
+        () => {
+          const w = ui.querySelector('.cardwrap'); if (!w) return;
+          const sel = [...w.querySelectorAll('.cd3.sel')].map(x => x.dataset.id);
+          while (sel.length < need) { const left = cards.filter(c => !sel.includes(c.id)); if (!left.length) break; sel.push(pick(left).id); }
+          finishPick(sel);
+        });
     }
   }
 
@@ -392,10 +407,15 @@ const UI = (() => {
         const wrap = ui.querySelector('.cardwrap');
         if (!wrap) { Game.pickCard(d.id); renderPrep(); break; }
         if (wrap.classList.contains('picked')) break;
-        clearAuto(); wrap.classList.add('picked'); Snd.sfx.click();
-        wrap.querySelectorAll('.cd3').forEach(el => el.classList.add(el.dataset.id === d.id ? 'sel' : 'dim'));
-        const bar = wrap.querySelector('.autobar'); if (bar) bar.remove();
-        setTimeout(() => { Game.pickCard(d.id); renderPrep(); }, 750); break;
+        const need = +(wrap.dataset.need || 1);
+        if (need > 1) {
+          const el = wrap.querySelector(`.cd3[data-id="${d.id}"]`); if (!el) break;
+          el.classList.toggle('sel'); Snd.sfx.click();
+          const sel = [...wrap.querySelectorAll('.cd3.sel')].map(x => x.dataset.id);
+          if (sel.length >= need) finishPick(sel);
+          break;
+        }
+        finishPick([d.id]); break;
       }
       case 'autotog': Save.d.set.autoNext = !Save.d.set.autoNext; Save.store(); Snd.sfx.click(); if (Game.state === 'wave') showPause(); else { clearAuto(); renderPrep(); } break;
       case 'clrskip': clrNext && clrNext(); break;
@@ -411,7 +431,7 @@ const UI = (() => {
       case 'cont': Snd.sfx.click(); Game.resumeRun(d.m); break;
       case 'newask': Snd.sfx.click(); Game.paused = true; modal.classList.remove('hidden'); modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*10)">NOVO JOGO?</div><div class="sub" style="text-align:center">O jogo salvo deste modo será substituído quando você começar.</div><button class="btn green" data-a="mode" data-m="${d.m}">Começar novo</button><button class="btn dark" data-a="closem">Cancelar</button></div>`; break;
       case 'savequit': Snd.sfx.back(); Game.saveRun(); closeModal(); Game.paused = false; showMenu(); break;
-      case 'quit': closeModal(); Game.paused = false; Game.finish(false); break;
+      case 'quit': closeModal(); Game.paused = false; Game.finish(false, true); break;
       case 'stab': Snd.sfx.click(); shopTab = d.t; showShop(); break;
       case 'sbuy': {
         const k = SKINS[d.g].find(x => x.id === d.id), s = Save.d;
@@ -466,14 +486,31 @@ const UI = (() => {
   Game.hooks.hud = updateHud;
   Game.hooks.prep = () => { prepTab = 'mago'; renderPrep(); if (!Save.d.tut) showTut(0); };
   Game.hooks.wave = () => { buildSkills(); showHud(true); $('#btnSpeed').textContent = 'x' + Game.speed; };
-  Game.hooks.waveClear = (bonus, cards) => {
-    const go = () => { if (cards) showCards(bonus); else renderPrep(); };
+  Game.hooks.bonusFail = () => {
+    showHud(false);
+    show(`<div class="result panel clearmsg" data-a="clrskip"><div class="title lose">NÃO FOI DESSA VEZ!</div><div class="sub">A onda bônus não conta — nada foi perdido</div>
+      <div class="stats"><div><span>Castelo</span>restaurado</div><div><span>Sua partida</span>continua</div></div>
+      <div class="sub" style="font-size:calc(var(--u)*6.5)">Bônus aparecem de tempos em tempos. Reforce as defesas e tente na próxima!</div></div>`, 'screen');
+    clearAuto(); let done = false;
+    const next = () => { if (done) return; done = true; clearTimeout(clrT); renderPrep(); };
+    clrT = setTimeout(next, 3400); clrNext = next;
+  };
+  Game.hooks.waveClear = (bonus, cards, need, kind) => {
+    const go = () => { if (cards) showCards(bonus, need, kind); else renderPrep(); };
     if (!bonus) return go();
+    if (kind === 'bonus') {
+      showHud(false); Snd.sfx.win();
+      show(`<div class="result panel clearmsg" data-a="clrskip"><div class="title win">ONDA BÔNUS VENCIDA!</div><div class="sub">Recompensa em dobro</div>
+        <div class="stats"><div><span>Ouro de bônus</span>+${fmt(bonus)}</div><div><span>Cartas</span>escolha 2</div></div></div>`, 'screen');
+      clearAuto(); let d2 = false;
+      const nx = () => { if (d2) return; d2 = true; clearTimeout(clrT); go(); };
+      clrT = setTimeout(nx, 2600); clrNext = nx; return;
+    }
     const R = Game.R, boss = R.mode === 'boss' || (R.mode === 'infinite' && R.wave % 10 === 0) || (R.mode === 'map' && R.wave >= CAMPAIGN_WAVES);
     showHud(false);
     show(`<div class="result panel clearmsg" data-a="clrskip"><div class="title win">${boss ? 'CHEFE DERROTADO!' : 'ONDA CONCLUÍDA!'}</div><div class="sub">${labelFor(R.wave)}</div>
       <div class="stats"><div><span>Ouro de bônus</span>+${fmt(bonus)}</div><div><span>Castelo</span>${Math.ceil(R.castle.hp)}/${R.castle.max}</div><div><span>Monstros</span>${R.kills}</div></div>
-      <div class="sub" style="font-size:calc(var(--u)*6.5)">Castelo recuperado e barreira renovada</div></div>`, 'screen');
+      <div class="sub" style="font-size:calc(var(--u)*6.5)">Castelo recuperado e barreira renovada</div>${R.bonusNext ? `<div class="newbest">${ic('star')} A próxima é uma ONDA BÔNUS: vários chefes, sem risco, recompensa em dobro! ${ic('star')}</div>` : ''}</div>`, 'screen');
     Snd.sfx.win();
     clearAuto(); let done = false;
     const next = () => { if (done) return; done = true; clearTimeout(clrT); go(); };

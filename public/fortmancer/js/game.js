@@ -133,7 +133,7 @@ const Game = (() => {
     for (const k in petObj) delete petObj[k];
     reset(); recalc(false); state = 'prep'; paused = false;
     Snd.play('calm');
-    if (R.pendingCard && hooks.waveClear) hooks.waveClear(0, true); else hooks.prep && hooks.prep();
+    if (R.pendingCard && hooks.waveClear) hooks.waveClear(0, true, R.pendingCard === 2 ? 2 : 1); else hooks.prep && hooks.prep();
     return true;
   }
 
@@ -141,12 +141,14 @@ const Game = (() => {
   const bossDef = i => BOSSES[i % BOSSES.length];
   function waveLabel() {
     if (!R) return '';
+    if (R.bonusActive) return 'ONDA BÔNUS';
     if (R.mode === 'map') return `Onda ${Math.max(R.wave, 1)}/${CAMPAIGN_WAVES}`;
     if (R.mode === 'boss') return `Chefe ${Math.max(R.wave, 1)}`;
     return `Onda ${Math.max(R.wave, 1)}`;
   }
   function nextWaveInfo() {
     const w = R.wave + 1;
+    if (R.bonusNext) return { bonus: true, n: (R.bonusN || 0) >= 1 ? 3 : 2 };
     if (R.mode === 'boss') return { boss: bossDef(w - 1) };
     if (R.mode === 'map' && w === CAMPAIGN_WAVES) return { boss: bossById(MAPS[R.map].boss) };
     if (R.mode === 'infinite' && w % 10 === 0) return { boss: bossDef(w / 10 - 1) };
@@ -170,7 +172,38 @@ const Game = (() => {
   const INF_POOL = [['slime', 1], ['goblin', 2], ['bat', 3], ['skeleton', 5], ['witch', 8], ['ogre', 10], ['darkmage', 14], ['troll', 16]];
 
   let waveSnap = null;
+  function beginBonus() {
+    R.bonusNext = false; R.bonusActive = true;
+    const w = R.wave, n = (R.bonusN || 0) >= 1 ? 3 : 2, L = BOSSES.length;
+    let hpMul, dmgMul;
+    if (R.mode === 'boss') { hpMul = 1 + .6 * Math.floor((w - 1) / L); dmgMul = 1 + .3 * Math.floor((w - 1) / L); }
+    else { hpMul = waveScale(w) / waveScale(10) * (w > 15 ? Math.pow(1.07, w - 15) : 1) * (w > 40 ? Math.pow(1.025, w - 40) : 1) * (1 + .5 * Math.floor((w / 10 - 1) / L)) * (R.bossAdapt || 1); dmgMul = 1 + .1 * (w - 1); }
+    hpMul *= .6; dmgMul *= .85;
+    const base = R.mode === 'boss' ? w : Math.floor(w / 10);
+    wv = { q: [], t: 0, active: true, boss: null, endT: 0, ctx: { hpMul: 1, dmgMul: 1, goldMul: 1 }, total: n, bonus: true, bossQ: [] };
+    for (let i = 0; i < n; i++) wv.bossQ.push({ t: 1.8 + i * 2.4, tpl: bossDef(base + i), hpMul, dmgMul });
+    banner = { text: 'ONDA BÔNUS!', sub: n + ' CHEFES · SEM RISCO', t: 0, life: 3.5, boss: true };
+    Snd.sfx.boss(); Snd.play('boss');
+    state = 'wave'; hooks.wave && hooks.wave();
+  }
+  function bonusWin() {
+    wv.active = false; const w = R.wave;
+    const bonus = Math.round((20 + 8 * w) * goldMul() * 8);
+    R.gold += bonus; R.earned += bonus; R.bonusActive = false; R.bonusN = (R.bonusN || 0) + 1;
+    Snd.sfx.win(); Snd.play('calm'); state = 'prep';
+    healCastle(R.castle.max * .3); R.castle.barrier = R.castle.bmax;
+    R.pendingCard = 2; refreshOffers(); saveRun();
+    hooks.waveClear && hooks.waveClear(bonus, true, 2, 'bonus');
+  }
+  function bonusFail() {
+    reset(); R.over = false; R.bonusActive = false; R.bonusN = (R.bonusN || 0) + 1;
+    R.castle.hp = R.castle.max; R.castle.barrier = R.castle.bmax;
+    for (const k in petObj) delete petObj[k];
+    recalc(false); state = 'prep'; paused = false; saveRun(); Snd.play('calm');
+    hooks.bonusFail && hooks.bonusFail();
+  }
   function beginWave() {
+    if (R.bonusNext && R.mode !== 'map') return beginBonus();
     if (R.mode === 'map') waveSnap = JSON.stringify(R);
     R.wave++; const w = R.wave, m = MAPS[R.map];
     const info = nextWaveInfoFor(w);
@@ -279,7 +312,7 @@ const Game = (() => {
       R.bossAdapt = clamp((R.bossAdapt || 1) * (ttk < target ? Math.min(2, 1 + (target / ttk - 1) * .5) : ttk > target * 2.5 ? .92 : 1), 1, 1e6);
     }
     if (e.boss) {
-      R.bosses++; shake = Math.max(shake, 10); FX.push({ k: 'ring', x: e.x, y: cy(e), r: 4, max: 90, t: 0, life: .6, col: '#ffd166' });
+      if (!wv.bonus) R.bosses++; shake = Math.max(shake, 10); FX.push({ k: 'ring', x: e.x, y: cy(e), r: 4, max: 90, t: 0, life: .6, col: '#ffd166' });
       Snd.sfx.boom();
     }
   }
@@ -467,13 +500,19 @@ const Game = (() => {
     if (wv.active && !demo) {
       wv.t += dt;
       while (wv.q.length && wv.q[0].t <= wv.t) { const it = wv.q.shift(); spawn(it.type, wv.ctx); }
+      while (wv.bossQ && wv.bossQ.length && wv.t >= wv.bossQ[0].t) {
+        const b = wv.bossQ.shift();
+        wv.boss = spawn(null, { tpl: b.tpl, boss: true, hpMul: b.hpMul, dmgMul: b.dmgMul, goldMul: 2.5 });
+        wv.boss.ctx = { hpMul: b.hpMul, dmgMul: b.dmgMul, goldMul: 1 };
+        burst(wv.boss.x, cy(wv.boss), ['#ffd166', '#ffffff'], 30, 120, .6, 2, 0);
+      }
       if (wv.bossSpawn && wv.t >= wv.bossSpawn.t) {
         const b = wv.bossSpawn; wv.bossSpawn = null;
         wv.boss = spawn(null, { tpl: b.tpl, boss: true, hpMul: b.hpMul, dmgMul: b.dmgMul, goldMul: R.mode === 'boss' ? 2.2 : (R.mode === 'map' ? MAPS[R.map].gold : 1) });
         wv.boss.born = T;
         wv.boss.ctx = { hpMul: b.hpMul, dmgMul: b.dmgMul, goldMul: wv.ctx.goldMul };
       }
-      if (!wv.q.length && !wv.bossSpawn && !E.some(e => e.alive)) {
+      if (!wv.q.length && !wv.bossSpawn && !(wv.bossQ && wv.bossQ.length) && !E.some(e => e.alive)) {
         wv.endT += dt;
         if (wv.endT > .9 && (CO.length === 0 || wv.endT > 3)) waveClear();
       } else wv.endT = 0;
@@ -784,6 +823,7 @@ const Game = (() => {
 
   /* ================= fluxo ================= */
   function waveClear() {
+    if (wv.bonus) { bonusWin(); return; }
     wv.active = false;
     const w = R.wave, m = MAPS[R.map];
     const bonus = Math.round((20 + 8 * w) * (R.mode === 'map' ? m.gold : 1) * goldMul());
@@ -795,6 +835,7 @@ const Game = (() => {
     R.castle.barrier = R.castle.bmax;
     R.pendingCard = R.mode !== 'map';
     if (R.mode !== 'map') refreshOffers();
+    if ((R.mode === 'infinite' && w % 15 === 0) || (R.mode === 'boss' && w % 4 === 0)) R.bonusNext = true;
     saveRun();
     hooks.waveClear && hooks.waveClear(bonus, R.mode !== 'map');
   }
@@ -813,8 +854,12 @@ const Game = (() => {
     saveRun(); Snd.play('calm');
     hooks.retry && hooks.retry(R.wave + 1, gain);
   }
-  function finish(win) {
+  function finish(win, force) {
     if (R.over) return; R.over = true;
+    if (R.bonusActive && !force) {
+      state = 'over'; wv.active = false; Snd.sfx.lose(); Snd.stop();
+      setTimeout(bonusFail, 1100); return;
+    }
     if (!win && R.mode === 'map' && waveSnap) {
       state = 'over'; wv.active = false; Snd.sfx.lose(); Snd.stop();
       setTimeout(retryWave, 1100); return;
@@ -905,11 +950,11 @@ const Game = (() => {
   const repairCost = () => Math.ceil((R.castle.max - R.castle.hp) * .5);
 
   /* ================= cartas ================= */
-  function drawCards() {
+  function drawCards(count) {
     const hasAlly = Object.values(R.allies).some(l => l > 0);
     const pool = CARDS.filter(c => (!c.req || R.skills[c.req] > 0) && (!c.ally || hasAlly) && (!c.max || card(c.id) < c.max) && (c.id !== 'crit' || critCh() < 1) && (c.id !== 'pet' || Object.keys(R.pets).length));
     const out = [];
-    while (out.length < 3 && pool.length) {
+    while (out.length < (count || 3) && pool.length) {
       const wts = pool.map(c => c.rar === 0 ? 10 : c.rar === 1 ? 5 : 2);
       let r = Math.random() * wts.reduce((a, b) => a + b, 0), k = 0;
       while (r > wts[k]) { r -= wts[k]; k++; }
@@ -931,6 +976,10 @@ const Game = (() => {
   const cardPrice = id => Math.round([110, 200, 340][CARDS.find(c => c.id === id).rar] * Math.pow(1.12, R.cardBuys || 0));
   const rerollPrice = () => Math.round(40 * Math.pow(1.08, R.cardBuys || 0));
   function refreshOffers() { R.offers = drawCards().map(c => c.id); }
+  function pickCards(ids) {
+    for (const id of ids) R.cards[id] = (R.cards[id] || 0) + 1;
+    recalc(false); Snd.sfx.card(); R.pendingCard = false; saveRun();
+  }
   function pickCard(id) {
     R.cards[id] = (R.cards[id] || 0) + 1; recalc(false); Snd.sfx.card(); R.pendingCard = false; saveRun();
   }
@@ -1275,13 +1324,13 @@ const Game = (() => {
   }
 
   return {
-    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
+    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, pickCards, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
     get R() { return R; }, get state() { return state; }, get demo() { return demo; },
     get paused() { return paused; }, set paused(v) { paused = v; },
     get speed() { return speed; }, set speed(v) { speed = v; },
     waveLabel, nextWaveInfo, goldMul, dmgMul, castleMax,
     bossBar() { const b = wv.boss; return b && b.alive ? { name: b.tpl.name, hp: b.hp, max: b.max } : null; },
-    waveProgress() { if (state !== 'wave' || !wv.total) return 0; const left = E.filter(e => e.alive).length + wv.q.length + (wv.bossSpawn ? 1 : 0); return Math.max(0, Math.min(1, 1 - left / Math.max(wv.total, left))); },
+    waveProgress() { if (state !== 'wave' || !wv.total) return 0; const left = E.filter(e => e.alive).length + wv.q.length + (wv.bossSpawn ? 1 : 0) + (wv.bossQ ? wv.bossQ.length : 0); return Math.max(0, Math.min(1, 1 - left / Math.max(wv.total, left))); },
     enemiesLeft() { return E.length + wv.q.length + (wv.bossSpawn ? 1 : 0); },
     get mapIdx() { return mapIdx; },
     quit() { Snd.stop(); startDemo(); },
