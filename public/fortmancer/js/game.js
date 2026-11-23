@@ -9,7 +9,7 @@ const Save = {
       v: 1, gems: 0, best: { inf: 0, boss: 0 }, cleared: 0, lastMap: 0, runs: { map: null, infinite: null, boss: null },
       owned: { mage: ['apprentice'], castle: ['stone'], pet: ['none'] },
       equip: { mage: 'apprentice', castle: 'stone', pet: 'none' },
-      set: { music: .6, sfx: .8, shake: true, nums: true, auto: true },
+      set: { music: .6, sfx: .8, shake: true, nums: true, auto: true, autoNext: false },
     };
   },
   load() {
@@ -825,12 +825,13 @@ const Game = (() => {
       return true;
     },
     card(id) {
-      if (!R.offers || !R.offers.includes(id)) return false;
+      if (!maxProgress().all || !R.offers || !R.offers.includes(id)) return false;
       const c = cardPrice(id); if (R.gold < c) { Snd.sfx.nope(); return false; }
       R.gold -= c; R.cardBuys = (R.cardBuys || 0) + 1; R.cards[id] = (R.cards[id] || 0) + 1; recalc(false); Snd.sfx.buy();
       refreshOffers(); return true;
     },
     reroll() {
+      if (!maxProgress().all) return false;
       const c = rerollPrice(); if (R.gold < c) { Snd.sfx.nope(); return false; }
       R.gold -= c; Snd.sfx.click(); refreshOffers(); return true;
     },
@@ -865,6 +866,17 @@ const Game = (() => {
       out.push(pool[k]); pool.splice(k, 1);
     }
     return out;
+  }
+  // progresso até ter tudo no máximo (libera a loja de cartas no endgame)
+  function maxProgress() {
+    let done = 0, total = 0;
+    const add = (l, m) => { done += Math.min(l, m); total += m; };
+    for (const k of Object.keys(UPGRADES)) add(R.up[k], UPGRADES[k].max);
+    for (const k of Object.keys(SKILLS)) add(R.skills[k], SKILL_MAX);
+    for (const k of Object.keys(ALLIES)) add(R.allies[k], ALLIES[k].max);
+    for (const s of R.slots) add(s.lvl, TRAP_MAX);
+    for (const k of Object.keys(PET_COST)) add(R.pets[k] ? 1 : 0, 1);
+    return { done, total, all: done >= total };
   }
   const cardPrice = id => Math.round([110, 200, 340][CARDS.find(c => c.id === id).rar] * Math.pow(1.12, R.cardBuys || 0));
   const rerollPrice = () => Math.round(40 * Math.pow(1.08, R.cardBuys || 0));
@@ -1201,7 +1213,7 @@ const Game = (() => {
   }
 
   return {
-    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
+    init, hooks, startDemo, startRun, saveRun, resumeRun, beginWave, buy, cast, drawCards, checkTier, pickCard, maxProgress, cardPrice, rerollPrice, refreshOffers, finish, setMap, repairCost,
     get R() { return R; }, get state() { return state; }, get demo() { return demo; },
     get paused() { return paused; }, set paused(v) { paused = v; },
     get speed() { return speed; }, set speed(v) { speed = v; },

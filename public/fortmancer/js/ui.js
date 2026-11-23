@@ -65,8 +65,22 @@ const UI = (() => {
   $('#goldTxt').querySelector('b').id = 'goldB';
 
   /* ---------- telas ---------- */
-  function show(html, cls) { ui.innerHTML = html; ui.className = cls || ''; }
-  function clearUI() { ui.innerHTML = ''; ui.className = ''; }
+  // contagem regressiva do avanço automático (infinito / boss rush)
+  let autoTimer = null;
+  function clearAuto() { if (autoTimer) { clearInterval(autoTimer); autoTimer = null; } autoBump = null; }
+  let autoBump = null;
+  function startAuto(sec, tick, done, bump) {
+    clearAuto(); let t = sec; autoBump = bump ? () => { t = sec; } : null;
+    tick(t, sec);
+    autoTimer = setInterval(() => {
+      if (!modal.classList.contains('hidden') || Game.paused) return;   // pausa com menus abertos
+      t -= .1; if (t <= 0) { clearAuto(); done(); } else tick(t, sec);
+    }, 100);
+  }
+  ['pointerdown', 'wheel', 'touchmove'].forEach(ev => addEventListener(ev, () => autoBump && autoBump(), { capture: true, passive: true }));
+  const autoOn = () => Save.d.set.autoNext && Game.R && Game.R.mode !== 'map';
+  function show(html, cls) { clearAuto(); ui.innerHTML = html; ui.className = cls || ''; }
+  function clearUI() { clearAuto(); ui.innerHTML = ''; ui.className = ''; }
 
   function runInfo(r) {
     const m = r.mode === 'map' ? MAPS[r.map].name : r.mode === 'infinite' ? MAPS[r.map].name : '';
@@ -154,6 +168,8 @@ const UI = (() => {
       return ['dmg', 'spd', 'crit', 'gold'].map(upItem).join('') + (hasPet ? upItem('pet') : `<div class="it"><div class="ic">${ic('paw')}</div><div class="tx"><div class="nm">Treino do Pet</div><div class="ds">Compre um pet na aba Aliados para treiná-lo aqui.</div></div></div>`);
     }
     if (prepTab === 'car') {
+      const mp = Game.maxProgress();
+      if (!mp.all) return `<div class="it" style="grid-column:1/-1"><div class="ic">${ic('lock')}</div><div class="tx"><div class="nm">Loja de Cartas bloqueada<em>${mp.done}/${mp.total}</em></div><div class="ds">Compre tudo no máximo (melhorias, habilidades, aliados, armadilhas e pets) para liberar a compra de cartas com ouro. Faltam ${mp.total - mp.done} níveis.</div></div></div><div class="sub" style="grid-column:1/-1;margin-top:calc(var(--u)*4)">SEUS UPGRADES</div>` + myCardsHtml();
       if (!R.offers || !R.offers.length) Game.refreshOffers();
       const offers = (R.offers || []).map(id => {
         const c = CARDS.find(x => x.id === id), p = Game.cardPrice(id), n = R.cards[id] || 0;
@@ -194,12 +210,22 @@ const UI = (() => {
     const g = ui.querySelector('.grid'); if (g) g.scrollTop = st;
     hydrateCanvases();
     showHud(false);
+    if (autoOn() && Game.state === 'prep') {
+      const sp = ui.querySelector('[data-a=go]'), tag = document.createElement('span'); tag.className = 'autocd'; sp.appendChild(tag);
+      startAuto(3, t => { tag.textContent = ' (' + Math.ceil(t) + ')'; }, () => act('go', {}), true);
+    }
   }
   function showCards(bonus) {
     const R = Game.R, cards = Game.drawCards();
     show(`<div class="cardwrap"><div class="title">ESCOLHA UMA CARTA</div><div class="sub" style="font-size:calc(var(--u)*7)">${labelFor(R.wave)} concluída · +${fmt(bonus)} de ouro</div>
       <div class="cards">${cards.map(c => `<div class="cd3" data-a="card" data-id="${c.id}" style="--rc:${RARITY[c.rar].c}"><div class="r">${RARITY[c.rar].n.toUpperCase()}</div><div class="ic">${ic(c.icon)}</div><h3>${c.name}</h3><p>${c.desc}</p>${(R.cards[c.id] || 0) ? `<div class="own">Você tem x${R.cards[c.id]}</div>` : ''}</div>`).join('')}</div></div>`, 'screen');
     showHud(false); Snd.sfx.card();
+    if (autoOn()) {
+      const bar = document.createElement('div'); bar.className = 'autobar'; bar.innerHTML = '<i></i><span></span>';
+      ui.querySelector('.cardwrap').appendChild(bar);
+      startAuto(3, (t, s) => { bar.firstChild.style.width = (t / s * 100) + '%'; bar.lastChild.textContent = 'Escolha em ' + Math.ceil(t) + 's — ou uma carta aleatória'; },
+        () => { const c = pick(cards); act('card', { id: c.id }); });
+    }
   }
 
   /* ---------- resultado ---------- */
@@ -270,7 +296,7 @@ const UI = (() => {
     modal.innerHTML = `<div class="panel settings"><div class="title" style="font-size:calc(var(--u)*11)">${ic('gear')} OPÇÕES</div>
       <div class="opt"><span>Música</span><input type="range" min="0" max="100" value="${Math.round(s.music * 100)}" data-k="music"></div>
       <div class="opt"><span>Efeitos</span><input type="range" min="0" max="100" value="${Math.round(s.sfx * 100)}" data-k="sfx"></div>
-      ${tog('shake', 'Tremor de tela')}${tog('nums', 'Números de dano')}${tog('auto', 'Habilidades automáticas')}
+      ${tog('shake', 'Tremor de tela')}${tog('nums', 'Números de dano')}${tog('auto', 'Habilidades automáticas')}${tog('autoNext', 'Próxima onda automática (infinito e boss rush)')}
       <div class="row">${isApp ? '' : `<button class="btn sm dark" data-a="fs">${ic('full')}Tela cheia</button>`}${!Game.R || Game.state === 'menu' ? `<button class="btn sm dark" data-a="xfer">${ic('gem')}Transferir save</button>` : ''}<button class="btn sm dark ${resetArm ? 'dis' : ''}" data-a="reset">${resetArm ? 'Toque de novo para apagar' : ic('retry') + 'Apagar progresso'}</button></div>
       <button class="btn" data-a="closem">Fechar</button></div>`;
   }

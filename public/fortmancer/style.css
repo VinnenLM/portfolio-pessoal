@@ -193,3 +193,8 @@ h1, h2, h3, p { margin: 0; }
 .mode p { min-height: calc(var(--u) * 6.8 * 1.35 * 3); }
 
 #xferTxt { width: 100%; height: calc(var(--u) * 44); resize: none; background: #14102a; color: #cfc6f5; border: calc(var(--u) * 1.5) solid var(--edge); font-family: inherit; font-size: calc(var(--u) * 6); padding: calc(var(--u) * 3); word-break: break-all; border-radius: 0; }
+
+.autobar { position: relative; width: calc(var(--u) * 200); height: calc(var(--u) * 10); background: #14102a; border: calc(var(--u) * 1.5) solid var(--edge); overflow: hidden; }
+.autobar i { position: absolute; left: 0; top: 0; bottom: 0; background: var(--gold); transition: width .1s linear; }
+.autobar span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(var(--u) * 6); text-shadow: 0 calc(var(--u) * .8) 0 #000; }
+.autocd { margin-left: calc(var(--u) * 2); }
