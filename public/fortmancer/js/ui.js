@@ -427,7 +427,7 @@ const UI = (() => {
       case 'tut': Snd.sfx.click(); showTut(0); break;
       case 'cast': Game.cast(d.id); break;
       case 'pause': showPause(); break;
-      case 'speed': { Game.speed = Game.speed === 1 ? 2 : 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
+      case 'speed': { Game.speed = Game.speed >= 3 ? 1 : Game.speed + 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
       case 'cont': Snd.sfx.click(); Game.resumeRun(d.m); break;
       case 'newask': Snd.sfx.click(); Game.paused = true; modal.classList.remove('hidden'); modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*10)">NOVO JOGO?</div><div class="sub" style="text-align:center">O jogo salvo deste modo será substituído quando você começar.</div><button class="btn green" data-a="mode" data-m="${d.m}">Começar novo</button><button class="btn dark" data-a="closem">Cancelar</button></div>`; break;
       case 'savequit': Snd.sfx.back(); Game.saveRun(); closeModal(); Game.paused = false; showMenu(); break;

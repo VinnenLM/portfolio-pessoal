@@ -154,7 +154,7 @@ const Game = (() => {
     if (R.mode === 'infinite' && w % 10 === 0) return { boss: bossDef(w / 10 - 1) };
     return {};
   }
-  function buildList(w, pool, budgetMul) {
+  function buildList(w, pool, budgetMul, durMul) {
     const avail = pool.filter(p => w >= p[1]).map(p => p[0]);
     let budget = Math.round((8 + 6 * w + .35 * w * w) * 1.65 * budgetMul);
     const list = [];
@@ -166,7 +166,7 @@ const Game = (() => {
       while (r > wts[k]) { r -= wts[k]; k++; }
       list.push(ok[k]); budget -= ENEMY[ok[k]].cost;
     }
-    const dur = Math.min(62, 24 + w * 2.0);
+    const dur = Math.min(62, 24 + w * 2.0) * (durMul || 1);
     return list.map(type => ({ t: Math.random() * dur, type })).sort((a, b) => a.t - b.t);
   }
   const INF_POOL = [['slime', 1], ['goblin', 2], ['bat', 3], ['skeleton', 5], ['witch', 8], ['ogre', 10], ['darkmage', 14], ['troll', 16]];
@@ -211,7 +211,7 @@ const Game = (() => {
     const mapMode = R.mode === 'map';
     const scaleHp = waveScale(w) * (mapMode ? m.hp * .72 : 1) * (R.mode === 'infinite' && w > 15 ? Math.pow(1.07, w - 15) : 1) * (R.mode === 'infinite' && w > 40 ? Math.pow(1.025, w - 40) : 1);
     const ctxW = { hpMul: scaleHp, dmgMul: 1 + .1 * (w - 1) + (mapMode ? .08 * R.map : 0), goldMul: (1 + .1 * (w - 1)) * (mapMode ? m.gold * 1.3 : 1) };
-    if (R.mode !== 'boss') list = buildList(w, mapMode ? m.pool : INF_POOL, info.boss ? .55 : 1);
+    if (R.mode !== 'boss') list = buildList(w, mapMode ? m.pool : INF_POOL, (info.boss ? .55 : 1) * (R.mode === 'infinite' ? 1.9 : 1), R.mode === 'infinite' ? 1.25 : 1);
     wv = { q: list, t: 0, active: true, boss: null, endT: 0, ctx: ctxW, total: list.length + (info.boss ? 1 : 0) };
     if (info.boss) {
       let hpMul;
