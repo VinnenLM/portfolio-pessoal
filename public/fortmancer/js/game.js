@@ -39,14 +39,14 @@ const Game = (() => {
   /* ================= estatísticas derivadas ================= */
   const card = id => (R && R.cards[id]) || 0;
   const mageId = () => Save.d.equip.mage;
-  const dmgMul = () => (1 + .12 * R.up.dmg) * (1 + .2 * card('power')) * (mageId() === 'archmage' ? 1.08 : 1);
-  const spdMul = () => 1 + .08 * R.up.spd + .12 * card('cadence');
-  const critCh = () => .03 + .05 * R.up.crit + .1 * card('crit');
-  const goldMul = () => (1 + .1 * R.up.gold) * (1 + .25 * card('greed')) * (mageId() === 'necro' ? 1.12 : 1);
+  const dmgMul = () => (1 + .12 * R.up.dmg) * (1 + .05 * card('power')) * (mageId() === 'archmage' ? 1.08 : 1);
+  const spdMul = () => 1 + .08 * R.up.spd + .05 * card('cadence');
+  const critCh = () => Math.min(1, .03 + .05 * R.up.crit + .05 * card('crit'));
+  const goldMul = () => (1 + .1 * R.up.gold) * (1 + .05 * card('greed')) * (mageId() === 'necro' ? 1.12 : 1);
   const castleMax = () => Math.round(260 * (1 + .25 * R.up.wall));
-  const barrierMax = () => (R.up.barrier ? 40 * R.up.barrier : 0) + 60 * card('shield');
-  const thornsDmg = () => R.up.thorns * 8 + card('thorn') * 10;
-  const trapDmg = (base, lvl) => base * (1 + .7 * (lvl - 1)) * (1 + .4 * card('trap')) * (1 + .5 * (dmgMul() - 1));
+  const barrierMax = () => (R.up.barrier ? 40 * R.up.barrier : 0) + 20 * card('shield');
+  const thornsDmg = () => R.up.thorns * 8 + card('thorn') * 3;
+  const trapDmg = (base, lvl) => base * (1 + .7 * (lvl - 1)) * (1 + .1 * card('trap')) * (1 + .5 * (dmgMul() - 1));
 
   function recalc(full) {
     const c = R.castle, nm = castleMax(), nb = barrierMax();
@@ -273,14 +273,14 @@ const Game = (() => {
   function skillMods(id) {
     const l = R.skills[id], st = skillStats(id, l), gm = dmgMul(), mi = mageId();
     st.l = l; st.vt = fxTier(l);
-    if (id === 'light') { st.heal *= 1 + .4 * card('lightH'); st.dmg *= gm * (1 + .4 * card('lightR')); st.cd *= Math.pow(.85, card('lightR')); return st; }
+    if (id === 'light') { st.heal *= 1 + .1 * card('lightH'); st.dmg *= gm * (1 + .1 * card('lightR')); st.cd *= Math.pow(.95, card('lightR')); return st; }
     st.dmg *= gm;
-    if (id === 'fire') { st.radius *= 1 + .25 * card('fireR'); st.burn *= (1 + .5 * card('fireB')) * (mi === 'pyro' ? 1.2 : 1); if (mi === 'pyro') st.dmg *= 1.2; st.extra = card('fireD'); }
-    if (id === 'frost') { st.cd *= Math.pow(.8, card('frostC')); st.freeze = .2 * card('frostF') + (mi === 'cryo' ? .1 : 0); if (mi === 'cryo') { st.slow = .7; st.dur *= 1.25; } }
-    if (id === 'bolt') { st.chain += 2 * card('boltC'); st.dmg *= 1 + .4 * card('boltS'); st.cd *= Math.pow(.8, card('boltS')); }
-    if (id === 'meteor') { st.n += 2 * card('metR'); st.dmg *= 1 + .3 * card('metP'); }
-    if (id === 'poison') { st.dmg *= 1 + .4 * card('poisA'); st.radius *= 1 + .3 * card('poisB'); st.dur *= 1 + .3 * card('poisB'); }
-    if (id === 'roots') { st.dmg *= 1 + .5 * card('rootA'); st.n += card('rootB'); st.dur += .6 * card('rootB'); }
+    if (id === 'fire') { st.radius *= 1 + .08 * card('fireR'); st.burn *= (1 + .1 * card('fireB')) * (mi === 'pyro' ? 1.2 : 1); if (mi === 'pyro') st.dmg *= 1.2; st.extra = card('fireD'); }
+    if (id === 'frost') { st.cd *= Math.pow(.95, card('frostC')); st.freeze = Math.min(1, .05 * card('frostF')) + (mi === 'cryo' ? .1 : 0); if (mi === 'cryo') { st.slow = .7; st.dur *= 1.25; } }
+    if (id === 'bolt') { st.chain += 2 * card('boltC'); st.dmg *= 1 + .1 * card('boltS'); st.cd *= Math.pow(.95, card('boltS')); }
+    if (id === 'meteor') { st.n += 2 * card('metR'); st.dmg *= 1 + .1 * card('metP'); }
+    if (id === 'poison') { st.dmg *= 1 + .1 * card('poisA'); st.radius *= 1 + .08 * card('poisB'); st.dur *= 1 + .08 * card('poisB'); }
+    if (id === 'roots') { st.dmg *= 1 + .1 * card('rootA'); st.n += card('rootB'); st.dur += .3 * card('rootB'); }
     return st;
   }
   const UNDEAD = { skeleton: 1, darkmage: 1, demon: 1 };
@@ -499,8 +499,8 @@ const Game = (() => {
   }
 
   /* ---------- aliados ---------- */
-  const allyMul = () => (1 + .5 * (dmgMul() - 1)) * (1 + .3 * card('allyUp'));
-  const allySpd = () => 1 + .3 * card('allyUp');
+  const allyMul = () => (1 + .5 * (dmgMul() - 1)) * (1 + .08 * card('allyUp'));
+  const allySpd = () => 1 + .08 * card('allyUp');
   const allyPos = id => ({ x: ALLIES[id].x, foot: GY - 160 + ALLIES[id].cy });
   function updateAllies(dt) {
     for (const id of Object.keys(R.allies)) {
@@ -512,7 +512,7 @@ const Game = (() => {
         if (R.allyHcd <= 0) {
           R.allyHcd = st.cd;
           const c = R.castle;
-          if (c.hp < c.max - 1) { const h = c.max * st.heal * (1 + .3 * card('allyUp')); healCastle(h); FX.push({ k: 'ring', x: CASTLE_X - 30, y: GY - 60, r: 4, max: 34, t: 0, life: .5, col: '#8bff9b', w: 2 }); burst(CASTLE_X - 30, GY - 60, ['#8bff9b', '#ffffff'], 10, 40, .8, 1, -40); addText(pos.x, pos.foot - 24, '+' + Math.round(h), '#8bff9b'); }
+          if (c.hp < c.max - 1) { const h = c.max * st.heal * (1 + .08 * card('allyUp')); healCastle(h); FX.push({ k: 'ring', x: CASTLE_X - 30, y: GY - 60, r: 4, max: 34, t: 0, life: .5, col: '#8bff9b', w: 2 }); burst(CASTLE_X - 30, GY - 60, ['#8bff9b', '#ffffff'], 10, 40, .8, 1, -40); addText(pos.x, pos.foot - 24, '+' + Math.round(h), '#8bff9b'); }
         }
       }
       R.allyCd[id] -= dt;
@@ -555,7 +555,7 @@ const Game = (() => {
       const t = nearest(); if (!t) return;
       pet.cd = id === 'fairy' ? .8 : 1.15;
       const a = Math.atan2(cy(t) - pet.y, t.x - pet.x), info = Art.PETS[id];
-      P.push({ k: 'pet', pet: id, x: pet.x + 4, y: pet.y, vx: Math.cos(a) * 240, vy: Math.sin(a) * 240, dmg: 8 * dmgMul() * (1 + .25 * R.up.pet) * (1 + .5 * card('pet')), hit: [], life: 2, col: info.shot, pierce: 0, tgt: t, turn: 8 });
+      P.push({ k: 'pet', pet: id, x: pet.x + 4, y: pet.y, vx: Math.cos(a) * 240, vy: Math.sin(a) * 240, dmg: 8 * dmgMul() * (1 + .25 * R.up.pet) * (1 + .1 * card('pet')), hit: [], life: 2, col: info.shot, pierce: 0, tgt: t, turn: 8 });
       Snd.sfx.petshot();
     }
   }
@@ -745,7 +745,7 @@ const Game = (() => {
   /* ================= cartas ================= */
   function drawCards() {
     const hasAlly = Object.values(R.allies).some(l => l > 0);
-    const pool = CARDS.filter(c => (!c.req || R.skills[c.req] > 0) && (!c.ally || hasAlly) && (!c.max || card(c.id) < c.max));
+    const pool = CARDS.filter(c => (!c.req || R.skills[c.req] > 0) && (!c.ally || hasAlly) && (!c.max || card(c.id) < c.max) && (c.id !== 'crit' || critCh() < 1));
     const out = [];
     while (out.length < 3 && pool.length) {
       const wts = pool.map(c => c.rar === 0 ? 10 : c.rar === 1 ? 5 : 2);
