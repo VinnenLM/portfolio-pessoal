@@ -189,3 +189,5 @@ h1, h2, h3, p { margin: 0; }
 
 .mode .saved { font-size: calc(var(--u) * 6.5); color: #8bff9b; }
 .mode .btn { width: 80%; }
+.mode { justify-content: flex-start; }
+.mode p { min-height: calc(var(--u) * 6.8 * 1.35 * 3); }
