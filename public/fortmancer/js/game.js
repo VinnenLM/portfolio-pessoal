@@ -6,7 +6,7 @@ const Save = {
   d: null,
   def() {
     return {
-      v: 1, gems: 0, best: { inf: 0, boss: 0 }, cleared: 0, lastMap: 0, run: null,
+      v: 1, gems: 0, best: { inf: 0, boss: 0 }, cleared: 0, lastMap: 0, runs: { map: null, infinite: null, boss: null },
       owned: { mage: ['apprentice'], castle: ['stone'], pet: ['none'] },
       equip: { mage: 'apprentice', castle: 'stone', pet: 'none' },
       set: { music: .6, sfx: .8, shake: true, nums: true, auto: true },
@@ -16,6 +16,7 @@ const Save = {
     const d = this.def();
     try {
       const s = JSON.parse(localStorage.getItem('fortmancer.save') || 'null');
+      if (s && s.run && s.run.mode && !(s.runs && s.runs[s.run.mode])) { s.runs = Object.assign({}, s.runs); s.runs[s.run.mode] = s.run; }
       if (s) for (const k of Object.keys(d)) if (s[k] !== undefined) d[k] = (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k])) ? Object.assign(d[k], s[k]) : s[k];
     } catch (e) { }
     this.d = d; return d;
@@ -107,10 +108,10 @@ const Game = (() => {
   /* ---------- salvar / continuar ---------- */
   function saveRun() {
     if (!R || R.over || demo || state !== 'prep') return false;
-    try { Save.d.run = JSON.parse(JSON.stringify(R)); Save.store(); return true; } catch (e) { return false; }
+    try { Save.d.runs[R.mode] = JSON.parse(JSON.stringify(R)); Save.store(); return true; } catch (e) { return false; }
   }
-  function resumeRun() {
-    const s = Save.d.run; if (!s) return false;
+  function resumeRun(mode) {
+    const s = Save.d.runs[mode]; if (!s) return false;
     demo = false; R = JSON.parse(JSON.stringify(s)); R.over = false;
     mapIdx = R.map; Save.d.lastMap = R.map; setMap(R.map);
     for (const k in petObj) delete petObj[k];
@@ -766,7 +767,7 @@ const Game = (() => {
     if (R.mode === 'infinite' && res.wave > Save.d.best.inf) { Save.d.best.inf = res.wave; res.newBest = true; }
     if (R.mode === 'boss' && R.bosses > Save.d.best.boss) { Save.d.best.boss = R.bosses; res.newBest = true; }
     if (R.mode === 'map' && win && Save.d.cleared < R.map + 1) { Save.d.cleared = R.map + 1; res.unlocked = R.map + 1 < MAPS.length; }
-    Save.d.run = null; Save.store();
+    Save.d.runs[R.mode] = null; Save.store();
     state = 'over'; wv.active = false;
     win ? Snd.sfx.win() : Snd.sfx.lose();
     Snd.stop();

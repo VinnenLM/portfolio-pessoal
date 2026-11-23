@@ -66,10 +66,9 @@ const UI = (() => {
   function show(html, cls) { ui.innerHTML = html; ui.className = cls || ''; }
   function clearUI() { ui.innerHTML = ''; ui.className = ''; }
 
-  function runInfo() {
-    const r = Save.d.run; if (!r) return '';
-    const m = r.mode === 'map' ? 'Campanha — ' + MAPS[r.map].name : r.mode === 'infinite' ? 'Infinito' : 'Boss Rush';
-    return `${m} · ${r.mode === 'boss' ? r.bosses + ' chefes' : 'onda ' + (r.wave + 1)}`;
+  function runInfo(r) {
+    const m = r.mode === 'map' ? MAPS[r.map].name : r.mode === 'infinite' ? MAPS[r.map].name : '';
+    return `${m ? m + ' · ' : ''}${r.mode === 'boss' ? r.bosses + ' chefes' : 'onda ' + (r.wave + 1)}`;
   }
   function showMenu() {
     showHud(false); closeModal(); Game.startDemo();
@@ -78,8 +77,7 @@ const UI = (() => {
         <div class="logo">FORT<span>MANCER</span></div>
         <div class="tag">DEFENDA O CASTELO MÁGICO</div>
         <div class="btns">
-          ${Save.d.run ? `<button class="btn big green" data-a="cont">${ic('play')}CONTINUAR</button><div class="sub" style="font-size:calc(var(--u)*6);margin-top:calc(var(--u)*-2)">${runInfo()}</div>` : ''}
-          <button class="btn big${Save.d.run ? ' dark' : ''}" data-a="play">${ic('play')}${Save.d.run ? 'NOVO JOGO' : 'JOGAR'}</button>
+          <button class="btn big" data-a="play">${ic('play')}JOGAR</button>
           <button class="btn violet" data-a="shop">${ic('hat')}LOJA DE SKINS</button>
         </div>
       </div>
@@ -88,14 +86,20 @@ const UI = (() => {
       <div class="ver">v0.2</div>`, 'screen');
   }
 
+  function modeCard(m, icon, title, desc, rec) {
+    const r = Save.d.runs[m];
+    const body = `<div class="ic">${ic(icon, 'pi4')}</div><h3>${title}</h3><p>${desc}</p><div class="rec">${rec}</div>`;
+    if (!r) return `<div class="mode" data-a="mode" data-m="${m}">${body}</div>`;
+    return `<div class="mode">${body}<div class="saved">Jogo salvo: ${runInfo(r)}</div><button class="btn green" data-a="cont" data-m="${m}">${ic('play')}Continuar</button><button class="btn sm dark" data-a="newask" data-m="${m}">Novo jogo</button></div>`;
+  }
   function showModes() {
     const s = Save.d;
     show(`<div class="full panel">
       <div class="head"><button class="btn sm dark" data-a="menu">${ic('left')}Voltar</button><div class="title">ESCOLHA O MODO</div><div style="width:calc(var(--u)*50)"></div></div>
       <div class="cards3">
-        <div class="mode" data-a="mode" data-m="map"><div class="ic">${ic('castle', 'pi4')}</div><h3>CAMPANHA</h3><p>9 mapas, 10 ondas cada, com chefe no final. Vença para liberar o próximo.</p><div class="rec">Mapas: ${Math.min(s.cleared, MAPS.length)}/${MAPS.length} concluídos</div></div>
-        <div class="mode" data-a="mode" data-m="infinite"><div class="ic">${ic('inf', 'pi4')}</div><h3>MODO INFINITO</h3><p>Ondas sem fim, chefes a cada 10 ondas e cartas de habilidade para evoluir seu mago.</p><div class="rec">Recorde: onda ${s.best.inf}</div></div>
-        <div class="mode" data-a="mode" data-m="boss"><div class="ic">${ic('skull', 'pi4')}</div><h3>BOSS RUSH</h3><p>Enfrente os 12 chefes em sequência, do Rei Slime ao Rei Demônio. Cada vitória rende cartas.</p><div class="rec">Recorde: ${s.best.boss} chefes</div></div>
+        ${modeCard('map', 'castle', 'CAMPANHA', '9 mapas, 10 ondas cada, com chefe no final. Vença para liberar o próximo.', `Mapas: ${Math.min(s.cleared, MAPS.length)}/${MAPS.length} concluídos`)}
+        ${modeCard('infinite', 'inf', 'MODO INFINITO', 'Ondas sem fim, chefes a cada 10 ondas e cartas de habilidade para evoluir seu mago.', `Recorde: onda ${s.best.inf}`)}
+        ${modeCard('boss', 'skull', 'BOSS RUSH', 'Enfrente os 12 chefes em sequência, do Rei Slime ao Rei Demônio. Cada vitória rende cartas.', `Recorde: ${s.best.boss} chefes`)}
       </div></div>`, 'screen');
   }
 
@@ -291,7 +295,7 @@ const UI = (() => {
         if (secret.n >= 7) { secret.n = 0; Game.cheat(99999); Snd.sfx.buy(); toast('+99999 gemas (modo teste)'); (ui.querySelector('.menu') ? showMenu : showShop)(); }
         break;
       }
-      case 'mode': Snd.sfx.click(); if (d.m === 'boss') startRun('boss', MAPS.findIndex(m => m.id === 'volcano')); else showMaps(d.m); break;
+      case 'mode': Snd.sfx.click(); closeModal(); Game.paused = false; if (d.m === 'boss') startRun('boss', MAPS.findIndex(m => m.id === 'volcano')); else showMaps(d.m); break;
       case 'locked': Snd.sfx.nope(); toast('Vença o mapa anterior para liberar', 'lock'); break;
       case 'map': startRun(mapMode, +d.i); break;
       case 'retry': startRun(d.m, +d.i); break;
@@ -308,7 +312,8 @@ const UI = (() => {
       case 'cast': Game.cast(d.id); break;
       case 'pause': showPause(); break;
       case 'speed': { Game.speed = Game.speed === 1 ? 2 : 1; $('#btnSpeed').textContent = 'x' + Game.speed; Snd.sfx.click(); break; }
-      case 'cont': Snd.sfx.click(); Game.resumeRun(); break;
+      case 'cont': Snd.sfx.click(); Game.resumeRun(d.m); break;
+      case 'newask': Snd.sfx.click(); Game.paused = true; modal.classList.remove('hidden'); modal.innerHTML = `<div class="panel pausebox"><div class="title" style="font-size:calc(var(--u)*10)">NOVO JOGO?</div><div class="sub" style="text-align:center">O jogo salvo deste modo será substituído quando você começar.</div><button class="btn green" data-a="mode" data-m="${d.m}">Começar novo</button><button class="btn dark" data-a="closem">Cancelar</button></div>`; break;
       case 'savequit': Snd.sfx.back(); Game.saveRun(); closeModal(); Game.paused = false; showMenu(); break;
       case 'quit': closeModal(); Game.paused = false; Game.finish(false); break;
       case 'stab': Snd.sfx.click(); shopTab = d.t; showShop(); break;

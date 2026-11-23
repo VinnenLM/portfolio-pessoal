@@ -186,3 +186,6 @@ h1, h2, h3, p { margin: 0; }
 
 .pausebox.wide { width: calc(var(--u) * 330); max-height: 88%; }
 .pausebox.wide .grid { grid-template-columns: repeat(2, 1fr); max-height: calc(var(--u) * 190); }
+
+.mode .saved { font-size: calc(var(--u) * 6.5); color: #8bff9b; }
+.mode .btn { width: 80%; }
