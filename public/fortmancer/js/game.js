@@ -582,8 +582,9 @@ const Game = (() => {
         if (!live.some(e => !e.fly && e.x < W - 40)) continue;
       }
       if (id === 'frost') {
-        const r = skillStats('frost', R.skills.frost).radius, near = live.filter(e => Math.abs(e.x - mage.x) < r * .85);
-        if (!near.length || !near.some(e => e.slowT < .8 && e.freezeT <= 0 && !e.pulled)) continue;
+        // mesmo alcance da própria habilidade: usa assim que alguém entra na área (e ainda não está lento/congelado)
+        const r = skillMods('frost').radius, near = live.filter(e => Math.hypot(e.x - mage.x, (e.fly ? e.y : GY) - (GY - 10)) <= r + e.w / 2);
+        if (!near.some(e => e.slowT < .8 && e.freezeT <= 0)) continue;
       }
       if (id === 'meteor') {
         // meteoros acertam melhor em grupos parados (presos/congelados) ou em chefes
