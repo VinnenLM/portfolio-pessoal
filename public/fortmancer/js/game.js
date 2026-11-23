@@ -31,7 +31,8 @@ const Game = (() => {
   let shake = 0, flashRed = 0, banner = null, T = 0;
   let wv = { q: [], t: 0, active: false, boss: null, endT: 0 };
   const mage = { x: 26, foot: GY - 160 + 30, cast: 0, anim: 0, atk: .5 };
-  const pet = { x: 56, y: 56, cd: 1, a: 0 };
+  const petObj = {};
+  const petOf = id => petObj[id] || (petObj[id] = { x: 56, y: 56, cd: 1, a: Math.random() * 6 });
   let state = 'menu', paused = false, speed = 1, demo = true, demoT = 0;
   const hooks = {};
   const clouds = [];
@@ -58,6 +59,7 @@ const Game = (() => {
   /* ================= partida ================= */
   function newRun(mode, map) {
     mapIdx = map; setMap(map);
+    for (const k in petObj) delete petObj[k];
     const m = MAPS[map];
     R = {
       mode, map, wave: 0, kills: 0, bosses: 0, earned: 0, over: false,
@@ -65,7 +67,7 @@ const Game = (() => {
       up: {}, cards: {}, skills: { fire: 1, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0 },
       cd: { fire: 0, frost: 0, bolt: 0, meteor: 0, poison: 0, roots: 0, light: 0 }, cdMax: { fire: 1, frost: 1, bolt: 1, meteor: 1, poison: 1, roots: 1, light: 1 },
       slots: TRAP_X.map((_, i) => ({ type: TRAP_ORDER[i], lvl: 0, cd: 0, t: 0 })),
-      allies: { archer: 0, frostmage: 0, ballista: 0, cleric: 0 }, allyCd: { archer: .5, frostmage: .8, ballista: 1, cleric: 2 }, allyHcd: 1, allyKick: {},
+      pets: {}, allies: { archer: 0, frostmage: 0, ballista: 0, cleric: 0 }, allyCd: { archer: .5, frostmage: .8, ballista: 1, cleric: 2 }, allyHcd: 1, allyKick: {},
       tier: 0,
       castle: { hp: 1, max: 1, barrier: 0, bmax: 0, lastHit: 0 },
     };
@@ -82,6 +84,8 @@ const Game = (() => {
     AMB = []; const a = MAPS[i].amb;
     if (a === 'fireflies') for (let k = 0; k < 26; k++) AMB.push({ x: rand(0, W), y: rand(100, GY), ph: rand(0, 6), s: rand(.4, 1) });
     if (a === 'wisps') for (let k = 0; k < 16; k++) AMB.push({ x: rand(0, W), y: rand(110, GY - 6), ph: rand(0, 6), s: rand(.4, 1) });
+    if (a === 'dust') for (let k = 0; k < 30; k++) AMB.push({ x: rand(0, W), y: rand(20, GY), ph: rand(0, 6), s: rand(.4, 1) });
+    if (a === 'snow') for (let k = 0; k < 60; k++) AMB.push({ x: rand(0, W), y: rand(0, GY), ph: rand(0, 6), s: rand(.4, 1) });
     if (a === 'embers') for (let k = 0; k < 40; k++) AMB.push({ x: rand(0, W), y: rand(0, GY), ph: rand(0, 6), s: rand(.4, 1) });
   }
   function startDemo() {
@@ -110,7 +114,7 @@ const Game = (() => {
   function nextWaveInfo() {
     const w = R.wave + 1;
     if (R.mode === 'boss') return { boss: bossDef(w - 1) };
-    if (R.mode === 'map' && w === CAMPAIGN_WAVES) return { boss: BOSSES[MAPS[R.map].boss] };
+    if (R.mode === 'map' && w === CAMPAIGN_WAVES) return { boss: bossById(MAPS[R.map].boss) };
     if (R.mode === 'infinite' && w % 10 === 0) return { boss: bossDef(w / 10 - 1) };
     return {};
   }
@@ -156,7 +160,7 @@ const Game = (() => {
   }
   function nextWaveInfoFor(w) {
     if (R.mode === 'boss') return { boss: bossDef(w - 1) };
-    if (R.mode === 'map' && w === CAMPAIGN_WAVES) return { boss: BOSSES[MAPS[R.map].boss] };
+    if (R.mode === 'map' && w === CAMPAIGN_WAVES) return { boss: bossById(MAPS[R.map].boss) };
     if (R.mode === 'infinite' && w % 10 === 0) return { boss: bossDef(w / 10 - 1) };
     return {};
   }
@@ -475,6 +479,8 @@ const Game = (() => {
       a.ph += dt;
       const t = MAPS[mapIdx].amb;
       if (t === 'embers') { a.y -= (18 + a.s * 22) * dt; a.x += Math.sin(a.ph * 2) * 8 * dt; if (a.y < -4) { a.y = GY; a.x = rand(0, W); } }
+      else if (t === 'snow') { a.y += (14 + a.s * 16) * dt; a.x += Math.sin(a.ph * 1.5) * 10 * dt - 6 * dt; if (a.y > GY + 4) { a.y = -4; a.x = rand(0, W + 20); } }
+      else if (t === 'dust') { a.x += Math.sin(a.ph * .5 + a.s * 6) * 5 * dt; a.y += Math.cos(a.ph * .4 + a.s * 3) * 4 * dt; }
       else if (t === 'fireflies' || t === 'wisps') { a.x += Math.sin(a.ph * .8 + a.s * 6) * 14 * dt; a.y += Math.cos(a.ph * .6 + a.s * 3) * 9 * dt; }
     }
     for (const cl of clouds) { cl.x -= cl.s * dt; if (cl.x < -60) cl.x = W + 20; }
@@ -546,17 +552,22 @@ const Game = (() => {
   }
 
   function updatePet(dt) {
-    const id = Save.d.equip.pet; if (!id || id === 'none') return;
-    pet.a += dt;
-    const tx = mage.x + 26 + Math.sin(pet.a * 1.3) * 6, ty = mage.foot - 22 + Math.cos(pet.a * 2) * 4;
-    pet.x += (tx - pet.x) * Math.min(1, dt * 5); pet.y += (ty - pet.y) * Math.min(1, dt * 5);
-    pet.cd -= dt;
-    if (pet.cd <= 0) {
-      const t = nearest(); if (!t) return;
-      pet.cd = id === 'fairy' ? .8 : 1.15;
-      const a = Math.atan2(cy(t) - pet.y, t.x - pet.x), info = Art.PETS[id];
-      P.push({ k: 'pet', pet: id, x: pet.x + 4, y: pet.y, vx: Math.cos(a) * 240, vy: Math.sin(a) * 240, dmg: 8 * dmgMul() * (1 + .25 * R.up.pet) * (1 + .1 * card('pet')), hit: [], life: 2, col: info.shot, pierce: 0, tgt: t, turn: 8 });
-      Snd.sfx.petshot();
+    if (!R || !R.pets) return;
+    let i = 0;
+    for (const id of Object.keys(PET_COST)) {
+      if (!R.pets[id]) continue;
+      const pet = petOf(id), k = i++;
+      pet.a += dt;
+      const tx = mage.x + 24 + k * 15 + Math.sin(pet.a * 1.3) * 5, ty = mage.foot - 22 - (k % 2) * 12 + Math.cos(pet.a * 2) * 4;
+      pet.x += (tx - pet.x) * Math.min(1, dt * 5); pet.y += (ty - pet.y) * Math.min(1, dt * 5);
+      pet.cd -= dt;
+      if (pet.cd <= 0) {
+        const t = nearest(); if (!t) continue;
+        pet.cd = id === 'fairy' ? .8 : 1.15;
+        const a = Math.atan2(cy(t) - pet.y, t.x - pet.x), info = Art.PETS[id];
+        P.push({ k: 'pet', pet: id, x: pet.x + 4, y: pet.y, vx: Math.cos(a) * 240, vy: Math.sin(a) * 240, dmg: 8 * dmgMul() * (1 + .25 * R.up.pet) * (1 + .1 * card('pet')), hit: [], life: 2, col: info.shot, pierce: 0, tgt: t, turn: 8 });
+        Snd.sfx.petshot();
+      }
     }
   }
 
@@ -724,6 +735,13 @@ const Game = (() => {
       const p = allyPos(id); burst(p.x, p.foot - 8, ['#ffd84a', '#ffffff'], 14, 60, .6, 1, -40);
       return true;
     },
+    pet(id) {
+      if (R.pets[id]) return false;
+      const c = PET_COST[id]; if (R.gold < c) { Snd.sfx.nope(); return false; }
+      R.gold -= c; R.pets[id] = 1; petObj[id] = null; delete petObj[id]; Snd.sfx.buy();
+      const p = petOf(id); p.x = mage.x + 10; p.y = mage.foot - 10; burst(p.x, p.y, ['#ffd84a', '#ffffff'], 14, 60, .6, 1, -40);
+      return true;
+    },
     repair() {
       const c = R.castle, need = c.max - c.hp, cost = Math.ceil(need * .5);
       if (need < 1) return false;
@@ -745,7 +763,7 @@ const Game = (() => {
   /* ================= cartas ================= */
   function drawCards() {
     const hasAlly = Object.values(R.allies).some(l => l > 0);
-    const pool = CARDS.filter(c => (!c.req || R.skills[c.req] > 0) && (!c.ally || hasAlly) && (!c.max || card(c.id) < c.max) && (c.id !== 'crit' || critCh() < 1));
+    const pool = CARDS.filter(c => (!c.req || R.skills[c.req] > 0) && (!c.ally || hasAlly) && (!c.max || card(c.id) < c.max) && (c.id !== 'crit' || critCh() < 1) && (c.id !== 'pet' || Object.keys(R.pets).length));
     const out = [];
     while (out.length < 3 && pool.length) {
       const wts = pool.map(c => c.rar === 0 ? 10 : c.rar === 1 ? 5 : 2);
@@ -871,9 +889,12 @@ const Game = (() => {
     if (Math.random() < .12 && PT.length < 480) PT.push({ x: tipX, y: tipY, vx: rand(-8, 8), vy: rand(-22, -8), life: .5, t: 0, col: g, size: 1, g: 0 });
   }
   function drawPet() {
-    const id = Save.d.equip.pet; if (!id || id === 'none') return;
-    const s = Art.pet(id); if (!s) return;
-    cx.drawImage(s.n, Math.round(pet.x - s.w / 2), Math.round(pet.y - s.h / 2 + Math.sin(pet.a * 5) * 1.2));
+    if (!R || !R.pets) return;
+    for (const id of Object.keys(PET_COST)) {
+      if (!R.pets[id]) continue;
+      const pet = petOf(id), s = Art.pet(id); if (!s) continue;
+      cx.drawImage(s.n, Math.round(pet.x - s.w / 2), Math.round(pet.y - s.h / 2 + Math.sin(pet.a * 5) * 1.2));
+    }
   }
   function drawAllies() {
     for (const id of Object.keys(ALLIES)) {
@@ -1020,6 +1041,8 @@ const Game = (() => {
     for (const a of AMB) {
       if (amb === 'fireflies') { const al = .5 + .5 * Math.sin(a.ph * 3); cx.fillStyle = `rgba(230,255,120,${al * .9})`; cx.fillRect(Math.round(a.x), Math.round(a.y), 2, 2); cx.fillStyle = `rgba(230,255,120,${al * .2})`; cx.fillRect(Math.round(a.x) - 1, Math.round(a.y) - 1, 4, 4); }
       else if (amb === 'wisps') { const al = .35 + .35 * Math.sin(a.ph * 2); cx.fillStyle = `rgba(160,190,255,${al})`; cx.fillRect(Math.round(a.x), Math.round(a.y), 2, 2); cx.fillStyle = `rgba(160,190,255,${al * .25})`; cx.fillRect(Math.round(a.x) - 1, Math.round(a.y) - 1, 4, 4); }
+      else if (amb === 'snow') { cx.fillStyle = a.s > .7 ? '#ffffff' : 'rgba(255,255,255,.7)'; cx.fillRect(Math.round(a.x), Math.round(a.y), a.s > .8 ? 2 : 1, a.s > .8 ? 2 : 1); }
+      else if (amb === 'dust') { cx.fillStyle = `rgba(220,210,190,${.12 + .12 * Math.sin(a.ph * 2)})`; cx.fillRect(Math.round(a.x), Math.round(a.y), 1, 1); }
       else if (amb === 'embers') { cx.fillStyle = a.s > .7 ? '#ffd166' : '#ff7a1a'; cx.globalAlpha = .5 + .4 * Math.sin(a.ph * 4); cx.fillRect(Math.round(a.x), Math.round(a.y), 1 + (a.s > .8 ? 1 : 0), 1 + (a.s > .8 ? 1 : 0)); cx.globalAlpha = 1; }
     }
     for (const f of FX) if (f.k === 'scorch') drawFx(f);

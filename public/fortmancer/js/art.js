@@ -268,9 +268,66 @@ const Art = (() => {
       '....rrr..rrr....',
       '...kkkk..kkkk...',
     ],
+    spider: [
+      '................',
+      '.l............l.',
+      '.ll..........ll.',
+      '..l...bbbb...l..',
+      'l.l..bBBBBb..l.l',
+      '.ll.bbeBBebb.ll.',
+      '..llbbbbbbbbll..',
+      'l..lbbwbbwbbl..l',
+      '.l..bbbbbbbb..l.',
+      '..l.bbyyyybb.l..',
+      '.l...bbyyybb..l.',
+      'l.l...bbbb...l.l',
+      '..l..l....l..l..',
+      '.l...l....l...l.',
+      '................',
+      '................'
+    ],
+    golem: [
+      '................',
+      '....cccccccc....',
+      '...cCCCCCCCCc...',
+      '...cCeCCCCeCc...',
+      '...cCCCddCCCc...',
+      '..ccccCCCCcccc..',
+      '.cCCCccccccCCCc.',
+      'cCCwCcCCCCcCwCCc',
+      'cCCCCcCCwCcCCCCc',
+      'cCCCCcCCCCcCCCCc',
+      '.cCCccCCCCccCCc.',
+      '..ccc.cddc.ccc..',
+      '....cCCCCCCc....',
+      '....cCCc.cCCc...',
+      '....cCCc.cCCc...',
+      '...ccccc.ccccc..'
+    ],
+    dragon: [
+      '................',
+      '..k.......WW..W.',
+      '..krr....WWW.WW.',
+      '.rrrrr..WWWWWWW.',
+      'rrerrrrrrWWWWWW.',
+      'rwrrrrrrrrWWWW..',
+      'rwwrrrrrrrrrW...',
+      '.rrrryyrrrrrrr..',
+      '..rrryyyrrrRRrR.',
+      '...rryyyrrrRrRR.',
+      '....rryyrrrR.RR.',
+      '....rrrrrrrR..R.',
+      '....rr.rr.rR....',
+      '...rkr.rkr.rr...',
+      '...kkk.kkk......',
+      '................'
+    ],
   };
 
   const PALS = {
+    spider: { b: '#4a2a63', B: '#7a4a9a', e: '#ff3355', l: '#2d1a40', w: '#f4f0e0', y: '#ffd24a' },
+    golem: { c: '#5fa6c8', C: '#a8e4f8', d: '#3f7fa8', e: '#2af0ff', w: '#f0fcff' },
+    dragon: { r: '#c8342e', R: '#e86a3a', W: '#8a2030', y: '#ffd166', e: '#ffe14d', k: '#2a0a0e', w: '#fff' },
     slime:    { g: '#5fd46a', G: '#a5f0a0', d: '#2e9c4c', w: '#ffffff', p: '#1a2a1e' },
     bat:      { p: '#7a4fb3', P: '#4d2f7d', e: '#ff4d6d', w: '#fff' },
     goblin:   { g: '#7bbf3a', G: '#a6e062', c: '#8a5a2b', C: '#5e3a1a', e: '#ffe14d', w: '#fff6d0', t: '#9a6a35', T: '#6b4420', b: '#4a3020' },
@@ -688,6 +745,48 @@ const Art = (() => {
     }
   }
 
+  /* ---------- cenários de caverna / gelo / ninho ---------- */
+  function ceiling(ctx, c, R, base, amp) {
+    const hs = [];
+    for (let x = 0; x < W; x++) {
+      const h = Math.round(base + Math.sin(x * .03 + 1) * amp + Math.sin(x * .11) * amp * .35);
+      hs.push(h); rect(ctx, c[0], x, 0, 1, h); rect(ctx, mix(c[0], '#ffffff', .12), x, h - 1, 1, 1);
+    }
+    for (let x = 6; x < W - 6; x += irand(9, 18)) {
+      const len = irand(6, 20), w = irand(2, 4);
+      for (let k = 0; k < len; k++) { const half = Math.max(0, Math.round((1 - k / len) * w)); rect(ctx, c[0], x - half, hs[x] + k - 1, half * 2 + 1, 1); rect(ctx, mix(c[0], '#ffffff', .15), x - half, hs[x] + k - 1, 1, 1); }
+    }
+    return hs;
+  }
+  function beam(ctx, x, top, wood, lamp) {
+    rect(ctx, OUT, x - 1, top - 1, 8, GY - top + 2);
+    rect(ctx, wood, x, top, 6, GY - top); rect(ctx, mix(wood, '#ffffff', .18), x, top, 2, GY - top);
+    rect(ctx, OUT, x - 26, top + 3, 58, 7); rect(ctx, wood, x - 25, top + 4, 56, 5); rect(ctx, mix(wood, '#ffffff', .18), x - 25, top + 4, 56, 1);
+    if (lamp) {
+      rect(ctx, OUT, x + 14, top + 9, 1, 8); rect(ctx, OUT, x + 11, top + 17, 7, 7);
+      for (let r = 20, k = 0; r > 4; r -= 4, k++) px.halo(ctx, 'rgba(255,190,90,.35)', x + 14, top + 21, r, k);
+      rect(ctx, '#ffb347', x + 12, top + 18, 5, 5); rect(ctx, '#fff0a0', x + 13, top + 19, 3, 3);
+    }
+  }
+  function web(ctx, x, y, dir, len) {
+    for (let k = 0; k < len; k++) { rect(ctx, 'rgba(255,255,255,.4)', x + dir * k, y + k, 1, 1); rect(ctx, 'rgba(255,255,255,.3)', x + dir * Math.floor(k * .5), y + k, 1, 1); rect(ctx, 'rgba(255,255,255,.3)', x + dir * k, y + Math.floor(k * .5), 1, 1); }
+    for (let k = 4; k < len; k += 5) for (let j = 0; j < k; j += 2) rect(ctx, 'rgba(255,255,255,.28)', x + dir * j, y + k - j, 1, 1);
+  }
+  function crystal(ctx, x, y, h, c, up) {
+    for (let r = h * 2.4, k = 0; r > h; r -= 3, k++) px.halo(ctx, c.g, x, y - (up ? h / 2 : -h / 2), r, k);
+    for (let k = 0; k < h; k++) { const half = Math.max(0, Math.round((1 - k / h) * 2.4)); const yy = up ? y - k : y + k; rect(ctx, c.d, x - half, yy, half * 2 + 1, 1); rect(ctx, c.l, x - half, yy, 1, 1); }
+  }
+  function goldPile(ctx, x, y, w) {
+    for (let i = 0; i < w; i++) { const h = Math.round(Math.sin(i / w * Math.PI) * (w * .38)); for (let k = 0; k < h; k++) rect(ctx, k % 3 === 0 ? '#ffe27a' : '#d9a21f', x + i, y - k, 1, 1); rect(ctx, OUT, x + i, y - h - 1, 1, 1); }
+    for (let i = 0; i < w * .6; i++) rect(ctx, '#fff6c0', x + irand(2, w - 3), y - irand(1, Math.max(2, Math.round(w * .3))), 1, 1);
+  }
+  function egg(ctx, x, y, h, c1, c2) {
+    for (let k = 0; k < h; k++) { const t = k / h, half = Math.round(Math.sin(Math.min(1, t * .9 + .12) * Math.PI) * h * .36); rect(ctx, c1, x - half, y - k, half, 1); rect(ctx, c2, x, y - k, half, 1); }
+    for (let k = 0; k < 4; k++) rect(ctx, mix(c2, '#000', .3), x - 2 + irand(0, 4), y - irand(2, h - 2), 1, 1);
+  }
+  function stalagmite(ctx, x, base, h, w, c1, c2) {
+    for (let k = 0; k < h; k++) { const half = Math.round((1 - k / h) * w); rect(ctx, c1, x - half, base - k, half, 1); rect(ctx, c2, x, base - k, half, 1); }
+  }
   function bakeMap(m) {
     const back = mk(W, H), front = mk(W, H), b = back.getContext('2d'), f = front.getContext('2d');
     const R = rng(m.seed);
@@ -740,6 +839,28 @@ const Art = (() => {
       mountainPeak(f, 90, 120, 70, mc[0], mc[1], false);
       mountainPeak(f, 440, 130, 60, mc[0], mc[1], false);
       ridge(f, mc[1], '#6a3a30', 176, 6, m.seed + 5, .03);
+    } else if (m.mid === 'tunnel' || m.mid === 'mine') {
+      const hs = ceiling(f, mc, R, m.mid === 'mine' ? 22 : 24, 6);
+      const cr = m.mid === 'mine' ? [{ d: '#37d6ff', l: '#bff6ff', g: 'rgba(80,220,255,.18)' }, { d: '#ff6bd6', l: '#ffd0f4', g: 'rgba(255,100,220,.16)' }] : null;
+      for (let bx = 40; bx < W; bx += irand(120, 150)) beam(f, bx, hs[bx] + 1, mc[1], R() < .8);
+      if (cr) {
+        for (let k = 0; k < 9; k++) { const x = irand(10, W - 10); crystal(f, x, GY - 1, irand(8, 16), cr[k % 2], true); }
+        for (let k = 0; k < 6; k++) { const x = irand(10, W - 10); crystal(f, x, hs[x] + 4, irand(6, 11), cr[(k + 1) % 2], false); }
+        web(f, 0, 0, 1, 34); web(f, W - 1, 0, -1, 30); web(f, 150, hs[150] + 2, 1, 18); web(f, 330, hs[330] + 2, -1, 20);
+      } else {
+        for (let k = 0; k < 8; k++) { const x = irand(10, W - 10); stalagmite(f, x, GY - 1, irand(8, 18), irand(2, 4), mc[0], mix(mc[0], '#000', .25)); }
+        rect(f, 'rgba(0,0,0,.18)', 0, 0, 14, GY); rect(f, 'rgba(0,0,0,.18)', W - 14, 0, 14, GY);
+      }
+    } else if (m.mid === 'peaks') {
+      mountainPeak(f, 70, 62, 90, mc[0], mc[1], true);
+      mountainPeak(f, 250, 80, 80, mc[1], mc[2], true);
+      mountainPeak(f, 420, 56, 96, mc[0], mc[1], true);
+      ridge(f, mc[2], '#f4f8ff', 170, 8, m.seed + 4, .03);
+      for (let px2 = 12; px2 < W; px2 += irand(26, 50)) { pine(f, px2, 186 + irand(0, 6), irand(20, 32), '#2f5a58', '#1f4440'); rect(f, '#f4f8ff', px2 - 3, 186 - irand(14, 22), 6, 1); }
+    } else if (m.mid === 'nest') {
+      for (let k = 0; k < 7; k++) { const x = irand(10, W - 10); stalagmite(f, x, GY - 4, irand(50, 110), irand(8, 18), mc[0], mc[1]); }
+      for (let i = 0; i < 40; i++) rect(b, `rgba(255,${80 + i * 2},30,${.012 + i * .0009})`, 0, GY - 70 + i, W, 1);
+      ridge(f, mc[1], '#6a3a30', 176, 6, m.seed + 5, .03);
     }
     // chão
     const g = m.gnd;
@@ -752,6 +873,22 @@ const Art = (() => {
     for (let px = 0; px < W; px += irand(5, 11)) { rect(f, g[0], px, GY - 5, 1, 4); rect(f, g[1], px + 1, GY - 4, 1, 3); }
     if (m.id === 'plain') for (let i = 0; i < 18; i++) { const px = Math.floor(R() * W); rect(f, pick(['#ff6b9d', '#ffe066', '#fff']), px, GY - 5, 2, 2); rect(f, '#2f6a2f', px, GY - 3, 1, 3); }
     if (m.id === 'volcano') for (let i = 0; i < 9; i++) { let lx = Math.floor(R() * W), ly = GY + 8; for (let k = 0; k < 6; k++) { lx += irand(-4, 4); ly += irand(3, 8); rect(f, '#ff6a1a', lx, ly, 3, 1); rect(f, '#ffd24a', lx + 1, ly, 1, 1); } }
+    if (m.id === 'tunnel') {
+      for (let x = 3; x < W; x += 9) { rect(f, OUT, x, GY + 9, 5, 5); rect(f, '#6a4a2a', x, GY + 9, 5, 4); }
+      rect(f, OUT, 0, GY + 10, W, 3); rect(f, '#a8a8b8', 0, GY + 10, W, 1); rect(f, '#6a6a78', 0, GY + 12, W, 1);
+      for (let x = 60; x < W; x += irand(110, 170)) { rect(f, OUT, x, GY - 12, 22, 12); rect(f, '#7a5a38', x + 1, GY - 11, 20, 10); rect(f, '#4a3420', x + 1, GY - 5, 20, 4); rect(f, '#3a3a46', x + 3, GY - 3, 5, 5); rect(f, '#3a3a46', x + 14, GY - 3, 5, 5); }
+    }
+    if (m.id === 'mine') {
+      rect(f, OUT, 0, GY + 10, W, 3); rect(f, '#a8a8b8', 0, GY + 10, W, 1);
+      for (let x = 3; x < W; x += 12) { rect(f, OUT, x, GY + 9, 5, 5); rect(f, '#6a4a2a', x, GY + 9, 5, 4); }
+      for (let x = 40; x < W; x += irand(90, 140)) { rect(f, OUT, x, GY - 12, 18, 12); rect(f, '#8a6a42', x + 1, GY - 11, 16, 10); rect(f, '#37d6ff', x + 3, GY - 14, 3, 3); rect(f, '#ff6bd6', x + 8, GY - 15, 3, 4); rect(f, '#3a3a46', x + 2, GY - 3, 4, 4); rect(f, '#3a3a46', x + 12, GY - 3, 4, 4); }
+    }
+    if (m.id === 'peak') for (let i = 0; i < 70; i++) rect(f, '#ffffff', Math.floor(R() * W), GY + 8 + Math.floor(R() * 50), irand(1, 3), 1);
+    if (m.id === 'nest') {
+      for (let x = 20; x < W; x += irand(70, 120)) goldPile(f, x, GY - 1, irand(22, 40));
+      for (let k = 0; k < 4; k++) egg(f, irand(150, W - 20), GY, irand(12, 18), pick(['#4a8a6a', '#7a4a8a', '#8a5a3a']), '#2a2030');
+      for (let i = 0; i < 9; i++) { let lx = Math.floor(R() * W), ly = GY + 8; for (let k = 0; k < 6; k++) { lx += irand(-4, 4); ly += irand(3, 8); rect(f, '#ff6a1a', lx, ly, 3, 1); rect(f, '#ffd24a', lx, ly, 1, 1); } }
+    }
     if (m.id === 'mount') for (let i = 0; i < 14; i++) rect(f, '#c8b89a', Math.floor(R() * W), GY + 10 + Math.floor(R() * 40), 3, 2);
     return { back, front };
   }

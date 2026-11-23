@@ -27,6 +27,7 @@ const UI = (() => {
   const gemBtn = (a, extra, c, ok, label) => `<button class="btn sm violet ${ok ? '' : 'dis'}" data-a="${a}" ${extra}>${label || ''}${ic('gem')}${fmt(c)}</button>`;
   function hydrateCanvases() {
     ui.querySelectorAll('canvas[data-castle]').forEach(c => { const src = Art.castle(Save.d.equip.castle, Game.R.tier).c; c.width = src.width; c.height = src.height; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0); });
+    ui.querySelectorAll('canvas[data-petc]').forEach(c => { const src = Art.pet(c.dataset.petc).n; c.width = src.width; c.height = src.height; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0); });
     ui.querySelectorAll('canvas[data-ally]').forEach(c => { const src = Art.ally(c.dataset.ally).n; c.width = src.width; c.height = src.height; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; x.drawImage(src, 0, 0); });
   }
 
@@ -86,9 +87,9 @@ const UI = (() => {
     show(`<div class="full panel">
       <div class="head"><button class="btn sm dark" data-a="menu">${ic('left')}Voltar</button><div class="title">ESCOLHA O MODO</div><div style="width:calc(var(--u)*50)"></div></div>
       <div class="cards3">
-        <div class="mode" data-a="mode" data-m="map"><div class="ic">${ic('castle', 'pi4')}</div><h3>CAMPANHA</h3><p>5 mapas, 10 ondas cada, com chefe no final. Vença para liberar o próximo.</p><div class="rec">Mapas: ${Math.min(s.cleared, MAPS.length)}/${MAPS.length} concluídos</div></div>
+        <div class="mode" data-a="mode" data-m="map"><div class="ic">${ic('castle', 'pi4')}</div><h3>CAMPANHA</h3><p>9 mapas, 10 ondas cada, com chefe no final. Vença para liberar o próximo.</p><div class="rec">Mapas: ${Math.min(s.cleared, MAPS.length)}/${MAPS.length} concluídos</div></div>
         <div class="mode" data-a="mode" data-m="infinite"><div class="ic">${ic('inf', 'pi4')}</div><h3>MODO INFINITO</h3><p>Ondas sem fim, chefes a cada 10 ondas e cartas de habilidade para evoluir seu mago.</p><div class="rec">Recorde: onda ${s.best.inf}</div></div>
-        <div class="mode" data-a="mode" data-m="boss"><div class="ic">${ic('skull', 'pi4')}</div><h3>BOSS RUSH</h3><p>Enfrente os 8 chefes em sequência, do Rei Slime ao Rei Demônio. Cada vitória rende cartas.</p><div class="rec">Recorde: ${s.best.boss} chefes</div></div>
+        <div class="mode" data-a="mode" data-m="boss"><div class="ic">${ic('skull', 'pi4')}</div><h3>BOSS RUSH</h3><p>Enfrente os 12 chefes em sequência, do Rei Slime ao Rei Demônio. Cada vitória rende cartas.</p><div class="rec">Recorde: ${s.best.boss} chefes</div></div>
       </div></div>`, 'screen');
   }
 
@@ -130,14 +131,18 @@ const UI = (() => {
     const prev = l === 0 ? allyText(id, 1) : mx ? allyText(id, l) : `${allyText(id, l)} → ${allyText(id, l + 1)}`;
     return `<div class="it ${l ? 'on' : ''}"><div class="ic"><canvas data-ally="${id}"></canvas></div><div class="tx"><div class="nm">${a.name}<em>${l ? `Nv ${l}/${a.max}` : 'Não contratado'}</em></div><div class="ds">${a.desc}<br>${prev}</div></div><div class="act">${mx ? '<span class="sub">MÁX</span>' : costBtn('ally', `data-id="${id}"`, c, R.gold >= c, l === 0 ? 'Contratar ' : '')}</div></div>`;
   }
+  function petItem(id) {
+    const R = Game.R, p = PET_INFO[id], own = !!R.pets[id], c = PET_COST[id];
+    return `<div class="it ${own ? 'on' : ''}"><div class="ic"><canvas data-petc="${id}"></canvas></div><div class="tx"><div class="nm">${p.name}<em>${own ? 'Adotado' : 'Pet'}</em></div><div class="ds">${p.desc}<br>Acompanha o mago e ataca sozinho. Dá para ter todos.</div></div><div class="act">${own ? '<span class="sub">COMPRADO</span>' : costBtn('pet', `data-id="${id}"`, c, R.gold >= c, 'Adotar ')}</div></div>`;
+  }
   function prepBody() {
     const R = Game.R;
     if (prepTab === 'mago') {
-      const hasPet = Save.d.equip.pet !== 'none';
-      return ['dmg', 'spd', 'crit', 'gold'].map(upItem).join('') + (hasPet ? upItem('pet') : `<div class="it"><div class="ic">${ic('paw')}</div><div class="tx"><div class="nm">Treino do Pet</div><div class="ds">Equipe um pet na Loja de Skins para treiná-lo aqui.</div></div></div>`);
+      const hasPet = Object.keys(R.pets).length > 0;
+      return ['dmg', 'spd', 'crit', 'gold'].map(upItem).join('') + (hasPet ? upItem('pet') : `<div class="it"><div class="ic">${ic('paw')}</div><div class="tx"><div class="nm">Treino do Pet</div><div class="ds">Compre um pet na aba Aliados para treiná-lo aqui.</div></div></div>`);
     }
     if (prepTab === 'hab') return SKILL_KEYS.map(skillItem).join('');
-    if (prepTab === 'ali') return Object.keys(ALLIES).map(allyItem).join('');
+    if (prepTab === 'ali') return Object.keys(ALLIES).map(allyItem).join('') + Object.keys(PET_COST).map(petItem).join('');
     if (prepTab === 'arm') {
       return R.slots.map((s, i) => {
         const tr = TRAPS[s.type], c = trapCost(s.type, s.lvl), mx = s.lvl >= TRAP_MAX;
@@ -191,7 +196,7 @@ const UI = (() => {
   /* ---------- loja permanente (só skins; melhorias ficam dentro da partida) ---------- */
   function showShop() {
     const s = Save.d;
-    const tabs = [['mage', 'hat', 'Magos'], ['castle', 'castle', 'Castelos'], ['pet', 'paw', 'Pets']];
+    const tabs = [['mage', 'hat', 'Magos'], ['castle', 'castle', 'Castelos']];
     const body = SKINS[shopTab].map(k => {
       const owned = s.owned[shopTab].includes(k.id), eq = s.equip[shopTab] === k.id;
       const act = eq ? '<button class="btn sm eq">Equipado</button>' : owned ? `<button class="btn sm green" data-a="seq" data-g="${shopTab}" data-id="${k.id}">Equipar</button>` : gemBtn('sbuy', `data-g="${shopTab}" data-id="${k.id}"`, k.cost, s.gems >= k.cost);
@@ -251,7 +256,7 @@ const UI = (() => {
         if (secret.n >= 7) { secret.n = 0; Game.cheat(99999); Snd.sfx.buy(); toast('+99999 gemas (modo teste)'); (ui.querySelector('.menu') ? showMenu : showShop)(); }
         break;
       }
-      case 'mode': Snd.sfx.click(); if (d.m === 'boss') startRun('boss', 4); else showMaps(d.m); break;
+      case 'mode': Snd.sfx.click(); if (d.m === 'boss') startRun('boss', MAPS.findIndex(m => m.id === 'volcano')); else showMaps(d.m); break;
       case 'locked': Snd.sfx.nope(); toast('Vença o mapa anterior para liberar', 'lock'); break;
       case 'map': startRun(mapMode, +d.i); break;
       case 'retry': startRun(d.m, +d.i); break;
@@ -261,6 +266,7 @@ const UI = (() => {
       case 'skill': Game.buy.skill(d.id); renderPrep(); break;
       case 'trap': Game.buy.trap(+d.i); renderPrep(); break;
       case 'ally': Game.buy.ally(d.id); renderPrep(); break;
+      case 'pet': Game.buy.pet(d.id); renderPrep(); break;
       case 'repair': Game.buy.repair(); renderPrep(); break;
       case 'go': Snd.sfx.click(); clearUI(); showHud(true); buildSkills(); Game.beginWave(); break;
       case 'card': Game.pickCard(d.id); renderPrep(); break;

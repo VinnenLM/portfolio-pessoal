@@ -18,6 +18,7 @@ const ENEMY = {
   goblin:   { name: 'Goblin',           sprite: 'goblin',   hp: 34,  spd: 40, dmg: 6,  rate: 1.0, gold: 3,  cost: 4,  w: 12, h: 15 },
   skeleton: { name: 'Esqueleto',        sprite: 'skeleton', hp: 62,  spd: 32, dmg: 9,  rate: 1.1, gold: 5,  cost: 6,  w: 12, h: 16 },
   witch:    { name: 'Bruxa',            sprite: 'witch',    hp: 80,  spd: 28, dmg: 10, rate: 2.2, gold: 9,  cost: 9,  w: 12, h: 16, ranged: true, range: 150, shot: '#b86bff' },
+  spider:   { name: 'Aranha',          sprite: 'spider',   hp: 30,  spd: 58, dmg: 5,  rate: 0.9, gold: 3,  cost: 3,  w: 14, h: 10, scale: 1 },
   ogre:     { name: 'Ogro',             sprite: 'ogre',     hp: 240, spd: 20, dmg: 24, rate: 1.6, gold: 14, cost: 14, w: 26, h: 32, scale: 2 },
   darkmage: { name: 'Mago das Trevas',  sprite: 'darkmage', hp: 170, spd: 26, dmg: 14, rate: 2.4, gold: 16, cost: 16, w: 12, h: 16, ranged: true, range: 172, shot: '#ff3d6e', summon: { type: 'skeleton', every: 7, n: 1 } },
   troll:    { name: 'Troll',            sprite: 'troll',    hp: 420, spd: 22, dmg: 30, rate: 1.5, gold: 22, cost: 22, w: 28, h: 34, scale: 2, regen: 0.02 },
@@ -28,10 +29,14 @@ const BOSSES = [
   { id: 'slimeking',  name: 'Rei Slime',          base: 'slime',    scale: 3, hp: 780,  spd: 15, dmg: 16,  rate: 1.4, gold: 60,  w: 44, h: 38, crown: true, die: { spawn: 'slime', n: 6 } },
   { id: 'goblinlord', name: 'Senhor Goblin',      base: 'goblin',   scale: 3, hp: 1150, spd: 26, dmg: 22,  rate: 1.1, gold: 80,  w: 38, h: 48, crown: true, summon: { type: 'goblin', every: 8, n: 3 } },
   { id: 'lich',       name: 'Rei Esqueleto',      base: 'skeleton', scale: 3, hp: 1650, spd: 20, dmg: 30,  rate: 1.2, gold: 100, w: 38, h: 50, crown: true, summon: { type: 'skeleton', every: 7, n: 2 } },
+  { id: 'batking',    name: 'Morcego Gigante',    base: 'bat',      scale: 3, hp: 2100, spd: 34, dmg: 28,  rate: 1.1, gold: 95,  w: 46, h: 34, fly: true, fy: 128, summon: { type: 'bat', every: 6, n: 2 } },
+  { id: 'spiderqueen', name: 'Aranha Gigante',   base: 'spider',   scale: 3, hp: 2800, spd: 30, dmg: 36,  rate: 1.0, gold: 115, w: 46, h: 34, summon: { type: 'spider', every: 6, n: 3 } },
   { id: 'ogrechief',  name: 'Ogro Chefe',         base: 'ogre',     scale: 3, hp: 3000, spd: 14, dmg: 70,  rate: 1.8, gold: 130, w: 46, h: 58, crown: true },
+  { id: 'icegolem',   name: 'Golem de Gelo',      base: 'golem',    scale: 3, hp: 3600, spd: 12, dmg: 95,  rate: 2.2, gold: 150, w: 46, h: 54, regen: 0.006 },
   { id: 'trollking',  name: 'Rei Troll',          base: 'troll',    scale: 3, hp: 3900, spd: 16, dmg: 80,  rate: 1.6, gold: 170, w: 48, h: 60, crown: true, regen: 0.012 },
   { id: 'witchqueen', name: 'Rainha Bruxa',       base: 'witch',    scale: 3, hp: 3800, spd: 18, dmg: 45,  rate: 2.0, gold: 200, w: 38, h: 50, crown: true, ranged: true, range: 190, shot: '#d86bff', summon: { type: 'bat', every: 5, n: 3 } },
   { id: 'archmage',   name: 'Arquimago Sombrio',  base: 'darkmage', scale: 3, hp: 5600, spd: 16, dmg: 60,  rate: 1.8, gold: 260, w: 38, h: 50, crown: true, ranged: true, range: 205, shot: '#ff3d6e', summon: { type: 'witch', every: 10, n: 1 } },
+  { id: 'dragon',     name: 'Dragão Ancestral',   base: 'dragon',   scale: 3, hp: 7200, spd: 18, dmg: 75,  rate: 2.0, gold: 330, w: 48, h: 40, fly: true, fy: 96, ranged: true, range: 205, shot: '#ff7a1a' },
   { id: 'demonking',  name: 'Rei Demônio',        base: 'demon',    scale: 3, hp: 8500, spd: 14, dmg: 110, rate: 1.5, gold: 400, w: 48, h: 60, ranged: true, range: 170, shot: '#ff7a1a', summon: { type: 'ogre', every: 12, n: 1 } },
 ];
 
@@ -105,6 +110,13 @@ const ALLIES = {
   ballista:  { name: 'Balista',           icon: 'ballista', unlock: 345, base: 210, grow: 1.55, max: 8, x: 84, cy: 96, desc: 'Virote pesado que atravessa vários inimigos.' },
   cleric:    { name: 'Clérigo',           icon: 'cross',    unlock: 225, base: 150, grow: 1.5,  max: 8, x: 40, cy: 30, desc: 'Cura o castelo aos poucos e atira luz sagrada.' },
 };
+const PET_COST = { slimey: 110, fairy: 150, owl: 210, dragon: 300 };
+const PET_INFO = {
+  slimey: { name: 'Slimezinho',    desc: 'Cospe gosma venenosa.' },
+  fairy:  { name: 'Fada Faísca',   desc: 'Dispara faíscas rápidas.' },
+  owl:    { name: 'Coruja Gélida', desc: 'Seus tiros deixam lento.' },
+  dragon: { name: 'Dragãozinho',   desc: 'Cospe fogo que queima.' },
+};
 const allyCost = (id, l) => l === 0 ? ALLIES[id].unlock : Math.round(ALLIES[id].base * Math.pow(ALLIES[id].grow, l - 1));
 const allyStats = (id, l) => {
   const g = l - 1;
@@ -161,22 +173,35 @@ const RARITY = [{ n: 'Comum', c: '#8fd3ff' }, { n: 'Rara', c: '#c58bff' }, { n: 
 /* ---------- Mapas ---------- */
 const MAPS = [
   { id: 'plain',  name: 'Planície Verde',    desc: 'Slimes, goblins e morcegos.',            hp: 1.0, gold: 1.0, start: 60,
-    pool: [['slime', 1], ['goblin', 2], ['bat', 3], ['skeleton', 7]], boss: 0, amb: 'clouds', seed: 11,
+    pool: [['slime', 1], ['goblin', 2], ['bat', 3], ['skeleton', 7]], boss: 'slimeking', amb: 'clouds', seed: 11,
     sky: ['#4aa8e8', '#86caf2', '#c8ecfa'], far: '#8bb3dc', mid: 'hills', midc: ['#4f9a45', '#3c7f38', '#2f6a2f'], gnd: ['#5ab04a', '#4b9a3c', '#8a5e38', '#6d4628'], orb: { x: 380, y: 52, r: 14, c: '#fff3b0', g: 'rgba(255,240,170,.25)' } },
   { id: 'forest', name: 'Floresta Sombria',  desc: 'Goblins, esqueletos e bruxas à espreita.', hp: 1.15, gold: 1.2, start: 100,
-    pool: [['goblin', 1], ['bat', 2], ['skeleton', 3], ['witch', 6], ['ogre', 9]], boss: 1, amb: 'fireflies', seed: 23,
+    pool: [['goblin', 1], ['bat', 2], ['skeleton', 3], ['witch', 6], ['ogre', 9]], boss: 'goblinlord', amb: 'fireflies', seed: 23,
     sky: ['#24405a', '#3f6b78', '#8fb094'], far: '#31566a', mid: 'pines', midc: ['#1d4a34', '#153a28', '#0f2e20'], gnd: ['#3d7a3a', '#2f6430', '#5e4630', '#46321f'], orb: { x: 90, y: 60, r: 11, c: '#e8f0d0', g: 'rgba(220,240,200,.18)' } },
   { id: 'grave',  name: 'Cemitério Assombrado', desc: 'Mortos-vivos e magia sombria.',         hp: 1.3, gold: 1.4, start: 150,
-    pool: [['skeleton', 1], ['bat', 1], ['goblin', 1], ['witch', 3], ['ogre', 5], ['darkmage', 7]], boss: 2, amb: 'wisps', seed: 37, stars: true,
+    pool: [['skeleton', 1], ['bat', 1], ['goblin', 1], ['witch', 3], ['ogre', 5], ['darkmage', 7]], boss: 'lich', amb: 'wisps', seed: 37, stars: true,
     sky: ['#0e0a22', '#211844', '#4b3a78'], far: '#2a2150', mid: 'graves', midc: ['#2c2a44', '#232038', '#1a182b'], gnd: ['#4b5a4e', '#3a483e', '#4a4150', '#322b38'], orb: { x: 360, y: 56, r: 16, c: '#e6e3ff', g: 'rgba(190,180,255,.22)' } },
+  { id: 'tunnel', name: 'Túnel Abandonado', desc: 'Morcegos, goblins e o Morcego Gigante.', hp: 1.35, gold: 1.5, start: 170,
+    pool: [['bat', 1], ['goblin', 1], ['skeleton', 2], ['bat', 3], ['witch', 6], ['ogre', 8]], boss: 'batking', amb: 'dust', seed: 71,
+    sky: ['#0a0a14', '#161624', '#2a2a3c'], far: '#1c1c2c', mid: 'tunnel', midc: ['#2a2a3a', '#4a3320', '#1a1a26'], gnd: ['#5a5148', '#463f38', '#3a342e', '#2a2622'], orb: { x: 60, y: 120, r: 9, c: '#e8f4ff', g: 'rgba(200,230,255,.22)' } },
+  { id: 'mine', name: 'Mina Abandonada', desc: 'Aranhas, cristais e a Aranha Gigante.', hp: 1.45, gold: 1.6, start: 190,
+    pool: [['spider', 1], ['goblin', 1], ['skeleton', 2], ['spider', 2], ['witch', 5], ['ogre', 7], ['darkmage', 9]], boss: 'spiderqueen', amb: 'wisps', seed: 83,
+    sky: ['#120a1e', '#241636', '#3a2650'], far: '#2a1c3c', mid: 'mine', midc: ['#34244a', '#5a3a22', '#201530'], gnd: ['#5a4a58', '#463a48', '#382e3a', '#251e28'], orb: { x: 400, y: 110, r: 8, c: '#ffd6f5', g: 'rgba(255,170,240,.2)' } },
   { id: 'mount',  name: 'Montanha dos Ogros', desc: 'Ogros, trolls e muito músculo.',          hp: 1.5, gold: 1.65, start: 220,
-    pool: [['goblin', 1], ['skeleton', 1], ['bat', 2], ['ogre', 3], ['witch', 5], ['troll', 6], ['darkmage', 8]], boss: 4, amb: 'clouds', seed: 49,
+    pool: [['goblin', 1], ['skeleton', 1], ['bat', 2], ['ogre', 3], ['witch', 5], ['troll', 6], ['darkmage', 8]], boss: 'trollking', amb: 'clouds', seed: 49,
     sky: ['#d9644f', '#f0a65c', '#f8dc98'], far: '#a5586a', mid: 'crags', midc: ['#7a6275', '#5f4a63', '#473650'], gnd: ['#a08a6c', '#8a7658', '#6b5642', '#4f3e30'], orb: { x: 120, y: 74, r: 22, c: '#fff1c2', g: 'rgba(255,220,150,.3)' } },
+  { id: 'peak', name: 'Pico de Gelo', desc: 'Neve, trolls e o Golem de Gelo.', hp: 1.65, gold: 1.8, start: 240,
+    pool: [['goblin', 1], ['skeleton', 1], ['bat', 2], ['witch', 3], ['troll', 4], ['ogre', 5], ['darkmage', 7]], boss: 'icegolem', amb: 'snow', seed: 97,
+    sky: ['#6aa6d8', '#a6cdea', '#e4f2fb'], far: '#9ab8d8', mid: 'peaks', midc: ['#8aa6c8', '#6a86aa', '#4a6688'], gnd: ['#f0f6fc', '#d4e2f0', '#9ab4d0', '#7a96b4'], orb: { x: 90, y: 60, r: 13, c: '#fffbe8', g: 'rgba(255,255,230,.25)' } },
+  { id: 'nest', name: 'Ninho do Dragão', desc: 'Calor, ouro e o Dragão Ancestral.', hp: 1.85, gold: 2.0, start: 280,
+    pool: [['skeleton', 1], ['bat', 1], ['witch', 2], ['ogre', 3], ['troll', 4], ['darkmage', 5], ['bat', 6]], boss: 'dragon', amb: 'embers', seed: 109,
+    sky: ['#14060c', '#4a1620', '#b84a22'], far: '#3a1018', mid: 'nest', midc: ['#2c1416', '#44201c', '#1a0c0e'], gnd: ['#5a4038', '#42302a', '#32221e', '#20140f'], orb: { x: 380, y: 70, r: 15, c: '#ffb050', g: 'rgba(255,140,60,.3)' } },
   { id: 'volcano', name: 'Reino das Trevas',  desc: 'O Rei Demônio e seu exército.',          hp: 1.8, gold: 1.9, start: 300,
-    pool: [['skeleton', 1], ['goblin', 1], ['witch', 1], ['ogre', 2], ['troll', 4], ['darkmage', 5]], boss: 7, amb: 'embers', seed: 61,
+    pool: [['skeleton', 1], ['goblin', 1], ['witch', 1], ['ogre', 2], ['troll', 4], ['darkmage', 5]], boss: 'demonking', amb: 'embers', seed: 61,
     sky: ['#1a050c', '#561220', '#d1501c'], far: '#3c0f1a', mid: 'volcano', midc: ['#2a1218', '#1d0c12', '#12070b'], gnd: ['#4a3a3e', '#352a2d', '#2a2022', '#1a1315'], orb: { x: 240, y: 40, r: 18, c: '#ff4d2a', g: 'rgba(255,80,40,.28)' } },
 ];
 const CAMPAIGN_WAVES = 10;
+const bossById = id => BOSSES.find(b => b.id === id);
 
 /* ---------- Loja permanente (gemas) ---------- */
 const SKINS = {
@@ -193,13 +218,6 @@ const SKINS = {
     { id: 'dark',     name: 'Fortaleza Sombria', cost: 80, desc: 'Torres violeta e janelas mágicas.' },
     { id: 'volcanic', name: 'Forja Vulcânica', cost: 90, desc: 'Pedra negra e brasas.' },
     { id: 'gold',     name: 'Palácio Dourado', cost: 120, desc: 'Digno de um arquimago.' },
-  ],
-  pet: [
-    { id: 'none',   name: 'Sem pet',        cost: 0,  desc: '' },
-    { id: 'slimey', name: 'Slimezinho',     cost: 30, desc: 'Cospe gosma venenosa.' },
-    { id: 'fairy',  name: 'Fada Faísca',    cost: 40, desc: 'Dispara faíscas rápidas.' },
-    { id: 'owl',    name: 'Coruja Gélida',  cost: 60, desc: 'Seus tiros deixam lento.' },
-    { id: 'dragon', name: 'Dragãozinho',    cost: 80, desc: 'Cospe fogo que queima.' },
   ],
 };
 /* ---------- Escala de dificuldade ---------- */
