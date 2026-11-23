@@ -3,7 +3,7 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; touch-action: manipulation; border-radius: 0; }
 html, body { margin: 0; height: 100%; background: #0b0716; overflow: hidden; overscroll-behavior: none; }
 body { display: flex; align-items: center; justify-content: center; font-family: "Tiny5", ui-monospace, Menlo, Consolas, monospace; font-weight: 400; font-variant-ligatures: none; color: #fff; -webkit-font-smoothing: none; font-smooth: never; }
-#stage { position: relative; --u: 2px; width: 100vw; height: 56.25vw; max-height: 100vh; background: #000; overflow: hidden; font-size: calc(var(--u) * 7); }
+#stage { position: relative; --u: 2px; --np: 0px; --sl: max(env(safe-area-inset-left, 0px), var(--np)); --sr: max(env(safe-area-inset-right, 0px), var(--np)); width: 100vw; height: 56.25vw; max-height: 100vh; background: #000; overflow: hidden; font-size: calc(var(--u) * 7); }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; image-rendering: crisp-edges; display: block; }
 .hidden { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; background: none; }
@@ -30,7 +30,7 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 .gold { color: var(--gold); }
 
 /* ---------- HUD ---------- */
-#hud { position: absolute; left: 0; right: 0; top: 0; padding: calc(var(--u) * 4) calc(var(--u) * 6); display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5; }
+#hud { position: absolute; left: 0; right: 0; top: 0; padding: calc(var(--u) * 4) calc(var(--u) * 6 + var(--sr)) calc(var(--u) * 4) calc(var(--u) * 6 + var(--sl)); display: flex; justify-content: space-between; align-items: flex-start; pointer-events: none; z-index: 5; }
 #hud > div { display: flex; flex-direction: column; gap: calc(var(--u) * 2); }
 .hud-l { width: 32%; }
 .hud-c { align-items: center; flex: 1; }
@@ -60,9 +60,9 @@ button { font: inherit; color: inherit; cursor: pointer; border: 0; padding: 0; 
 @keyframes pulse { 50% { box-shadow: 0 calc(var(--u) * 2) 0 var(--ink), inset 0 0 0 calc(var(--u) * 1) var(--c); } }
 
 /* ---------- telas ---------- */
-#ui { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
+#ui { position: absolute; inset: 0 var(--sr) 0 var(--sl); z-index: 10; pointer-events: none; }
 #ui > * { pointer-events: auto; }
-#modal { position: absolute; inset: 0; z-index: 30; background: rgba(8, 4, 18, .72); display: flex; align-items: center; justify-content: center; }
+#modal { position: absolute; inset: 0; padding: 0 var(--sr) 0 var(--sl); z-index: 30; background: rgba(8, 4, 18, .72); display: flex; align-items: center; justify-content: center; }
 .panel { background: var(--panel); border: calc(var(--u) * 2) solid var(--ink); box-shadow: 0 0 0 calc(var(--u) * 2) var(--gold), 0 0 0 calc(var(--u) * 4) var(--ink), inset 0 0 0 calc(var(--u) * 1.5) #3d3170, 0 calc(var(--u) * 6) 0 calc(var(--u) * 2) var(--ink); padding: calc(var(--u) * 8); }
 h1, h2, h3, p { margin: 0; }
 .title { font-size: calc(var(--u) * 14); color: var(--gold); text-align: center; text-shadow: 0 calc(var(--u) * 1.6) 0 #7a3b00, 0 calc(var(--u) * 3) 0 var(--ink); letter-spacing: .05em; }

@@ -2,7 +2,9 @@
 /* ============================================================
    FORTMANCER — dados do jogo (inimigos, habilidades, mapas, loja)
    ============================================================ */
-const W = 480, H = 270, GY = 206, CASTLE_X = 108;
+const H = 270, GY = 206, CASTLE_X = 108;
+// largura lógica se adapta à proporção da tela (celulares compridos), de 480 (16:9) até 620
+const W = (() => { try { const a = innerWidth / innerHeight; return a > 16 / 9 + .02 ? Math.min(620, Math.round(H * a)) : 480; } catch (e) { return 480; } })();
 const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const irand = (a, b) => Math.floor(rand(a, b + 1));

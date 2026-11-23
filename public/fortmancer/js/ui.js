@@ -10,11 +10,13 @@ const UI = (() => {
   const setTxt = (el, v) => { if (cache[el.id] !== v) { cache[el.id] = v; el.textContent = v; } };
   const setW = (el, v) => { if (cache[el.id] !== v) { cache[el.id] = v; el.style.width = v; } };
 
+  const isApp = !!(window.Capacitor && Capacitor.isNativePlatform && Capacitor.isNativePlatform()) || (window.matchMedia && matchMedia('(display-mode: standalone)').matches);
   function resize() {
-    const w = innerWidth, h = innerHeight; let sw = w, sh = w * 9 / 16;
-    if (sh > h) { sh = h; sw = h * 16 / 9; }
+    const w = innerWidth, h = innerHeight, asp = W / H; let sw = w, sh = w / asp;
+    if (sh > h) { sh = h; sw = h * asp; }
     stage.style.width = sw + 'px'; stage.style.height = sh + 'px';
     stage.style.setProperty('--u', (sh / 270) + 'px');
+    if (isApp) stage.style.setProperty('--np', (sh / 270 * 12) + 'px');
   }
   const ic = (name, cls) => `<img class="pi ${cls || ''}" src="${Art.iconURL(name)}" alt="">`;
   const hydrate = root => (root || document).querySelectorAll('[data-ic]').forEach(el => { el.innerHTML = ic(el.dataset.ic); });
@@ -82,7 +84,7 @@ const UI = (() => {
         </div>
       </div>
       <div class="corner l"><div class="chip" data-a="gems">${ic('gem')}<b>${fmt(g)}</b></div></div>
-      <div class="corner"><button class="ibtn" data-a="settings">${ic('gear')}</button><button class="ibtn" data-a="fs">${ic('full')}</button></div>
+      <div class="corner"><button class="ibtn" data-a="settings">${ic('gear')}</button>${isApp ? '' : `<button class="ibtn" data-a="fs">${ic('full')}</button>`}</div>
       <div class="ver">v0.2</div>`, 'screen');
   }
 
@@ -269,7 +271,7 @@ const UI = (() => {
       <div class="opt"><span>Música</span><input type="range" min="0" max="100" value="${Math.round(s.music * 100)}" data-k="music"></div>
       <div class="opt"><span>Efeitos</span><input type="range" min="0" max="100" value="${Math.round(s.sfx * 100)}" data-k="sfx"></div>
       ${tog('shake', 'Tremor de tela')}${tog('nums', 'Números de dano')}${tog('auto', 'Habilidades automáticas')}
-      <div class="row"><button class="btn sm dark" data-a="fs">${ic('full')}Tela cheia</button>${!Game.R || Game.state === 'menu' ? `<button class="btn sm dark" data-a="xfer">${ic('gem')}Transferir save</button>` : ''}<button class="btn sm dark ${resetArm ? 'dis' : ''}" data-a="reset">${resetArm ? 'Toque de novo para apagar' : ic('retry') + 'Apagar progresso'}</button></div>
+      <div class="row">${isApp ? '' : `<button class="btn sm dark" data-a="fs">${ic('full')}Tela cheia</button>`}${!Game.R || Game.state === 'menu' ? `<button class="btn sm dark" data-a="xfer">${ic('gem')}Transferir save</button>` : ''}<button class="btn sm dark ${resetArm ? 'dis' : ''}" data-a="reset">${resetArm ? 'Toque de novo para apagar' : ic('retry') + 'Apagar progresso'}</button></div>
       <button class="btn" data-a="closem">Fechar</button></div>`;
   }
   function myCardsHtml() {
