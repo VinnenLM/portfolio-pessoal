@@ -233,7 +233,7 @@ const UI = (() => {
     ['fire', 'HABILIDADES', 'Toque nos ícones na parte de baixo da tela (ou use as teclas <b>1 a 8</b>). Cada habilidade tem um tempo de recarga. Compre novas na aba <b>Habilidades</b> da loja e melhore-as para deixá-las mais fortes.'],
     ['roots', 'COMBINE AS HABILIDADES', '<b>Raízes</b> prendem os inimigos (e puxam voadores ao chão). Solte <b>Veneno</b> e <b>Meteoros</b> em cima de quem está preso. <b>Gelo</b> deixa a horda lenta, o <b>Relâmpago</b> salta entre vários e a <b>Luz</b> cura o castelo. Meteoros acertam em cheio os chefes.'],
     ['coin', 'A LOJA ENTRE ONDAS', 'Ao vencer uma onda, a loja abre. Gaste o ouro em melhorias do <b>Mago</b>, <b>Habilidades</b>, <b>Aliados</b> e pets, <b>Armadilhas</b> (uma de cada tipo por espaço) e <b>Castelo</b> — ele evolui visualmente conforme você melhora as muralhas.'],
-    ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> e no <b>Boss Rush</b> você escolhe uma carta a cada onda (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas! De tempos em tempos surge uma <b>onda bônus</b>: 2–3 chefes mais fracos, sem risco de perder — se vencer, ouro extra e 2 cartas!'],
+    ['star', 'CARTAS E MODOS', 'No <b>Modo Infinito</b> você escolhe uma carta depois de cada chefe (a cada 10 ondas) e no <b>Boss Rush</b> a cada chefe (5 segundos, senão sai uma aleatória). Na <b>Campanha</b> cada mapa tem um chefe no final. Chefes voadores e morcegos gigantes ignoram as armadilhas! De tempos em tempos surge uma <b>onda bônus</b>: 2–3 chefes mais fracos, sem risco de perder — se vencer, ouro extra e 2 cartas!'],
     ['gear', 'AUTOMÁTICO', 'Depois de aprender a usar as habilidades, compre a <b>Conjuração Automática</b> na aba Habilidades: o jogo passa a usá-las por você, de forma inteligente. Nos modos infinito e Boss Rush há também a <b>Onda automática</b> (botão no preparo). Sua partida é salva sozinha entre as ondas.'],
   ];
   let tutI = 0;
@@ -350,7 +350,7 @@ const UI = (() => {
   function myCardsHtml() {
     const R = Game.R, list = CARDS.filter(c => R.cards[c.id] > 0);
     const total = list.reduce((a, c) => a + R.cards[c.id], 0);
-    if (!list.length) return `<div class="sub" style="grid-column:1/-1;text-align:center;padding:calc(var(--u)*20)">Você ainda não pegou nenhuma carta. Elas aparecem ao fim de cada onda.</div>`;
+    if (!list.length) return `<div class="sub" style="grid-column:1/-1;text-align:center;padding:calc(var(--u)*20)">Você ainda não pegou nenhuma carta. Elas aparecem depois de cada chefe.</div>`;
     return `<div class="sub" style="grid-column:1/-1">${total} carta${total > 1 ? 's' : ''} em ${list.length} tipo${list.length > 1 ? 's' : ''}</div>` + list.map(c => {
       const n = R.cards[c.id];
       return `<div class="it on" style="--rc:${RARITY[c.rar].c}"><div class="ic">${ic(c.icon)}</div><div class="tx"><div class="nm">${c.name}<em>x${n}${c.max ? '/' + c.max : ''}</em></div><div class="ds">${c.desc}<br><span class="gold">Total: ${n} carta${n > 1 ? 's' : ''} · ${RARITY[c.rar].n}</span></div></div></div>`;

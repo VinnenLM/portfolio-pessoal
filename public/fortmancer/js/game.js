@@ -436,9 +436,8 @@ const Game = (() => {
       Snd.sfx.poison();
     } else if (id === 'sand') {
       const lv = E.filter(e => e.alive && e.x < W - 12 && e.x > CASTLE_X - 6); if (!lv.length) return false;
-      const lead = lv.reduce((a, b) => a.x < b.x ? a : b);
-      const sx = clamp(lead.x - st.radius * .5, CASTLE_X + 20, W - 50);
-      ZN.push({ k: 'sand', x: sx, r: st.radius, dps: st.dmg, push: st.push, t: 0, life: st.dur, vt: st.vt, ph: rand(0, 6) });
+      const sx = CASTLE_X - 6, ex = W - 24;   // nasce junto ao castelo e varre a tela da esquerda para a direita
+      ZN.push({ k: 'sand', x: sx, vx: (ex - sx) / st.dur, r: st.radius, dps: st.dmg, push: st.push, t: 0, life: st.dur, vt: st.vt, ph: rand(0, 6) });
       shake = Math.max(shake, 2); Snd.sfx.sand();
     } else if (id === 'roots') {
       const live = E.filter(e => e.alive && e.x < W - 6 && !e.pulled);
@@ -677,7 +676,7 @@ const Game = (() => {
   function updateZones(dt) {
     for (const z of ZN) {
       if (z.k === 'sand') {
-        z.t += dt; z.x = Math.min(W - 24, z.x + 38 * dt);
+        z.t += dt; z.x = Math.min(W - 24, z.x + z.vx * dt);
         for (const e of E) {
           if (!e.alive || Math.abs(e.x - z.x) > z.r + e.w / 2) continue;
           e.sandT = .2; e.x = Math.min(W - 6, e.x + z.push * (e.boss ? .6 : 1) * dt);
@@ -833,11 +832,12 @@ const Game = (() => {
     state = 'prep';
     healCastle(R.castle.max * .3);
     R.castle.barrier = R.castle.bmax;
-    R.pendingCard = R.mode !== 'map';
+    const cardWave = R.mode === 'boss' || (R.mode === 'infinite' && w % 10 === 0);   // cartas só depois de chefes
+    R.pendingCard = cardWave;
     if (R.mode !== 'map') refreshOffers();
     if ((R.mode === 'infinite' && w % 15 === 0) || (R.mode === 'boss' && w % 4 === 0)) R.bonusNext = true;
     saveRun();
-    hooks.waveClear && hooks.waveClear(bonus, R.mode !== 'map');
+    hooks.waveClear && hooks.waveClear(bonus, cardWave);
   }
   function calcGems(win) {
     const w = Math.max(0, R.wave - (win ? 0 : 1));
