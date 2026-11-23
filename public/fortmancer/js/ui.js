@@ -241,6 +241,26 @@ const UI = (() => {
 
   /* ---------- modais ---------- */
   function closeModal() { modal.classList.add('hidden'); modal.innerHTML = ''; resetArm = false; if (Game.state === 'wave' && Game.paused) Game.paused = false; }
+  let xferArm = false;
+  function showTransfer(msg) {
+    modal.classList.remove('hidden');
+    modal.innerHTML = `<div class="panel settings"><div class="title" style="font-size:calc(var(--u)*10)">TRANSFERIR SAVE</div>
+      <div class="sub" style="font-size:calc(var(--u)*6.2);line-height:1.4">Para jogar em outro aparelho: copie o código (ou baixe o arquivo) aqui e cole/abra lá em "Importar". O save inclui progresso, skins, gemas e partidas salvas.</div>
+      <textarea id="xferTxt" spellcheck="false">${Save.exportCode()}</textarea>
+      <div class="row"><button class="btn sm" data-a="xcopy">Copiar código</button><button class="btn sm dark" data-a="xdl">Baixar arquivo</button></div>
+      <div class="row"><button class="btn sm ${xferArm ? 'dis' : 'green'}" data-a="ximp">${xferArm ? 'Toque de novo para substituir' : 'Importar do campo'}</button><button class="btn sm dark" data-a="xfile">Abrir arquivo</button></div>
+      <input type="file" id="xferFile" accept=".json,.txt,application/json,text/plain" style="display:none">
+      <div class="sub" id="xferMsg" style="font-size:calc(var(--u)*6.2);min-height:calc(var(--u)*8)">${msg || ''}</div>
+      <button class="btn" data-a="settings">Voltar</button></div>`;
+    const f = modal.querySelector('#xferFile');
+    f.onchange = () => { const file = f.files[0]; if (!file) return; const r = new FileReader(); r.onload = () => { modal.querySelector('#xferTxt').value = String(r.result); xferArm = false; xferApply(); }; r.readAsText(file); };
+  }
+  function xferApply() {
+    const o = Save.parseCode(modal.querySelector('#xferTxt').value);
+    if (!o) { xferArm = false; showTransfer('Código inválido. Confira se copiou tudo.'); modal.querySelector('#xferTxt').value = ''; return; }
+    if (!xferArm) { xferArm = true; const t = modal.querySelector('#xferTxt').value; showTransfer('Isso substitui o save deste aparelho.'); modal.querySelector('#xferTxt').value = t; return; }
+    xferArm = false; Save.apply(o); Save.store(); Snd.setVolumes(Save.d.set.music, Save.d.set.sfx); closeModal(); showMenu(); toast('Save importado!');
+  }
   function showSettings() {
     const s = Save.d.set;
     const tog = (k, label) => `<div class="opt"><span>${label}</span><div class="tog ${s[k] ? 'on' : ''}" data-a="tog" data-k="${k}"></div></div>`;
@@ -249,7 +269,7 @@ const UI = (() => {
       <div class="opt"><span>Música</span><input type="range" min="0" max="100" value="${Math.round(s.music * 100)}" data-k="music"></div>
       <div class="opt"><span>Efeitos</span><input type="range" min="0" max="100" value="${Math.round(s.sfx * 100)}" data-k="sfx"></div>
       ${tog('shake', 'Tremor de tela')}${tog('nums', 'Números de dano')}${tog('auto', 'Habilidades automáticas')}
-      <div class="row"><button class="btn sm dark" data-a="fs">${ic('full')}Tela cheia</button><button class="btn sm dark ${resetArm ? 'dis' : ''}" data-a="reset">${resetArm ? 'Toque de novo para apagar' : ic('retry') + 'Apagar progresso'}</button></div>
+      <div class="row"><button class="btn sm dark" data-a="fs">${ic('full')}Tela cheia</button>${!Game.R || Game.state === 'menu' ? `<button class="btn sm dark" data-a="xfer">${ic('gem')}Transferir save</button>` : ''}<button class="btn sm dark ${resetArm ? 'dis' : ''}" data-a="reset">${resetArm ? 'Toque de novo para apagar' : ic('retry') + 'Apagar progresso'}</button></div>
       <button class="btn" data-a="closem">Fechar</button></div>`;
   }
   function myCardsHtml() {
@@ -324,6 +344,11 @@ const UI = (() => {
       }
       case 'seq': Save.d.equip[d.g] = d.id; Save.store(); Snd.sfx.click(); showShop(); break;
       case 'tog': { const s = Save.d.set; s[d.k] = !s[d.k]; Save.store(); el.classList.toggle('on', s[d.k]); Snd.sfx.click(); break; }
+      case 'xfer': Snd.sfx.click(); xferArm = false; showTransfer(); break;
+      case 'xcopy': { const t = modal.querySelector('#xferTxt'); t.select(); let ok = false; try { ok = document.execCommand('copy'); } catch (e) { } if (navigator.clipboard) navigator.clipboard.writeText(Save.exportCode()).then(() => { }, () => { }); modal.querySelector('#xferMsg').textContent = 'Código copiado!'; Snd.sfx.click(); break; }
+      case 'xdl': { try { const blob = new Blob([JSON.stringify(Save.d)], { type: 'application/json' }), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'fortmancer-save.json'; document.body.appendChild(a); a.click(); a.remove(); modal.querySelector('#xferMsg').textContent = 'Arquivo gerado. Se não baixou, use "Copiar código".'; } catch (e) { modal.querySelector('#xferMsg').textContent = 'Não foi possível baixar. Use "Copiar código".'; } break; }
+      case 'ximp': xferApply(); break;
+      case 'xfile': modal.querySelector('#xferFile').click(); break;
       case 'reset':
         if (!resetArm) { resetArm = true; showSettings(); } else { Save.reset(); Snd.setVolumes(Save.d.set.music, Save.d.set.sfx); closeModal(); showMenu(); toast('Progresso apagado'); }
         break;
@@ -348,7 +373,7 @@ const UI = (() => {
   }
   addEventListener('pointerdown', unlockAudio, { passive: true });
   addEventListener('keydown', e => {
-    unlockAudio();
+    unlockAudio(); if (e.target && (e.target.tagName === 'TEXTAREA' || e.target.tagName === 'INPUT') && e.key !== 'Escape') return;
     const k = e.key;
     if (k >= '1' && k <= '7' && Game.state === 'wave' && !Game.paused) { Game.cast(SKILL_KEYS[+k - 1]); }
     else if (k === 'Escape' || k === 'p' || k === 'P') { if (!modal.classList.contains('hidden')) closeModal(); else showPause(); }

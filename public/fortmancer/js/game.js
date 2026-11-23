@@ -13,13 +13,25 @@ const Save = {
     };
   },
   load() {
+    let s = null;
+    try { s = JSON.parse(localStorage.getItem('fortmancer.save') || 'null'); } catch (e) { }
+    return this.apply(s);
+  },
+  apply(s) {
     const d = this.def();
     try {
-      const s = JSON.parse(localStorage.getItem('fortmancer.save') || 'null');
       if (s && s.run && s.run.mode && !(s.runs && s.runs[s.run.mode])) { s.runs = Object.assign({}, s.runs); s.runs[s.run.mode] = s.run; }
       if (s) for (const k of Object.keys(d)) if (s[k] !== undefined) d[k] = (d[k] && typeof d[k] === 'object' && !Array.isArray(d[k])) ? Object.assign(d[k], s[k]) : s[k];
     } catch (e) { }
     this.d = d; return d;
+  },
+  exportCode() { return 'FM1:' + btoa(unescape(encodeURIComponent(JSON.stringify(this.d)))); },
+  parseCode(txt) {
+    let t = String(txt || '').trim().replace(/\s+/g, '');
+    if (t.startsWith('FM1:')) t = t.slice(4);
+    let o;
+    try { o = t.startsWith('{') ? JSON.parse(t) : JSON.parse(decodeURIComponent(escape(atob(t)))); } catch (e) { return null; }
+    return o && typeof o === 'object' && typeof o.gems === 'number' && o.owned && o.equip ? o : null;
   },
   store() { try { localStorage.setItem('fortmancer.save', JSON.stringify(this.d)); } catch (e) { } },
   reset() { try { localStorage.removeItem('fortmancer.save'); } catch (e) { } this.load(); },

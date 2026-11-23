@@ -191,3 +191,5 @@ h1, h2, h3, p { margin: 0; }
 .mode .btn { width: 80%; }
 .mode { justify-content: flex-start; }
 .mode p { min-height: calc(var(--u) * 6.8 * 1.35 * 3); }
+
+#xferTxt { width: 100%; height: calc(var(--u) * 44); resize: none; background: #14102a; color: #cfc6f5; border: calc(var(--u) * 1.5) solid var(--edge); font-family: inherit; font-size: calc(var(--u) * 6); padding: calc(var(--u) * 3); word-break: break-all; border-radius: 0; }
