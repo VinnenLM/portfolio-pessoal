@@ -211,7 +211,8 @@
       A.sfx('place');
       if (!viaBonus) {
         G.streak++;
-        A.say(COMBO_WORDS[Math.min(G.streak, COMBO_WORDS.length) - 1]);
+        const word = COMBO_WORDS[Math.min(G.streak, COMBO_WORDS.length) - 1];
+        A.say(word); showCombo(word, G.streak);
       }
       saveRun();
       if (finished) win();
@@ -234,14 +235,14 @@
     save.run = null; persist(); updateHUD();
     A.sfx('win');
     const next = G.mode === 'campaign';
-    modal(
+    setTimeout(() => modal(
       `<div class="pug-big">${G.pugHtml}</div><h2>Fase completa!</h2><p>+1 ponto 🐾</p>` +
       `<div class="reward">${got.map((t) => `<span>${BONUS_NAMES[t]}</span>`).join('')}</div>`,
       [
         { label: next ? 'Próxima fase' : 'Jogar de novo', cls: 'primary', fn: () => (next ? startCampaign() : startGame({ mode: 'free', n: G.n, seed: Math.floor(Math.random() * 1e9) })) },
         { label: 'Menu', fn: () => show('menu') },
       ]
-    );
+    ), 900);
   }
 
   function lose() {
@@ -252,6 +253,77 @@
       { label: 'Tentar de novo', cls: 'primary', fn: () => startGame(cfg) },
       { label: 'Menu', fn: () => show('menu') },
     ]);
+  }
+
+
+  /* ---------- Arrastar para riscar ---------- */
+  let drag = null, dragSuppress = false;
+  function cellAt(x, y) {
+    const el = document.elementFromPoint(x, y);
+    const c = el && el.closest ? el.closest('.cell') : null;
+    return c && c.parentNode === $('#board') ? +c.dataset.i : -1;
+  }
+  function paint(i) {
+    const r = (i / G.n) | 0, c = i % G.n;
+    if (G.pugs[r] === c || G.marks[i] === drag.val) return;
+    G.marks[i] = drag.val; renderCell(i); A.sfx('mark');
+  }
+  function dragDown(e) {
+    if (!G || G.done || (e.pointerType === 'mouse' && e.button !== 0)) return;
+    const i = cellAt(e.clientX, e.clientY);
+    if (i >= 0) drag = { start: i, last: i, active: false, val: 1 };
+  }
+  function dragMove(e) {
+    if (!drag || !G) return;
+    const i = cellAt(e.clientX, e.clientY);
+    if (i < 0 || i === drag.last) return;
+    if (!drag.active) {
+      drag.active = true; clearHint(); setMsg(DEFAULT_MSG); G.lastTap = null; A.init();
+      drag.val = G.marks[drag.start] ? 0 : 1; // começou num X: apaga; começou vazio: risca
+      paint(drag.start);
+    }
+    // preenche também os quadrados pulados quando o dedo anda rápido
+    const n = G.n, r0 = (drag.last / n) | 0, c0 = drag.last % n, r1 = (i / n) | 0, c1 = i % n;
+    const steps = Math.max(Math.abs(r1 - r0), Math.abs(c1 - c0));
+    for (let s = 1; s <= steps; s++) paint(Math.round(r0 + (r1 - r0) * s / steps) * n + Math.round(c0 + (c1 - c0) * s / steps));
+    drag.last = i;
+  }
+  function dragUp() {
+    if (!drag) return;
+    if (drag.active) { dragSuppress = true; setTimeout(() => { dragSuppress = false; }, 80); saveRun(); }
+    drag = null;
+  }
+
+
+  /* ---------- Efeito da palavra de combo ---------- */
+  const COMBO_COLORS = [ // [preenchimento, contorno] por nível do combo
+    ['#ffe08a', '#a8661c'], ['#ffc15e', '#a8561c'], ['#ffa66b', '#a8401c'], ['#ff8a8a', '#a82a3a'], ['#ff6fae', '#a81c62'],
+    ['#c58bff', '#4b1c8a'], ['#82aaff', '#1c3a8a'], ['#5fe0d0', '#0f5a52'], ['#fff06a', '#8a6a00'], ['#ffffff', '#3b1f10'],
+  ];
+  const SPARKS = ['✨', '⭐', '🐾', '💫'];
+  function showCombo(word, streak) {
+    const fx = $('#fx'); if (!fx) return;
+    const lv = Math.min(streak, COMBO_WORDS.length);
+    fx.innerHTML = '';
+    const el = document.createElement('div');
+    el.className = 'combo-word' + (lv === COMBO_WORDS.length ? ' rainbow' : '');
+    el.style.setProperty('--lv', lv);
+    el.style.setProperty('--c', COMBO_COLORS[lv - 1][0]);
+    el.style.setProperty('--g', COMBO_COLORS[lv - 1][1]);
+    el.innerHTML = `${word}!` + (streak >= 2 ? `<small>COMBO x${streak}</small>` : '');
+    fx.appendChild(el);
+    const count = lv >= 3 ? Math.min(4 + lv * 2, 20) : 0;
+    for (let k = 0; k < count; k++) {
+      const sp = document.createElement('span'); sp.className = 'spark';
+      const ang = Math.random() * Math.PI * 2, dist = 70 + Math.random() * 90;
+      sp.style.setProperty('--dx', Math.cos(ang) * dist + 'px');
+      sp.style.setProperty('--dy', Math.sin(ang) * dist + 'px');
+      sp.style.animationDelay = Math.random() * 0.12 + 's';
+      sp.textContent = SPARKS[Math.floor(Math.random() * SPARKS.length)];
+      fx.appendChild(sp);
+    }
+    if (lv >= 5) { const b = $('#board'); b.classList.remove('glow'); void b.offsetWidth; b.classList.add('glow'); }
+    clearTimeout(showCombo.t); showCombo.t = setTimeout(() => { fx.innerHTML = ''; }, 1300);
   }
 
   /* ---------- Bônus ---------- */
@@ -353,8 +425,8 @@
       p: 'Só pode ter <b>1 pug por linha</b> e <b>1 pug por coluna</b>. Aqui tem 4 cores, 4 linhas, 4 colunas e 4 pugs.' },
     { t: 'Sem se tocar', html: () => miniBoard([1, 6], [1, 6]),
       p: 'Os pugs <b>não podem se tocar</b>, nem na diagonal. Esses dois estão errados!' },
-    { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
-      p: 'Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 ❤️. Se todas as vidas acabarem, a fase recomeça.' },
+    { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
+      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 ❤️. Se todas as vidas acabarem, a fase recomeça.' },
     { t: 'Dicas e bônus', html: () => '<div class="reward"><span>❤️ +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
       p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>2 bônus</b>. A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
   ];
@@ -394,7 +466,15 @@
     $('#shop-back').addEventListener('click', () => show('menu'));
     $('#opt-back').addEventListener('click', () => show('menu'));
     $('#btn-back').addEventListener('click', () => { clearHint(); saveRun(); show('menu'); });
-    $('#board').addEventListener('click', (e) => { const el = e.target.closest('.cell'); if (el) onCellTap(+el.dataset.i); });
+    $('#board').addEventListener('click', (e) => {
+      if (dragSuppress) return;
+      const el = e.target.closest('.cell'); if (el) onCellTap(+el.dataset.i);
+    });
+    const board = $('#board');
+    board.addEventListener('pointerdown', dragDown);
+    board.addEventListener('pointermove', dragMove);
+    board.addEventListener('pointerup', dragUp);
+    board.addEventListener('pointercancel', dragUp);
     BONUS_TYPES.forEach((t) => $('#bonus-' + t).addEventListener('click', () => useBonus(t)));
 
     $('#opt-music').addEventListener('change', (e) => { save.settings.music = e.target.checked; A.init(); A.setMusic(e.target.checked); persist(); });

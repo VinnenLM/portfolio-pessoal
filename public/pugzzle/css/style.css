@@ -63,8 +63,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
 #screen-game { padding-left: 6px; padding-right: 6px; }
 
 /* Tabuleiro */
-.board-wrap { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
-.board { --size: min(calc(100vw - 12px), calc(100dvh - 250px), 560px); width: var(--size); height: var(--size);
+.board-wrap { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
+.board { touch-action: none; --size: min(calc(100vw - 12px), calc(100dvh - 250px), 560px); width: var(--size); height: var(--size);
   display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr));
   border-radius: 10px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.2); border: 3px solid var(--line); background: #fff; }
 .cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; border-style: solid; border-color: var(--line); padding: 0; cursor: pointer; }
@@ -135,3 +135,26 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .dots i { width: 8px; height: 8px; border-radius: 50%; background: #e8d4b4; }
 .dots i.on { background: var(--accent); }
 .modal-card .row { margin-top: 0; }
+
+/* Efeito da palavra de combo */
+.fx { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 5; }
+.combo-word { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.3); opacity: 0; text-align: center;
+  font-weight: 900; font-size: calc(30px + var(--lv) * 3.5px); line-height: 1; white-space: nowrap; letter-spacing: 1px;
+  color: var(--c); text-shadow: 0 3px 0 var(--g), 0 -2px 0 var(--g), 2px 0 0 var(--g), -2px 0 0 var(--g), 0 0 22px var(--c);
+  animation: comboPop 1.15s ease-out forwards; }
+.combo-word small { display: block; margin-top: 4px; font-size: 14px; letter-spacing: 2px; color: #fff; text-shadow: 0 2px 0 var(--g); }
+.combo-word.rainbow { background: linear-gradient(90deg, #ff5f6d, #ffc371, #fff26d, #6dff8f, #6dc8ff, #b06dff, #ff6dd1); -webkit-background-clip: text; background-clip: text; color: transparent; text-shadow: none; filter: drop-shadow(0 3px 0 #3b1f10) drop-shadow(0 0 10px #fff3); }
+@keyframes comboPop {
+  0% { transform: translate(-50%, -50%) scale(.3); opacity: 0; }
+  16% { transform: translate(-50%, -50%) scale(1.3) rotate(-3deg); opacity: 1; }
+  30% { transform: translate(-50%, -50%) scale(1) rotate(0); }
+  72% { transform: translate(-50%, -62%) scale(1); opacity: 1; }
+  100% { transform: translate(-50%, -100%) scale(1.05); opacity: 0; }
+}
+.spark { position: absolute; left: 50%; top: 40%; font-size: 22px; opacity: 0; animation: spark .95s ease-out forwards; }
+@keyframes spark {
+  0% { transform: translate(-50%, -50%) scale(.3); opacity: 1; }
+  100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2) rotate(120deg); opacity: 0; }
+}
+.board.glow { animation: glow .7s ease-out; }
+@keyframes glow { 0% { box-shadow: 0 0 0 0 rgba(255,214,102,.9); } 100% { box-shadow: 0 0 0 26px rgba(255,214,102,0); } }
