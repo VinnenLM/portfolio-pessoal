@@ -83,6 +83,18 @@
     life(t) { [523, 659, 784].forEach((f, i) => tone(f, t + i * 0.08, 0.14, { type: 'triangle', gain: 0.14 })); },
     win(t) { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, t + i * 0.12, 0.25, { type: 'triangle', gain: 0.16, release: 0.5 })); },
     lose(t) { [392, 330, 262].forEach((f, i) => tone(f, t + i * 0.2, 0.3, { type: 'triangle', gain: 0.13, release: 0.4 })); },
+    bark(t) {
+      [0, 0.21].forEach((d, k) => {
+        const f0 = k ? 640 : 720;
+        tone(f0, t + d, 0.1, { type: 'sawtooth', gain: 0.16, slideTo: 300, release: 0.06, attack: 0.008 });
+        tone(f0 * 0.5, t + d, 0.1, { type: 'square', gain: 0.07, slideTo: 150, release: 0.05, attack: 0.008 });
+        const len = Math.floor(ctx.sampleRate * 0.06), buf = ctx.createBuffer(1, len, ctx.sampleRate), ch = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) ch[i] = (Math.random() * 2 - 1) * (1 - i / len);
+        const src = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), g = ctx.createGain();
+        bp.type = 'bandpass'; bp.frequency.value = 1400; g.gain.value = 0.12;
+        src.buffer = buf; src.connect(bp); bp.connect(g); g.connect(sfxBus); src.start(t + d);
+      });
+    },
     buy(t) { [784, 988, 1319].forEach((f, i) => tone(f, t + i * 0.06, 0.1, { type: 'square', gain: 0.05 })); },
   };
 

@@ -64,20 +64,25 @@
   function setMsg(text, cls) { const m = $('#message'); m.textContent = text; m.className = 'message' + (cls ? ' ' + cls : ''); }
   const skinSvg = (id, cls) => Art.svg(Art.byId(id), cls);
 
+  /* ---------- Latido ---------- */
+  function bark(svg, inBoard) {
+    if (!svg) return;
+    A.init(); A.sfx('bark');
+    svg.classList.remove('new', 'bark'); void svg.getBoundingClientRect(); svg.classList.add('bark');
+    setTimeout(() => svg.classList.remove('bark'), 750);
+    const host = inBoard ? $('#fx') : svg.closest('.menu-logo');
+    const r = svg.getBoundingClientRect(), h = host.getBoundingClientRect();
+    const b = document.createElement('div'); b.className = 'bark-bubble'; b.textContent = 'Au! Au!';
+    b.style.left = (r.left - h.left + r.width * .7) + 'px'; b.style.top = (r.top - h.top - 4) + 'px';
+    host.appendChild(b); setTimeout(() => b.remove(), 900);
+  }
+
   /* ---------- Menu ---------- */
   function renderMenu() {
     $('#menu-logo').innerHTML = skinSvg(save.skins.selected);
     $('#menu-points').textContent = save.points;
     const resume = save.run && save.run.mode === 'campaign';
     $('#btn-play').textContent = resume ? 'Continuar (Fase ' + save.run.level + ')' : 'Jogar (Fase ' + save.level + ')';
-    const sizes = $('#free-sizes');
-    if (!sizes.childElementCount) {
-      for (let n = 6; n <= 10; n++) {
-        const b = document.createElement('button'); b.textContent = n + '×' + n;
-        b.addEventListener('click', () => { A.init(); startGame({ mode: 'free', n, seed: Math.floor(Math.random() * 1e9) }); });
-        sizes.appendChild(b);
-      }
-    }
   }
 
   /* ---------- Jogo ---------- */
@@ -151,9 +156,24 @@
   }
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
 
+  function renderChips() {
+    const box = $('#chips'); if (!G) return;
+    const reg = G.puz.regions, n = G.n, done = new Set();
+    for (let r = 0; r < n; r++) if (G.pugs[r] >= 0 && G.pugs[r] != null) done.add(reg[r * n + G.pugs[r]]);
+    if (box.childElementCount !== G.colors.length) {
+      box.innerHTML = '';
+      G.colors.forEach((col) => { const d = document.createElement('div'); d.className = 'chip'; d.style.background = col.hex; box.appendChild(d); });
+    }
+    Array.from(box.children).forEach((d, g) => {
+      const ok = done.has(g);
+      d.classList.toggle('ok', ok);
+      d.innerHTML = ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+    });
+  }
+
   function updateHUD() {
-    $('#game-mode-label').textContent = G.mode === 'campaign' ? 'Fase' : 'Livre';
-    $('#game-level').textContent = G.mode === 'campaign' ? G.level : G.n + '×' + G.n;
+    renderChips();
+    $('#game-level').textContent = G.level;
     $('#game-points').textContent = save.points;
     $('#game-lives').textContent = '❤️'.repeat(G.lives) + '🖤'.repeat(Math.max(0, START_LIVES - G.lives));
     for (const t of BONUS_TYPES) {
@@ -186,7 +206,7 @@
     clearHint();
     setMsg(DEFAULT_MSG);
     const n = G.n, r = (i / n) | 0, c = i % n;
-    if (G.pugs[r] === c) { G.lastTap = null; return; }
+    if (G.pugs[r] === c) { G.lastTap = null; bark(document.querySelector('#board .cell[data-i="' + i + '"] .pug'), true); return; }
     const now = Date.now(), last = G.lastTap;
     if (last && last.i === i && now - last.t <= DOUBLE_MS) {
       // segundo toque rápido: desfaz o risco do primeiro toque e coloca o pug
@@ -232,15 +252,14 @@
     const got = [];
     for (let k = 0; k < 2; k++) { const t = BONUS_TYPES[Math.floor(Math.random() * 3)]; save.bonuses[t]++; got.push(t); }
     save.points += 1; save.solved += 1;
-    if (G.mode === 'campaign') save.level = Math.max(save.level, G.level + 1);
+    save.level = Math.max(save.level, G.level + 1);
     save.run = null; persist(); updateHUD();
     A.sfx('win');
-    const next = G.mode === 'campaign';
     setTimeout(() => modal(
       `<div class="pug-big">${G.pugHtml}</div><h2>Fase completa!</h2><p>+1 ponto 🐾</p>` +
       `<div class="reward">${got.map((t) => `<span>${BONUS_NAMES[t]}</span>`).join('')}</div>`,
       [
-        { label: next ? 'Próxima fase' : 'Jogar de novo', cls: 'primary', fn: () => (next ? startCampaign() : startGame({ mode: 'free', n: G.n, seed: Math.floor(Math.random() * 1e9) })) },
+        { label: 'Próxima fase', cls: 'primary', fn: () => startCampaign() },
         { label: 'Menu', fn: () => show('menu') },
       ]
     ), 900);
@@ -502,12 +521,12 @@
   /* ---------- Eventos ---------- */
   function bind() {
     $('#btn-play').addEventListener('click', startCampaign);
-    $('#btn-free-toggle').addEventListener('click', () => $('#free-sizes').classList.toggle('hidden'));
     $('#btn-shop').addEventListener('click', () => { A.init(); show('shop'); });
     $('#btn-tutorial').addEventListener('click', () => { A.init(); showTutorial(0); });
     $('#btn-options').addEventListener('click', () => { A.init(); show('options'); });
     $('#shop-back').addEventListener('click', () => show('menu'));
     $('#opt-back').addEventListener('click', () => show('menu'));
+    $('#menu-logo').addEventListener('click', () => bark($('#menu-logo svg'), false));
     $('#btn-back').addEventListener('click', () => { clearHint(); saveRun(); show('menu'); });
     $('#board').addEventListener('click', (e) => {
       if (dragSuppress) return;
