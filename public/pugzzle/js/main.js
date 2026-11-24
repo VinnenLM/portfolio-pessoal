@@ -156,7 +156,7 @@
   }
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
 
-  const BONE = (off) => '<svg class="biscuit' + (off ? ' off' : '') + '" viewBox="0 0 40 24"><path d="M9 4.5C9 1.5 4 1 3 4.5 1 6 1 9 3.5 10.2 1 11.5 1 15 3 16.5 4 21 9 20.5 9 17.5 L9 17.5 Q20 20 31 17.5 C31 20.5 36 21 37 16.5 39 15 39 11.5 36.5 10.2 39 9 39 6 37 4.5 36 1 31 1.5 31 4.5 Q20 7 9 4.5Z" fill="' + (off ? '#cfc6bd' : '#e8b56a') + '" stroke="' + (off ? '#a89d92' : '#9a5f2a') + '" stroke-width="2" stroke-linejoin="round"/>' + (off ? '' : '<path d="M13 9.5 Q20 11 27 9.5" fill="none" stroke="#fff" stroke-width="1.6" opacity=".6" stroke-linecap="round"/>') + '</svg>';
+  const BONE = (off) => '<span class="life' + (off ? ' off' : '') + '">🦴</span>';
 
   function renderChips() {
     const box = $('#chips'); if (!G) return;

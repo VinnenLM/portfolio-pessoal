@@ -181,3 +181,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes jaw { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.7); } }
 .bark-bubble { position: absolute; z-index: 9; pointer-events: none; background: #fff; color: var(--ink); font-weight: bold; font-size: 14px; padding: 3px 9px; border-radius: 12px; border: 2px solid var(--accent); white-space: nowrap; animation: bubble .9s ease-out forwards; }
 @keyframes bubble { from { opacity: 0; transform: translateY(6px) scale(.7); } 20% { opacity: 1; transform: scale(1.05); } to { opacity: 0; transform: translateY(-16px); } }
+
+.life { font-size: 24px; line-height: 1; margin: 0 1px; }
+.life.off { filter: grayscale(1); opacity: .3; }
