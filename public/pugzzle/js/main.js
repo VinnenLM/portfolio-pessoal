@@ -57,6 +57,25 @@
   const curPal = () => PALETTES.find((x) => x.id === save.palettes.selected) || PALETTES[0];
   const hexOf = (col) => curPal().h[col.id] || col.hex;
   const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
+  const PAT = {
+    vermelho: '<path d="M12 21C5 15 2 11.5 2 8c0-3 2.3-5 5-5 2 0 4 1.2 5 3 1-1.8 3-3 5-3 2.7 0 5 2 5 5 0 3.5-3 7-10 13z"/>',
+    amarelo: '<path d="M7 17L17 7" fill="none" stroke-width="3.4" stroke-linecap="round"/><circle cx="6" cy="14" r="2.4"/><circle cx="10" cy="18" r="2.4"/><circle cx="14" cy="6" r="2.4"/><circle cx="18" cy="10" r="2.4"/>',
+    azul: '<circle cx="12" cy="12" r="9" fill="none" stroke-width="2.4"/><path d="M4 9q8 4 16 0" fill="none" stroke-width="2.2"/>',
+    roxo: '<path d="M12 2l2.9 6.6 7.1.7-5.4 4.700 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z"/>',
+    rosa: '<circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/>',
+    cinza: '<path d="M2 9q4-4 8 0t8 0 4 0M2 17q4-4 8 0t8 0 4 0" fill="none" stroke-width="2.6" stroke-linecap="round"/>',
+    verde: '<path d="M4 20C4 9 10 4 20 4c0 10-6 16-16 16z"/><path d="M5 19L14 10" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1.6"/>',
+    laranja: '<path d="M12 2l10 10-10 10L2 12z"/>',
+    marrom: '<path d="M2 16l5-8 5 8 5-8 5 8" fill="none" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>',
+    bege: '<circle cx="12" cy="12" r="7" fill="none" stroke-width="3.2"/>',
+  };
+  const isLight = (hex) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114) > 170; };
+  function patUri(id, hex) {
+    const c = isLight(hex) ? 'rgba(80,45,25,.26)' : 'rgba(255,255,255,.38)';
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c}" stroke="${c}">${PAT[id] || ''}</svg>`;
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
+  }
+  const tileBg = (col, size) => { const hex = hexOf(col); return `${patUri(col.id, hex)} center / ${size} no-repeat, ${fillOf(hex)}`; };
   function applyTheme() {
     const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
     for (const k in t.v) document.documentElement.style.setProperty('--' + k, t.v[k]);
@@ -172,7 +191,7 @@
       const r = (i / n) | 0, c = i % n, g = reg[i];
       const el = document.createElement('div');
       el.className = 'cell'; el.dataset.i = i;
-      el.style.background = fillOf(hexOf(G.colors[g]));
+      el.style.background = tileBg(G.colors[g], '62%');
       const f = (cond) => (cond ? '3px' : '0px');
       el.style.setProperty('--tt', f(r === 0 || reg[i - n] !== g));
       el.style.setProperty('--tb', f(r === n - 1 || reg[i + n] !== g));
@@ -186,6 +205,8 @@
   function cellEl(i) { return $('#board').children[i]; }
   function renderCell(i, animate) {
     const el = cellEl(i), r = (i / G.n) | 0, c = i % G.n;
+    const col = G.colors[G.puz.regions[i]], plain = G.pugs[r] === c || G.marks[i];
+    el.style.background = plain ? fillOf(hexOf(col)) : tileBg(col, '62%');
     el.innerHTML = G.pugs[r] === c ? (animate ? G.pugHtml.replace('class="pug"', 'class="pug new"') : G.pugHtml) : (G.marks[i] ? '<span class="x">' + PAW + '</span>' : '');
   }
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
@@ -200,7 +221,7 @@
     const key = curPal().id + G.colors.map((c) => c.id).join();
     if (box.dataset.key !== key) {
       box.dataset.key = key; box.innerHTML = '';
-      G.colors.forEach((col) => { const d = document.createElement('div'); d.className = 'chip'; d.style.background = fillOf(hexOf(col)); box.appendChild(d); });
+      G.colors.forEach((col) => { const d = document.createElement('div'); d.className = 'chip'; d.style.background = tileBg(col, '70%'); box.appendChild(d); });
     }
     Array.from(box.children).forEach((d, g) => {
       const ok = done.has(g);
