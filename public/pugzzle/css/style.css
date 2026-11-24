@@ -204,3 +204,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 .board.intro .cell { animation: lines 1.9s ease-in-out; }
 @keyframes lines { 0% { border-width: 1px; } 20%, 65% { border-width: var(--tw); } 100% { border-width: 1px; } }
+.pal-prev { width: 96px; height: 96px; border-radius: 14px; padding: 8px; display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: 3px; background: var(--tile); }
+.pal-prev i { border-radius: 5px; display: block; }
+.shop-tabs .btn { padding: 8px 4px; }

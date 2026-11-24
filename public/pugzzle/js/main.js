@@ -19,6 +19,7 @@
     v: 1, points: 0, level: 1, solved: 0, tutorialDone: false,
     skins: { owned: ['classico'], selected: 'classico' },
     themes: { owned: ['claro'], selected: 'claro' },
+    palettes: { owned: ['padrao'], selected: 'padrao' },
     bonuses: { life: 1, pug: 1, hint: 1 },
     settings: { music: true, sfx: true, voice: true },
     run: null,
@@ -37,6 +38,7 @@
   }
   let save = load();
   if (!save.themes) save.themes = { owned: ['claro'], selected: 'claro' };
+  if (!save.palettes) save.palettes = { owned: ['padrao'], selected: 'padrao' };
   const THEMES = [
     { id: 'claro', name: 'Claro', price: 0, v: { bg: '#fff6e4', bg2: '#ffe6c6', card: '#fffaf0', ink: '#5b3a29', 'ink-soft': '#8a6a58', accent: '#e39a4a', 'accent-dark': '#c47a2a', panel: '#fffaf0', msg: 'rgba(255,255,255,.55)', tile: '#f3e2c4', tile2: '#e8d4b4', line: 'rgba(60,35,20,.55)' } },
     { id: 'escuro', name: 'Escuro', price: 15, v: { bg: '#1b2233', bg2: '#2a2742', card: '#2a3350', ink: '#e9eefc', 'ink-soft': '#a9b4d0', accent: '#ff9d86', 'accent-dark': '#e07a62', panel: '#2a3350', msg: 'rgba(255,255,255,.08)', tile: '#efe3d0', tile2: '#465175', line: 'rgba(8,10,20,.7)' } },
@@ -45,6 +47,16 @@
     { id: 'algodao', name: 'Algodão-doce', price: 25, v: { bg: '#f0bdd4', bg2: '#e39dbe', card: '#f8d9e6', ink: '#5a2540', 'ink-soft': '#8e5071', accent: '#d9548f', 'accent-dark': '#b53c72', panel: '#f8d9e6', msg: 'rgba(255,255,255,.3)', tile: '#eca9c7', tile2: '#dd92b5', line: 'rgba(80,25,55,.6)' } },
     { id: 'noite', name: 'Noite roxa', price: 30, v: { bg: '#1c1838', bg2: '#33265c', card: '#30284f', ink: '#ece6ff', 'ink-soft': '#b3a8d9', accent: '#9b7bff', 'accent-dark': '#7656e6', panel: '#30284f', msg: 'rgba(255,255,255,.09)', tile: '#e4dcf7', tile2: '#4e457c', line: 'rgba(10,6,25,.7)' } },
   ];
+  const PALETTES = [
+    { id: 'padrao', name: 'Padrão', price: 0, h: { vermelho: '#e8776f', amarelo: '#f3cf6a', azul: '#6f9be8', roxo: '#a883dc', rosa: '#f4a6c8', cinza: '#a9aeb5', verde: '#7ec785', laranja: '#f4a863', marrom: '#a67b5b', bege: '#f6ecd9' } },
+    { id: 'pastel', name: 'Pastel', price: 10, h: { vermelho: '#f1a5a0', amarelo: '#f7e08f', azul: '#a5c3f0', roxo: '#c9b2ec', rosa: '#f8c4dc', cinza: '#c9cdd2', verde: '#aedcb2', laranja: '#f7c796', marrom: '#cfae92', bege: '#fbf3e3' } },
+    { id: 'terra', name: 'Terra', price: 15, h: { vermelho: '#c0605a', amarelo: '#d9b256', azul: '#5f86a8', roxo: '#8b6fa6', rosa: '#c98a9c', cinza: '#8d9496', verde: '#6f9a6a', laranja: '#d08a4e', marrom: '#8a634a', bege: '#eadfca' } },
+    { id: 'doce', name: 'Doce', price: 20, h: { vermelho: '#ff7a85', amarelo: '#ffd35c', azul: '#5eb6ff', roxo: '#b48cff', rosa: '#ff9ad1', cinza: '#b8c0cc', verde: '#5fd69a', laranja: '#ffa04d', marrom: '#b9825a', bege: '#fff1d6' } },
+    { id: 'joia', name: 'Joias', price: 25, h: { vermelho: '#d6455d', amarelo: '#e0b020', azul: '#2f7fd6', roxo: '#7e4fd0', rosa: '#d9549c', cinza: '#7f8a99', verde: '#2fa86a', laranja: '#e0782c', marrom: '#7a4f35', bege: '#d9cdb5' } },
+  ];
+  const curPal = () => PALETTES.find((x) => x.id === save.palettes.selected) || PALETTES[0];
+  const hexOf = (col) => curPal().h[col.id] || col.hex;
+  const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 84%, #fff), ${hex})`;
   function applyTheme() {
     const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
     for (const k in t.v) document.documentElement.style.setProperty('--' + k, t.v[k]);
@@ -162,7 +174,7 @@
       const r = (i / n) | 0, c = i % n, g = reg[i];
       const el = document.createElement('div');
       el.className = 'cell'; el.dataset.i = i;
-      el.style.background = G.colors[g].hex;
+      el.style.background = fillOf(hexOf(G.colors[g]));
       const t = r === 0 || reg[i - n] !== g ? 3 : 1;
       const bt = r === n - 1 || reg[i + n] !== g ? 3 : 1;
       const lf = c === 0 || reg[i - 1] !== g ? 3 : 1;
@@ -187,10 +199,10 @@
     const box = $('#chips'); if (!G) return;
     const reg = G.puz.regions, n = G.n, done = new Set();
     for (let r = 0; r < n; r++) if (G.pugs[r] >= 0 && G.pugs[r] != null) done.add(reg[r * n + G.pugs[r]]);
-    const key = G.colors.map((c) => c.hex).join();
+    const key = curPal().id + G.colors.map((c) => c.id).join();
     if (box.dataset.key !== key) {
       box.dataset.key = key; box.innerHTML = '';
-      G.colors.forEach((col) => { const d = document.createElement('div'); d.className = 'chip'; d.style.background = col.hex; box.appendChild(d); });
+      G.colors.forEach((col) => { const d = document.createElement('div'); d.className = 'chip'; d.style.background = fillOf(hexOf(col)); box.appendChild(d); });
     }
     Array.from(box.children).forEach((d, g) => {
       const ok = done.has(g);
@@ -484,7 +496,29 @@
     $('#shop-points').textContent = save.points;
     $('#tab-skins').classList.toggle('on', shopTab === 'skins');
     $('#tab-themes').classList.toggle('on', shopTab === 'themes');
+    $('#tab-pal').classList.toggle('on', shopTab === 'pal');
     const list = $('#shop-list'); list.innerHTML = '';
+    if (shopTab === 'pal') {
+      PALETTES.forEach((t) => {
+        const owned = save.palettes.owned.includes(t.id), sel = save.palettes.selected === t.id;
+        const card = document.createElement('div');
+        card.className = 'skin-card' + (sel ? ' selected' : '');
+        card.innerHTML = '<div class="pal-prev">' + Object.values(t.h).map((h) => `<i style="background:${fillOf(h)}"></i>`).join('') + `</div><div class="sname">${t.name}</div>`;
+        const btn = document.createElement('button'); btn.className = 'btn';
+        if (sel) { btn.textContent = 'Equipada'; btn.disabled = true; }
+        else if (owned) { btn.textContent = 'Equipar'; btn.addEventListener('click', () => { save.palettes.selected = t.id; persist(); renderShop(); }); }
+        else {
+          btn.textContent = `🐾 ${t.price}`; btn.disabled = save.points < t.price;
+          btn.addEventListener('click', () => {
+            if (save.points < t.price) return;
+            save.points -= t.price; save.palettes.owned.push(t.id); save.palettes.selected = t.id; persist();
+            A.sfx('buy'); toast(`Paleta ${t.name} desbloqueada!`); renderShop();
+          });
+        }
+        card.appendChild(btn); list.appendChild(card);
+      });
+      return;
+    }
     if (shopTab === 'themes') {
       THEMES.forEach((t) => {
         const owned = save.themes.owned.includes(t.id), sel = save.themes.selected === t.id;
@@ -529,7 +563,7 @@
 
   /* ---------- Tutorial ---------- */
   const TUT_REGIONS = [0, 0, 1, 1, 0, 0, 1, 1, 3, 3, 2, 2, 3, 2, 2, 2];
-  const TUT_COLORS = ['#f2c94c', '#5b8def', '#6cc070', '#f49ac2'];
+  const TUT_COLORS = () => ['amarelo', 'azul', 'verde', 'rosa'].map((k) => curPal().h[k]);
   const TUT_SOL = [1, 3, 0, 2];
   function miniBoard(pugs, bad) {
     const pug = skinSvg(save.skins.selected);
@@ -537,7 +571,7 @@
     for (let i = 0; i < 16; i++) {
       const r = (i / 4) | 0, c = i % 4;
       const has = pugs.includes(i), isBad = bad && bad.includes(i);
-      h += `<div class="mc${isBad ? ' bad' : ''}" style="background:${TUT_COLORS[TUT_REGIONS[i]]}">${has ? pug : ''}</div>`;
+      h += `<div class="mc${isBad ? ' bad' : ''}" style="background:${TUT_COLORS()[TUT_REGIONS[i]]}">${has ? pug : ''}</div>`;
     }
     return h + '</div>';
   }
@@ -589,6 +623,7 @@
     $('#opt-back').addEventListener('click', () => show('menu'));
     $('#menu-logo').addEventListener('click', () => bark($('#menu-logo svg'), false));
     $('#tab-skins').addEventListener('click', () => { shopTab = 'skins'; renderShop(); });
+    $('#tab-pal').addEventListener('click', () => { shopTab = 'pal'; renderShop(); });
     $('#tab-themes').addEventListener('click', () => { shopTab = 'themes'; renderShop(); });
     const addPts = () => { save.points += 5; persist(); A.init(); A.sfx('mark'); $('#shop-points').textContent = save.points; $('#menu-points').textContent = save.points; if (!$('#screen-shop').classList.contains('hidden') && $('#screen-shop').classList.contains('active')) renderShop(); };
     $('#shop-points').parentElement.addEventListener('click', addPts);
