@@ -56,7 +56,7 @@
   ];
   const curPal = () => PALETTES.find((x) => x.id === save.palettes.selected) || PALETTES[0];
   const hexOf = (col) => curPal().h[col.id] || col.hex;
-  const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
+  const fillOf = (hex) => hex;
   function applyTheme() {
     const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
     for (const k in t.v) document.documentElement.style.setProperty('--' + k, t.v[k]);

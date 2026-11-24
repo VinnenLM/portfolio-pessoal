@@ -10,8 +10,8 @@
   --edge: rgba(255, 205, 90, .92);
   --edge-glow: rgba(255, 190, 70, .45);
   --panel: #fffaf0;
-  --card-g: linear-gradient(180deg, var(--card), color-mix(in srgb, var(--card) 86%, var(--accent)));
-  --panel-g: linear-gradient(180deg, var(--panel), color-mix(in srgb, var(--panel) 86%, var(--accent)));
+  --card-g: var(--card);
+  --panel-g: var(--panel);
   --msg: rgba(255,255,255,.55);
   --tile: #f6ecd9;
   --tile2: #e8d4b4;
