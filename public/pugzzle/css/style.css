@@ -195,7 +195,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .pug.bark .jaw { animation: jaw .17s ease-in-out 4; transform-origin: 50px 74px; }
 @keyframes bark { 0%,100% { transform: none; } 12% { transform: translateY(-9%) scale(1.05,.95); } 28% { transform: translateY(0) scale(.94,1.06); } 45% { transform: translateY(-9%) scale(1.05,.95); } 62% { transform: translateY(0) scale(.95,1.05); } 80% { transform: none; } }
 @keyframes jaw { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.7); } }
-.bark-bubble { position: absolute; z-index: 9; pointer-events: none; background: #fff; color: var(--ink); font-weight: bold; font-size: 14px; padding: 3px 9px; border-radius: 12px; border: 2px solid var(--accent); white-space: nowrap; animation: bubble .9s ease-out forwards; }
+.bark-bubble { position: absolute; z-index: 9; pointer-events: none; background: #fff8e1; color: #4a2c1a; font-weight: bold; font-size: 14px; padding: 3px 9px; border-radius: 12px; border: 2px solid #4a2c1a; box-shadow: 0 2px 6px rgba(0,0,0,.35); white-space: nowrap; animation: bubble .9s ease-out forwards; }
 @keyframes bubble { from { opacity: 0; transform: translateY(6px) scale(.7); } 20% { opacity: 1; transform: scale(1.05); } to { opacity: 0; transform: translateY(-16px); } }
 
 .bone-ic { fill: #f6e0b0; stroke: #8a5a2b; stroke-width: 1.5; stroke-linejoin: round; overflow: visible; }

@@ -168,8 +168,12 @@
   const skinSvg = (id, cls) => Art.svg(Art.byId(id), cls);
 
   /* ---------- Latido ---------- */
+  let lastBark = 0;
   function bark(svg, inBoard) {
     if (!svg) return;
+    const now = Date.now();
+    if (now - lastBark < 900) return; // limite: sem latir em sequência
+    lastBark = now;
     A.init(); A.sfx('bark');
     svg.classList.remove('new', 'bark'); void svg.getBoundingClientRect(); svg.classList.add('bark');
     setTimeout(() => svg.classList.remove('bark'), 750);
