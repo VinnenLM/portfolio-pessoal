@@ -476,6 +476,7 @@
     if (i >= 0) drag = { start: i, last: i, active: false, val: 1 };
   }
   function dragMove(e) {
+    if (drag && e.pointerType === 'mouse' && e.buttons === 0) { dragUp(); return; } // soltou fora do tabuleiro
     if (!drag || !G) return;
     const i = cellAt(e.clientX, e.clientY);
     if (e.pointerType !== 'mouse') setHov(i);
@@ -759,7 +760,9 @@
     board.addEventListener('pointerdown', dragDown);
     board.addEventListener('pointermove', dragMove);
     board.addEventListener('pointerup', dragUp);
-    board.addEventListener('pointercancel', dragUp);
+    window.addEventListener('pointerup', dragUp);
+    window.addEventListener('pointercancel', dragUp);
+    window.addEventListener('blur', dragUp);
     board.addEventListener('pointercancel', dragUp);
     BONUS_TYPES.forEach((t) => $('#bonus-' + t).addEventListener('click', () => useBonus(t)));
 
