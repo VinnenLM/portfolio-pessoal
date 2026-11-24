@@ -7,7 +7,9 @@
   // Uma palavra por combo (acertos seguidos sem erro). Errou: volta para a primeira.
   const COMBO_WORDS = ['Bom', 'Ótimo', 'Muito bem', 'Excelente', 'Incrível', 'Fantástico', 'Sensacional', 'Épico', 'Perfeito', 'Lendário'];
   const BONUS_TYPES = ['life', 'pug', 'hint'];
-  const BONUS_NAMES = { life: '🦴 +1 vida', pug: '🐶 Pug direto', hint: '💡 Dica' };
+  const BONE_D = 'M7.5 9.5H16.5A3 3 0 1 1 20.5 12A3 3 0 1 1 16.5 14.5H7.5A3 3 0 1 1 3.5 12A3 3 0 1 1 7.5 9.5Z';
+  const boneIcon = (cls) => '<svg class="bone-ic ' + (cls || '') + '" viewBox="0 0 24 24" aria-hidden="true"><g transform="translate(12 12) rotate(-45) scale(1.12) translate(-12 -12)"><path d="' + BONE_D + '"/></g></svg>';
+  const BONUS_NAMES = { life: boneIcon('inl') + ' +1 vida', pug: '🐶 Pug direto', hint: '💡 Dica' };
   const DEFAULT_MSG = '';
   const DOUBLE_MS = 350;
 
@@ -59,7 +61,7 @@
   const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
   const PAT = {
     vermelho: '<g stroke="none"><path d="M12 21C5 15 2 11.5 2 8c0-3 2.3-5 5-5 2 0 4 1.2 5 3 1-1.8 3-3 5-3 2.7 0 5 2 5 5 0 3.5-3 7-10 13z"/></g>',
-    amarelo: '<g stroke="none"><g transform="translate(12 12) rotate(-45) scale(.9) translate(-12 -12)"><rect x="5" y="9.4" width="14" height="5.2" rx="1"/><circle cx="5" cy="8.6" r="3.3"/><circle cx="5" cy="15.4" r="3.3"/><circle cx="19" cy="8.6" r="3.3"/><circle cx="19" cy="15.4" r="3.3"/></g></g>',
+    amarelo: '<g stroke="none"><g transform="translate(12 12) rotate(-45) scale(1.1) translate(-12 -12)"><path d="M7.5 9.5H16.5A3 3 0 1 1 20.5 12A3 3 0 1 1 16.5 14.5H7.5A3 3 0 1 1 3.5 12A3 3 0 1 1 7.5 9.5Z"/></g></g>',
     azul: '<circle cx="12" cy="12" r="9" fill="none" stroke-width="2.4"/><path d="M4 9q8 4 16 0" fill="none" stroke-width="2.2"/>',
     roxo: '<g stroke="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.700 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z"/></g>',
     rosa: '<g stroke="none"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g>',
@@ -150,13 +152,13 @@
     G = Object.assign({}, cfg, {
       puz, colors, names: colors.map((c) => c.name),
       marks: new Uint8Array(n * n), pugs: new Int8Array(n).fill(-1),
-      lives: START_LIVES, dirty: false, lastTap: null, streak: 0, done: false, hl: null, hlTimer: null,
+      lives: START_LIVES, time: 0, dirty: false, lastTap: null, streak: 0, done: false, hl: null, hlTimer: null,
     });
     if (resume) {
       (resume.marks || []).forEach((i) => { G.marks[i] = 1; });
       (resume.pugs || []).forEach((c, r) => { if (r < n) G.pugs[r] = c; });
       G.lives = Math.min(START_LIVES, resume.lives || START_LIVES);
-      G.dirty = !!resume.dirty;
+      G.dirty = !!resume.dirty; G.time = resume.time || 0;
     }
     // em algumas fases (chance baixa, fixa por fase) já começa com 1 pug colocado
     let startPug = false;
@@ -176,7 +178,7 @@
   function saveRun() {
     if (!G || G.done) return;
     save.run = {
-      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: Math.min(START_LIVES, G.lives), dirty: G.dirty,
+      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: Math.min(START_LIVES, G.lives), dirty: G.dirty, time: G.time,
       pugs: Array.from(G.pugs), marks: Array.from(G.marks).reduce((a, v, i) => (v ? (a.push(i), a) : a), []),
     };
     persist();
@@ -212,7 +214,15 @@
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
 
   const PAW = '<svg class="paw" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5.2" ry="4.4"/><ellipse cx="5" cy="10.5" rx="2.2" ry="2.9" transform="rotate(-18 5 10.5)"/><ellipse cx="9.3" cy="5.8" rx="2.2" ry="3" transform="rotate(-6 9.3 5.8)"/><ellipse cx="14.7" cy="5.8" rx="2.2" ry="3" transform="rotate(6 14.7 5.8)"/><ellipse cx="19" cy="10.5" rx="2.2" ry="2.9" transform="rotate(18 19 10.5)"/></svg>';
-  const BONE = (off) => '<span class="life' + (off ? ' off' : '') + '">🦴</span>';
+  const BONE = (off) => boneIcon('life' + (off ? ' off' : ''));
+
+  const fmtTime = (t) => Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+  let tickN = 0;
+  setInterval(() => {
+    if (!G || G.done || !$('#screen-game').classList.contains('active') || !$('#modal').classList.contains('hidden')) return;
+    G.time++; $('#game-time').textContent = fmtTime(G.time);
+    if (++tickN % 5 === 0) saveRun();
+  }, 1000);
 
   function renderChips() {
     const box = $('#chips'); if (!G) return;
@@ -233,6 +243,7 @@
   function updateHUD() {
     renderChips();
     $('#game-level').textContent = G.level;
+    $('#game-time').textContent = fmtTime(G.time || 0);
     $('#game-points').textContent = save.points;
     $('#game-lives').innerHTML = BONE(false).repeat(Math.max(0, G.lives)) + BONE(true).repeat(Math.max(0, START_LIVES - G.lives));
     for (const t of BONUS_TYPES) {
@@ -240,6 +251,7 @@
       $('#bonus-' + t).disabled = save.bonuses[t] <= 0;
     }
     $('#bonus-pug-icon').innerHTML = skinSvg(save.skins.selected);
+    $('#bonus-life-icon').innerHTML = boneIcon('big');
   }
 
   function clearHint() {
@@ -602,8 +614,8 @@
     { t: 'Sem se tocar', html: () => miniBoard([1, 6], [1, 6]),
       p: 'Os pugs <b>não podem se tocar</b>, nem na diagonal. Esses dois estão errados!' },
     { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>' + PAW + '</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
-      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? As patinhas aparecem sozinhas nos quadrados que ficaram impossíveis. Errou? Você perde 1 🦴. Se todas as vidas acabarem, a fase recomeça.' },
-    { t: 'Dicas e bônus', html: () => '<div class="reward"><span>🦴 +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
+      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? As patinhas aparecem sozinhas nos quadrados que ficaram impossíveis. Errou? Você perde 1 ' + boneIcon('inl') + '. Se todas as vidas acabarem, a fase recomeça.' },
+    { t: 'Dicas e bônus', html: () => '<div class="reward"><span>' + boneIcon('inl') + ' +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
       p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>1 bônus aleatório</b> (só se vencer sem errar e sem usar bônus). A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
   ];
   function showTutorial(page) {
