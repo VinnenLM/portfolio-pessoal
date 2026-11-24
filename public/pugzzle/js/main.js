@@ -194,7 +194,9 @@
 
   /* ---------- Jogo ---------- */
   let G = null;
-  const levelSize = (lv) => Math.min(10, 6 + Math.floor((lv - 1) / 5));
+  const levelSize = (lv) => lv <= 20
+    ? 6 + Math.floor((lv - 1) / 5) // começo: do mais fácil (6x6) subindo até 9x9
+    : 6 + Math.floor(L.mulberry32((levelSeed(lv) ^ 0x9e3779b1) >>> 0)() * 5); // depois: tamanho aleatório de 6x6 a 10x10
   const levelSeed = (lv) => 1000 + lv * 37;
 
   function startCampaign() {
