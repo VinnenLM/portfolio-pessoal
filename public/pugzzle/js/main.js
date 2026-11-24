@@ -528,7 +528,28 @@
     $('#tab-skins').classList.toggle('on', shopTab === 'skins');
     $('#tab-themes').classList.toggle('on', shopTab === 'themes');
     $('#tab-pal').classList.toggle('on', shopTab === 'pal');
+    $('#tab-bonus').classList.toggle('on', shopTab === 'bonus');
     const list = $('#shop-list'); list.innerHTML = '';
+    if (shopTab === 'bonus') {
+      const items = [
+        { t: 'life', name: 'Vida extra', price: 5, icon: boneIcon('big2') },
+        { t: 'hint', name: 'Dica', price: 8, icon: '<span class="bulb">💡</span>' },
+        { t: 'pug', name: 'Pug direto', price: 12, icon: skinSvg(save.skins.selected) },
+      ];
+      items.forEach((it) => {
+        const card = document.createElement('div'); card.className = 'skin-card';
+        card.innerHTML = `<div class="bonus-prev">${it.icon}</div><div class="sname">${it.name}</div><small class="own">Você tem: ${save.bonuses[it.t]}</small>`;
+        const btn = document.createElement('button'); btn.className = 'btn';
+        btn.textContent = `🐾 ${it.price}`; btn.disabled = save.points < it.price;
+        btn.addEventListener('click', () => {
+          if (save.points < it.price) return;
+          save.points -= it.price; save.bonuses[it.t]++; persist();
+          A.sfx('buy'); toast(`+1 ${it.name.toLowerCase()}`); renderShop();
+        });
+        card.appendChild(btn); list.appendChild(card);
+      });
+      return;
+    }
     if (shopTab === 'pal') {
       PALETTES.forEach((t) => {
         const owned = save.palettes.owned.includes(t.id), sel = save.palettes.selected === t.id;
@@ -654,6 +675,7 @@
     $('#opt-back').addEventListener('click', () => show('menu'));
     $('#menu-logo').addEventListener('click', () => bark($('#menu-logo svg'), false));
     $('#tab-skins').addEventListener('click', () => { shopTab = 'skins'; renderShop(); });
+    $('#tab-bonus').addEventListener('click', () => { shopTab = 'bonus'; renderShop(); });
     $('#tab-pal').addEventListener('click', () => { shopTab = 'pal'; renderShop(); });
     $('#tab-themes').addEventListener('click', () => { shopTab = 'themes'; renderShop(); });
     const addPts = () => { save.points += 5; persist(); A.init(); A.sfx('mark'); $('#shop-points').textContent = save.points; $('#menu-points').textContent = save.points; if (!$('#screen-shop').classList.contains('hidden') && $('#screen-shop').classList.contains('active')) renderShop(); };

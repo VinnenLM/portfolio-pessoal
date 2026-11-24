@@ -227,3 +227,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 }
 
 .chips { margin-bottom: -3px; }
+
+.bonus-prev { width: 96px; height: 96px; border-radius: 14px; background: var(--tile); display: grid; place-items: center; }
+.bonus-prev svg { width: 64px; height: 64px; }
+.bonus-prev .bone-ic { width: 70px; height: 70px; }
+.bonus-prev .bulb { font-size: 52px; line-height: 1; }
+.skin-card .own { color: var(--ink-soft); margin-top: -2px; }
+.shop-tabs { gap: 6px; }
+.shop-tabs .btn { font-size: 14px; }
