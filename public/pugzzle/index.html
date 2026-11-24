@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#fff3dc">
+  <title>Pugzzle</title>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- MENU -->
+    <section id="screen-menu" class="screen active">
+      <div class="menu-logo" id="menu-logo"></div>
+      <h1 class="title">Pugzzle</h1>
+      <p class="subtitle">Um pug por cor, linha e coluna.<br>Mas eles não podem se tocar!</p>
+      <div class="menu-buttons">
+        <button class="btn primary big" id="btn-play">Jogar</button>
+        <button class="btn big" id="btn-free-toggle">Modo livre</button>
+        <div id="free-sizes" class="sizes hidden"></div>
+        <button class="btn big" id="btn-shop">Loja de skins</button>
+        <button class="btn big" id="btn-options">Opções</button>
+      </div>
+      <div class="menu-points">🐾 <span id="menu-points">0</span> pontos</div>
+    </section>
+
+    <!-- JOGO -->
+    <section id="screen-game" class="screen">
+      <header class="topbar">
+        <button class="icon-btn" id="btn-back" aria-label="Voltar">←</button>
+        <div class="stat"><small id="game-mode-label">Fase</small><b id="game-level">1</b></div>
+        <div class="stat"><small>Pontos</small><b id="game-points">0</b></div>
+        <div class="stat lives" id="game-lives" aria-label="Vidas"></div>
+      </header>
+
+      <div class="rules">
+        <div><span class="ri">🎨</span>1 pug por cor</div>
+        <div><span class="ri">↔↕</span>1 por linha e coluna</div>
+        <div><span class="ri">🚫</span>Não podem se tocar</div>
+      </div>
+
+      <div class="message" id="message">Toque num quadrado para colocar um pug.</div>
+
+      <div class="board-wrap"><div id="board" class="board"></div></div>
+
+      <div class="controls">
+        <div class="seg" id="mode-seg">
+          <button id="mode-pug" class="active">🐶 Pug</button>
+          <button id="mode-x">✕ Marcar</button>
+        </div>
+        <div class="bonuses">
+          <button class="bonus" id="bonus-life"><span class="bi">❤️</span><span class="bl">Vida</span><span class="bc" id="count-life">0</span></button>
+          <button class="bonus" id="bonus-pug"><span class="bi" id="bonus-pug-icon"></span><span class="bl">Pug</span><span class="bc" id="count-pug">0</span></button>
+          <button class="bonus" id="bonus-hint"><span class="bi">💡</span><span class="bl">Dica</span><span class="bc" id="count-hint">0</span></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- LOJA -->
+    <section id="screen-shop" class="screen">
+      <header class="topbar">
+        <button class="icon-btn" id="shop-back" aria-label="Voltar">←</button>
+        <h2 class="topbar-title">Loja de skins</h2>
+        <div class="stat"><small>Pontos</small><b id="shop-points">0</b></div>
+      </header>
+      <div id="shop-list" class="shop-list"></div>
+    </section>
+
+    <!-- OPÇÕES -->
+    <section id="screen-options" class="screen">
+      <header class="topbar">
+        <button class="icon-btn" id="opt-back" aria-label="Voltar">←</button>
+        <h2 class="topbar-title">Opções</h2>
+      </header>
+      <div class="options">
+        <label class="toggle"><span>🎵 Música calma</span><input type="checkbox" id="opt-music"></label>
+        <label class="toggle"><span>🔊 Efeitos</span><input type="checkbox" id="opt-sfx"></label>
+        <label class="toggle"><span>🗣️ Voz ("Excelente!")</span><input type="checkbox" id="opt-voice"></label>
+        <div class="card">
+          <h3>Backup do jogo</h3>
+          <p>Copie o código para levar seu progresso a outro aparelho, ou cole um código para importar.</p>
+          <textarea id="save-code" rows="4" spellcheck="false" placeholder="Código do save"></textarea>
+          <div class="row">
+            <button class="btn" id="btn-export">Gerar e copiar</button>
+            <button class="btn" id="btn-import">Importar</button>
+          </div>
+        </div>
+        <div class="card danger">
+          <button class="btn danger" id="btn-reset">Apagar progresso</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div id="modal" class="modal hidden"><div class="modal-card" id="modal-card"></div></div>
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="js/logic.js"></script>
+  <script src="js/pug.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

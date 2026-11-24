@@ -14,3 +14,7 @@
 # Fortmancer também muda a cada atualização
 /fortmancer/*
   Cache-Control: no-cache
+
+# Pugzzle também muda a cada atualização
+/pugzzle/*
+  Cache-Control: no-cache
