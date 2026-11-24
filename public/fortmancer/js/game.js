@@ -359,7 +359,7 @@ const Game = (() => {
     if (id === 'frost') { st.cd *= Math.pow(.95, card('frostC')); st.freeze = Math.min(1, .05 * card('frostF')) + (mi === 'cryo' ? .1 : 0); if (mi === 'cryo') { st.slow = .7; st.dur *= 1.25; } }
     if (id === 'bolt') { st.chain += 2 * card('boltC'); st.dmg *= 1 + .1 * card('boltS'); st.cd *= Math.pow(.95, card('boltS')); }
     if (id === 'meteor') { st.n = Math.min(16, st.n + 2 * card('metR')); st.dmg *= 1 + .1 * card('metP'); }
-    if (id === 'poison') { st.dmg *= 1 + .1 * card('poisA'); st.radius *= 1 + .08 * card('poisB'); st.dur *= 1 + .08 * card('poisB'); }
+    if (id === 'poison') { st.dmg *= 1 + .1 * card('poisA'); st.pct *= 1 + .1 * card('poisA'); st.radius *= 1 + .08 * card('poisB'); st.dur *= 1 + .08 * card('poisB'); }
     if (id === 'roots') { st.dmg *= 1 + .1 * card('rootA'); st.n += card('rootB'); st.dur += .3 * card('rootB'); }
     return st;
   }
@@ -602,7 +602,7 @@ const Game = (() => {
       }
       if (f.k === 'flask' && !f.done && f.t >= f.life) {
         f.done = true; const st = f.st;
-        ZN.push({ k: 'poison', x: f.tx, r: st.radius, dps: st.dmg, t: 0, life: st.dur, vt: st.vt, tick: 0, ph: rand(0, 6) });
+        ZN.push({ k: 'poison', x: f.tx, r: st.radius, dps: st.dmg, pct: st.pct, t: 0, life: st.dur, vt: st.vt, tick: 0, ph: rand(0, 6) });
         burst(f.tx, GY + 4, ['#7bdc4a', '#b8f06a', '#3a8a2a'], 24, 90, .7, 2, 80);
         FX.push({ k: 'ring', x: f.tx, y: GY + 6, r: 3, max: st.radius, t: 0, life: .4, col: '#7bdc4a', w: 2, flat: 1 });
       }
@@ -733,7 +733,7 @@ const Game = (() => {
         continue;
       }
       z.t += dt; z.tick -= dt;
-      if (z.tick <= 0) { z.tick = .2; for (const e of E) if (e.alive && Math.abs(e.x - z.x) <= z.r + e.w / 2) { e.poisT = Math.max(e.poisT, .45); e.poisD = Math.max(e.poisD, z.dps); } }
+      if (z.tick <= 0) { z.tick = .2; for (const e of E) if (e.alive && Math.abs(e.x - z.x) <= z.r + e.w / 2) { e.poisT = Math.max(e.poisT, .45); e.poisD = Math.max(e.poisD, z.dps); e.poisP = Math.max(e.poisP || 0, z.pct || 0); } }
       if (PT.length < 460 && Math.random() < dt * (10 + z.vt * 7)) PT.push({ x: z.x + rand(-z.r, z.r), y: GY + rand(2, 10), vx: rand(-6, 6), vy: -rand(10, 28), life: rand(.5, 1), t: 0, col: pick(['#7bdc4a', '#b8f06a', '#4aa83a']), size: Math.random() < .3 ? 2 : 1, g: 0 });
     }
     ZN = ZN.filter(z => z.t < z.life);
@@ -762,8 +762,8 @@ const Game = (() => {
   function updateEnemy(e, dt) {
     const tpl = e.tpl;
     e.anim += dt; if (e.flash > 0) e.flash -= dt;
-    if (e.burnT > 0) { e.burnT -= dt; hurtRaw(e, e.burnD * dt); if (Math.random() < dt * 8) PT.push({ x: e.x + rand(-4, 4), y: cy(e) - e.h / 2, vx: rand(-8, 8), vy: -25, life: .35, t: 0, col: pick(['#ff7a1a', '#ffd166']), size: 1, g: 0 }); }
-    if (e.poisT > 0) { e.poisT -= dt; hurtRaw(e, e.poisD * dt); }
+    if (e.burnT > 0) { e.burnT -= dt; hurtRaw(e, (e.burnD + e.max * (.004 + .001 * (R.skills.fire || 1)) * (e.boss ? .4 : 1)) * dt); if (Math.random() < dt * 8) PT.push({ x: e.x + rand(-4, 4), y: cy(e) - e.h / 2, vx: rand(-8, 8), vy: -25, life: .35, t: 0, col: pick(['#ff7a1a', '#ffd166']), size: 1, g: 0 }); }
+    if (e.poisT > 0) { e.poisT -= dt; hurtRaw(e, (e.poisD + e.max * (e.poisP || 0) * (e.boss ? .4 : 1)) * dt); if (e.poisT <= 0) e.poisP = 0; }
     if (!e.alive) return;
     if (tpl.regen) e.hp = Math.min(e.max, e.hp + e.max * tpl.regen * dt);
     if (e.freezeT > 0) { e.freezeT -= dt; return; }

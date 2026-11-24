@@ -65,7 +65,7 @@ const skillStats = (id, l) => {
     case 'frost':  return { dmg: 20 * (1 + .30 * g), radius: 118 + 8 * l, cd: 9 * Math.pow(.92, g), slow: .55, dur: 3 + .3 * l };
     case 'bolt':   return { dmg: 40 * (1 + .35 * g), chain: 3 + Math.floor(l / 2), cd: 5.5 * Math.pow(.93, g) };
     case 'meteor': return { dmg: 85 * (1 + .40 * g), radius: 40, n: 3 + Math.floor(l / 2), cd: 15 * Math.pow(.93, g) };
-    case 'poison': return { dmg: 11 * (1 + .35 * g), radius: 32 + 2.5 * l, dur: 5 + .35 * l, cd: 8 * Math.pow(.93, g) };
+    case 'poison': return { pct: .008 + .002 * l, dmg: 11 * (1 + .35 * g), radius: 32 + 2.5 * l, dur: 5 + .35 * l, cd: 8 * Math.pow(.93, g) };
     case 'roots':  return { dmg: 12 * (1 + .30 * g), n: 3 + Math.floor(l / 2), dur: 2.2 + .3 * l, cd: 11 * Math.pow(.93, g) };
     case 'sand':   return { dmg: 9 * (1 + .30 * g), radius: 24 + 2 * l, dur: 9.5 + .25 * l, push: 60 + 5 * l, cd: 40 * Math.pow(.94, g) };
     case 'armag':  return { dmg: 300 * (1 + .5 * g), cd: 60 - g * (15 / 7) };
@@ -76,7 +76,7 @@ const skillStats = (id, l) => {
 const skillText = (id, l) => {
   const s = skillStats(id, l);
   switch (id) {
-    case 'poison': return `${Math.round(s.dmg)} dano/s · ${s.dur.toFixed(1)}s`;
+    case 'poison': return `${Math.round(s.dmg)} + ${(s.pct * 100).toFixed(1)}% da vida/s · ${s.dur.toFixed(1)}s`;
     case 'roots':  return `prende ${s.n} · ${s.dur.toFixed(1)}s`;
     case 'sand':   return `${Math.round(s.dmg)} dano/s · empurra ${Math.round(s.push)} · ${s.dur.toFixed(1)}s`;
     case 'armag':  return `${Math.round(s.dmg)} de dano em toda a tela`;
