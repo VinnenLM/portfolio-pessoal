@@ -198,3 +198,4 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .theme-prev { width: 96px; height: 96px; border-radius: 14px; padding: 10px; display: flex; flex-direction: column; gap: 6px; border: 2px solid rgba(0,0,0,.15); }
 .theme-prev i { display: block; border-radius: 6px; height: 22px; }
 .theme-prev b { display: block; border-radius: 6px; height: 12px; }
+.pug .shades { transform: translate(0, var(--sy, 0px)) rotate(var(--sr, 0deg)); transform-origin: 50px 56px; transition: transform .25s ease; }

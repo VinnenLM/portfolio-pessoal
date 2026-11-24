@@ -37,10 +37,11 @@
       `<circle cx="50" cy="20" r="3.2" fill="#e0605a" stroke="${L}" stroke-width="1.6"/>` +
       `<circle cx="38" cy="22" r="2.2" fill="#5b8def"/><circle cx="62" cy="22" r="2.2" fill="#5b8def"/>` },
     oculos: { face: (L) =>
+      `<g class="shades">` +
       `<rect x="20" y="48" width="26" height="16" rx="7" fill="#16120f" stroke="${L}" stroke-width="2.2"/>` +
       `<rect x="54" y="48" width="26" height="16" rx="7" fill="#16120f" stroke="${L}" stroke-width="2.2"/>` +
       `<rect x="45" y="53" width="10" height="3.6" fill="#16120f"/>` +
-      `<path d="M25 53 L34 53 M59 53 L68 53" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".5"/>` },
+      `<path d="M25 53 L34 53 M59 53 L68 53" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".5"/></g>` },
     cartola: { front: (L) =>
       `<ellipse cx="50" cy="32" rx="33" ry="6.5" fill="#2b2b33" stroke="${L}" stroke-width="2.6"/>` +
       `<rect x="32" y="3" width="36" height="28" rx="3.5" fill="#2b2b33" stroke="${L}" stroke-width="2.6"/>` +
