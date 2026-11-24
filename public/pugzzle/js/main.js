@@ -38,12 +38,12 @@
   let save = load();
   if (!save.themes) save.themes = { owned: ['claro'], selected: 'claro' };
   const THEMES = [
-    { id: 'claro', name: 'Claro', price: 0, v: { bg: '#fff6e4', bg2: '#ffe6c6', card: '#fffaf0', ink: '#5b3a29', 'ink-soft': '#8a6a58', accent: '#e39a4a', 'accent-dark': '#c47a2a', panel: '#fffaf0', msg: 'rgba(255,255,255,.55)', tile: '#f6ecd9', tile2: '#e8d4b4', line: 'rgba(60,35,20,.55)' } },
-    { id: 'escuro', name: 'Escuro', price: 15, v: { bg: '#1b2233', bg2: '#2a2742', card: '#2a3350', ink: '#e9eefc', 'ink-soft': '#a9b4d0', accent: '#ff9d86', 'accent-dark': '#e07a62', panel: '#2a3350', msg: 'rgba(255,255,255,.08)', tile: '#36405f', tile2: '#465175', line: 'rgba(8,10,20,.7)' } },
-    { id: 'oceano', name: 'Oceano', price: 20, v: { bg: '#e2f2ff', bg2: '#c6e2f8', card: '#f4faff', ink: '#1f3a5c', 'ink-soft': '#55769c', accent: '#3f8fe0', 'accent-dark': '#2a6db5', panel: '#f4faff', msg: 'rgba(255,255,255,.6)', tile: '#e3f0fb', tile2: '#bcd8f0', line: 'rgba(20,45,80,.6)' } },
-    { id: 'menta', name: 'Menta', price: 20, v: { bg: '#e6f7ec', bg2: '#c9ecd8', card: '#f4fcf7', ink: '#24523a', 'ink-soft': '#5f8c72', accent: '#3fae6a', 'accent-dark': '#2b8a50', panel: '#f4fcf7', msg: 'rgba(255,255,255,.6)', tile: '#e4f6ea', tile2: '#b9e0c7', line: 'rgba(25,60,40,.6)' } },
-    { id: 'algodao', name: 'Algodão-doce', price: 25, v: { bg: '#ffeaf3', bg2: '#ffd2e5', card: '#fff6fa', ink: '#6a2d4a', 'ink-soft': '#a1627f', accent: '#ec6fa5', 'accent-dark': '#c94f87', panel: '#fff6fa', msg: 'rgba(255,255,255,.6)', tile: '#fde8f1', tile2: '#f5bfd7', line: 'rgba(90,30,60,.55)' } },
-    { id: 'noite', name: 'Noite roxa', price: 30, v: { bg: '#1c1838', bg2: '#33265c', card: '#30284f', ink: '#ece6ff', 'ink-soft': '#b3a8d9', accent: '#9b7bff', 'accent-dark': '#7656e6', panel: '#30284f', msg: 'rgba(255,255,255,.09)', tile: '#3d3563', tile2: '#4e457c', line: 'rgba(10,6,25,.7)' } },
+    { id: 'claro', name: 'Claro', price: 0, v: { bg: '#fff6e4', bg2: '#ffe6c6', card: '#fffaf0', ink: '#5b3a29', 'ink-soft': '#8a6a58', accent: '#e39a4a', 'accent-dark': '#c47a2a', panel: '#fffaf0', msg: 'rgba(255,255,255,.55)', tile: '#f3e2c4', tile2: '#e8d4b4', line: 'rgba(60,35,20,.55)' } },
+    { id: 'escuro', name: 'Escuro', price: 15, v: { bg: '#1b2233', bg2: '#2a2742', card: '#2a3350', ink: '#e9eefc', 'ink-soft': '#a9b4d0', accent: '#ff9d86', 'accent-dark': '#e07a62', panel: '#2a3350', msg: 'rgba(255,255,255,.08)', tile: '#efe3d0', tile2: '#465175', line: 'rgba(8,10,20,.7)' } },
+    { id: 'oceano', name: 'Oceano', price: 20, v: { bg: '#e2f2ff', bg2: '#c6e2f8', card: '#f4faff', ink: '#1f3a5c', 'ink-soft': '#55769c', accent: '#3f8fe0', 'accent-dark': '#2a6db5', panel: '#f4faff', msg: 'rgba(255,255,255,.6)', tile: '#cde5f9', tile2: '#bcd8f0', line: 'rgba(20,45,80,.6)' } },
+    { id: 'menta', name: 'Menta', price: 20, v: { bg: '#e6f7ec', bg2: '#c9ecd8', card: '#f4fcf7', ink: '#24523a', 'ink-soft': '#5f8c72', accent: '#3fae6a', 'accent-dark': '#2b8a50', panel: '#f4fcf7', msg: 'rgba(255,255,255,.6)', tile: '#c5e8d3', tile2: '#b9e0c7', line: 'rgba(25,60,40,.6)' } },
+    { id: 'algodao', name: 'Algodão-doce', price: 25, v: { bg: '#ffeaf3', bg2: '#ffd2e5', card: '#fff6fa', ink: '#6a2d4a', 'ink-soft': '#a1627f', accent: '#ec6fa5', 'accent-dark': '#c94f87', panel: '#fff6fa', msg: 'rgba(255,255,255,.6)', tile: '#f9cde0', tile2: '#f5bfd7', line: 'rgba(90,30,60,.55)' } },
+    { id: 'noite', name: 'Noite roxa', price: 30, v: { bg: '#1c1838', bg2: '#33265c', card: '#30284f', ink: '#ece6ff', 'ink-soft': '#b3a8d9', accent: '#9b7bff', 'accent-dark': '#7656e6', panel: '#30284f', msg: 'rgba(255,255,255,.09)', tile: '#e4dcf7', tile2: '#4e457c', line: 'rgba(10,6,25,.7)' } },
   ];
   function applyTheme() {
     const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
@@ -571,6 +571,9 @@
     $('#menu-logo').addEventListener('click', () => bark($('#menu-logo svg'), false));
     $('#tab-skins').addEventListener('click', () => { shopTab = 'skins'; renderShop(); });
     $('#tab-themes').addEventListener('click', () => { shopTab = 'themes'; renderShop(); });
+    const addPts = () => { save.points += 5; persist(); A.init(); A.sfx('mark'); $('#shop-points').textContent = save.points; $('#menu-points').textContent = save.points; if (!$('#screen-shop').classList.contains('hidden') && $('#screen-shop').classList.contains('active')) renderShop(); };
+    $('#shop-points').parentElement.addEventListener('click', addPts);
+    $('.menu-points').addEventListener('click', addPts);
     $('#btn-back').addEventListener('click', () => { clearHint(); saveRun(); show('menu'); });
     $('#board').addEventListener('click', (e) => {
       if (dragSuppress) return;
