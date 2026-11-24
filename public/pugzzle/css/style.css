@@ -20,14 +20,14 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; background: var(--bg) linear-gradient(165deg, var(--bg), var(--bg2)) fixed; color: var(--ink);
+html, body { overflow-x: hidden; margin: 0; height: 100%; background: var(--bg) linear-gradient(165deg, var(--bg), var(--bg2)) fixed; color: var(--ink);
   font-family: 'Trebuchet MS', 'Segoe UI', system-ui, sans-serif; overscroll-behavior: none; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
 #app { height: 100dvh; position: relative; overflow: hidden; }
 .hidden { display: none !important; }
 button { font: inherit; color: inherit; cursor: pointer; }
 
 .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center;
-  padding: calc(10px + var(--safe-top)) 14px calc(10px + var(--safe-bottom)); overflow-y: auto; }
+  padding: calc(10px + var(--safe-top)) 14px calc(10px + var(--safe-bottom)); overflow-y: auto; overflow-x: hidden; }
 .screen.active { display: flex; }
 
 /* Menu */
