@@ -58,7 +58,7 @@ export default function Projeto({
           </ul>
         )}
 
-        <div className="card-botoes">
+        <div className={`card-botoes${extra ? " dois" : ""}`}>
           <a
             className="botao-link"
             href={link}

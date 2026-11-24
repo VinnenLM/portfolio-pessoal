@@ -195,6 +195,14 @@
     margin-top: 0;
 }
 
+/* card com dois botões: mesma largura, texto centralizado.
+   Lado a lado quando cabem; um embaixo do outro, cada um na largura toda, quando não cabem. */
+.card-botoes.dois .botao-link {
+    flex: 1 1 150px;
+    justify-content: center;
+    align-self: stretch;
+}
+
 /* segundo botão do card (ex.: "Baixar APK" ao lado de "Jogar online") */
 .botao-link.secundario {
     background: transparent;
