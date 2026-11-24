@@ -168,10 +168,11 @@
   function cellEl(i) { return $('#board').children[i]; }
   function renderCell(i, animate) {
     const el = cellEl(i), r = (i / G.n) | 0, c = i % G.n;
-    el.innerHTML = G.pugs[r] === c ? (animate ? G.pugHtml.replace('class="pug"', 'class="pug new"') : G.pugHtml) : (G.marks[i] ? '<span class="x">✕</span>' : '');
+    el.innerHTML = G.pugs[r] === c ? (animate ? G.pugHtml.replace('class="pug"', 'class="pug new"') : G.pugHtml) : (G.marks[i] ? '<span class="x">' + PAW + '</span>' : '');
   }
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
 
+  const PAW = '<svg class="paw" viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="16" rx="5.2" ry="4.4"/><ellipse cx="5" cy="10.5" rx="2.2" ry="2.9" transform="rotate(-18 5 10.5)"/><ellipse cx="9.3" cy="5.8" rx="2.2" ry="3" transform="rotate(-6 9.3 5.8)"/><ellipse cx="14.7" cy="5.8" rx="2.2" ry="3" transform="rotate(6 14.7 5.8)"/><ellipse cx="19" cy="10.5" rx="2.2" ry="2.9" transform="rotate(18 19 10.5)"/></svg>';
   const BONE = (off) => '<span class="life' + (off ? ' off' : '') + '">🦴</span>';
 
   function renderChips() {
@@ -539,8 +540,8 @@
       p: 'Só pode ter <b>1 pug por linha</b> e <b>1 pug por coluna</b>. Aqui tem 4 cores, 4 linhas, 4 colunas e 4 pugs.' },
     { t: 'Sem se tocar', html: () => miniBoard([1, 6], [1, 6]),
       p: 'Os pugs <b>não podem se tocar</b>, nem na diagonal. Esses dois estão errados!' },
-    { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
-      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 🦴. Se todas as vidas acabarem, a fase recomeça.' },
+    { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>' + PAW + '</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
+      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? As patinhas aparecem sozinhas nos quadrados que ficaram impossíveis. Errou? Você perde 1 🦴. Se todas as vidas acabarem, a fase recomeça.' },
     { t: 'Dicas e bônus', html: () => '<div class="reward"><span>🦴 +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
       p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>1 bônus aleatório</b> (só se vencer sem errar e sem usar bônus). A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
   ];
