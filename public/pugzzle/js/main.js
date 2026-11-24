@@ -458,14 +458,23 @@
     if (G.pugs[r] === c || G.marks[i] === drag.val) return;
     G.marks[i] = drag.val; renderCell(i); A.sfx('mark');
   }
+  let hovEl = null;
+  function setHov(i) {
+    const el = i >= 0 ? $('#board').children[i] : null;
+    if (el === hovEl) return;
+    if (hovEl) hovEl.classList.remove('hov');
+    hovEl = el; if (el) el.classList.add('hov');
+  }
   function dragDown(e) {
     if (!G || G.done || (e.pointerType === 'mouse' && e.button !== 0)) return;
     const i = cellAt(e.clientX, e.clientY);
+    if (e.pointerType !== 'mouse') setHov(i);
     if (i >= 0) drag = { start: i, last: i, active: false, val: 1 };
   }
   function dragMove(e) {
     if (!drag || !G) return;
     const i = cellAt(e.clientX, e.clientY);
+    if (e.pointerType !== 'mouse') setHov(i);
     if (i < 0 || i === drag.last) return;
     if (!drag.active) {
       drag.active = true; clearHint(); setMsg(DEFAULT_MSG); G.lastTap = null; A.init();
@@ -479,6 +488,7 @@
     drag.last = i;
   }
   function dragUp() {
+    setHov(-1);
     if (!drag) return;
     if (drag.active) { dragSuppress = true; setTimeout(() => { dragSuppress = false; }, 80); saveRun(); }
     drag = null;
@@ -745,6 +755,7 @@
     board.addEventListener('pointerdown', dragDown);
     board.addEventListener('pointermove', dragMove);
     board.addEventListener('pointerup', dragUp);
+    board.addEventListener('pointercancel', dragUp);
     board.addEventListener('pointercancel', dragUp);
     BONUS_TYPES.forEach((t) => $('#bonus-' + t).addEventListener('click', () => useBonus(t)));
 

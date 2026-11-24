@@ -87,6 +87,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
   display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); grid-template-rows: repeat(var(--n), minmax(0, 1fr));
   gap: 3px; padding: 6px; border-radius: 18px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.18); background: var(--card); }
 .cell { position: relative; min-width: 0; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; border-radius: 22%; padding: 0; cursor: pointer; }
+.cell { transition: filter .12s; }
+@media (hover: hover) { .cell:hover { filter: brightness(.82) saturate(1.05); } }
+.cell.hov { filter: brightness(.82) saturate(1.05); }
 .cell .pug { width: 88%; height: 88%; pointer-events: none; }
 .cell .pug.new { animation: pop .22s ease-out; }
 @keyframes pop { from { transform: scale(.3); } 60% { transform: scale(1.12); } to { transform: scale(1); } }
