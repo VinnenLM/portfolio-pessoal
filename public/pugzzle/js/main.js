@@ -58,14 +58,14 @@
   const hexOf = (col) => curPal().h[col.id] || col.hex;
   const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
   const PAT = {
-    vermelho: '<path d="M12 21C5 15 2 11.5 2 8c0-3 2.3-5 5-5 2 0 4 1.2 5 3 1-1.8 3-3 5-3 2.7 0 5 2 5 5 0 3.5-3 7-10 13z"/>',
-    amarelo: '<path d="M7 17L17 7" fill="none" stroke-width="3.4" stroke-linecap="round"/><circle cx="6" cy="14" r="2.4"/><circle cx="10" cy="18" r="2.4"/><circle cx="14" cy="6" r="2.4"/><circle cx="18" cy="10" r="2.4"/>',
+    vermelho: '<g stroke="none"><path d="M12 21C5 15 2 11.5 2 8c0-3 2.3-5 5-5 2 0 4 1.2 5 3 1-1.8 3-3 5-3 2.7 0 5 2 5 5 0 3.5-3 7-10 13z"/></g>',
+    amarelo: '<g stroke="none"><g transform="translate(12 12) rotate(-45) scale(.9) translate(-12 -12)"><rect x="5" y="9.4" width="14" height="5.2" rx="1"/><circle cx="5" cy="8.6" r="3.3"/><circle cx="5" cy="15.4" r="3.3"/><circle cx="19" cy="8.6" r="3.3"/><circle cx="19" cy="15.4" r="3.3"/></g></g>',
     azul: '<circle cx="12" cy="12" r="9" fill="none" stroke-width="2.4"/><path d="M4 9q8 4 16 0" fill="none" stroke-width="2.2"/>',
-    roxo: '<path d="M12 2l2.9 6.6 7.1.7-5.4 4.700 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z"/>',
-    rosa: '<circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/>',
+    roxo: '<g stroke="none"><path d="M12 2l2.9 6.6 7.1.7-5.4 4.700 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z"/></g>',
+    rosa: '<g stroke="none"><circle cx="5" cy="5" r="2.2"/><circle cx="12" cy="5" r="2.2"/><circle cx="19" cy="5" r="2.2"/><circle cx="5" cy="12" r="2.2"/><circle cx="12" cy="12" r="2.2"/><circle cx="19" cy="12" r="2.2"/><circle cx="5" cy="19" r="2.2"/><circle cx="12" cy="19" r="2.2"/><circle cx="19" cy="19" r="2.2"/></g>',
     cinza: '<path d="M2 9q4-4 8 0t8 0 4 0M2 17q4-4 8 0t8 0 4 0" fill="none" stroke-width="2.6" stroke-linecap="round"/>',
-    verde: '<path d="M4 20C4 9 10 4 20 4c0 10-6 16-16 16z"/><path d="M5 19L14 10" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1.6"/>',
-    laranja: '<path d="M12 2l10 10-10 10L2 12z"/>',
+    verde: '<g stroke="none"><path d="M4 20C4 9 10 4 20 4c0 10-6 16-16 16z"/></g><path d="M5 19L14 10" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="1.6"/>',
+    laranja: '<g stroke="none"><path d="M12 2l10 10-10 10L2 12z"/></g>',
     marrom: '<path d="M2 16l5-8 5 8 5-8 5 8" fill="none" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>',
     bege: '<circle cx="12" cy="12" r="7" fill="none" stroke-width="3.2"/>',
   };
