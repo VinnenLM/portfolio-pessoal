@@ -269,7 +269,7 @@
   function win() {
     G.done = true;
     const got = [];
-    for (let k = 0; k < 2; k++) { const t = BONUS_TYPES[Math.floor(Math.random() * 3)]; save.bonuses[t]++; got.push(t); }
+    for (let k = 0; k < 1; k++) { const t = BONUS_TYPES[Math.floor(Math.random() * 3)]; save.bonuses[t]++; got.push(t); }
     save.points += 1; save.solved += 1;
     save.level = Math.max(save.level, G.level + 1);
     save.run = null; persist(); updateHUD();
@@ -534,7 +534,7 @@
     { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
       p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 🦴. Se todas as vidas acabarem, a fase recomeça.' },
     { t: 'Dicas e bônus', html: () => '<div class="reward"><span>🦴 +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
-      p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>2 bônus</b>. A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
+      p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>1 bônus aleatório</b>. A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
   ];
   function showTutorial(page) {
     page = page || 0;
