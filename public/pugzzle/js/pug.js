@@ -114,7 +114,7 @@
         `<circle cx="20" cy="66" r="7" fill="#ff8fb0" opacity=".4"/><circle cx="80" cy="66" r="7" fill="#ff8fb0" opacity=".4"/>`
       : '';
 
-    return `<svg class="${cls || 'pug'}" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
+    return `<svg class="${cls || 'pug'}" viewBox="-8 -15 116 116" overflow="visible" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
       `<g class="tilt">` +
       (acc && acc.back ? `<g transform="translate(0 ${dy})">${acc.back(L)}</g>` : '') +
       `<path d="${fat ? HEAD_FAT : HEAD}" fill="${k.face}" ${st(3)}/>` +
