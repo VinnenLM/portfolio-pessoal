@@ -48,7 +48,7 @@
     { id: 'noite', name: 'Noite roxa', price: 30, v: { bg: '#1c1838', bg2: '#33265c', card: '#30284f', ink: '#ece6ff', 'ink-soft': '#b3a8d9', accent: '#9b7bff', 'accent-dark': '#7656e6', panel: '#30284f', msg: 'rgba(255,255,255,.09)', tile: '#e4dcf7', tile2: '#4e457c', line: 'rgba(10,6,25,.7)' } },
   ];
   const PALETTES = [
-    { id: 'padrao', name: 'Padrão', price: 0, h: { vermelho: '#e8776f', amarelo: '#f3cf6a', azul: '#6f9be8', roxo: '#a883dc', rosa: '#f4a6c8', cinza: '#a9aeb5', verde: '#7ec785', laranja: '#f4a863', marrom: '#a67b5b', bege: '#f6ecd9' } },
+    { id: 'padrao', name: 'Padrão', price: 0, h: { vermelho: '#d9706f', amarelo: '#e6bb45', azul: '#5f7fc0', roxo: '#9b7bd6', rosa: '#f07fb5', cinza: '#a9bddb', verde: '#a6d58b', laranja: '#f0a35e', marrom: '#b0704c', bege: '#f3e4cc' } },
     { id: 'pastel', name: 'Pastel', price: 10, h: { vermelho: '#f1a5a0', amarelo: '#f7e08f', azul: '#a5c3f0', roxo: '#c9b2ec', rosa: '#f8c4dc', cinza: '#c9cdd2', verde: '#aedcb2', laranja: '#f7c796', marrom: '#cfae92', bege: '#fbf3e3' } },
     { id: 'terra', name: 'Terra', price: 15, h: { vermelho: '#c0605a', amarelo: '#d9b256', azul: '#5f86a8', roxo: '#8b6fa6', rosa: '#c98a9c', cinza: '#8d9496', verde: '#6f9a6a', laranja: '#d08a4e', marrom: '#8a634a', bege: '#eadfca' } },
     { id: 'doce', name: 'Doce', price: 20, h: { vermelho: '#ff7a85', amarelo: '#ffd35c', azul: '#5eb6ff', roxo: '#b48cff', rosa: '#ff9ad1', cinza: '#b8c0cc', verde: '#5fd69a', laranja: '#ffa04d', marrom: '#b9825a', bege: '#fff1d6' } },
@@ -56,7 +56,7 @@
   ];
   const curPal = () => PALETTES.find((x) => x.id === save.palettes.selected) || PALETTES[0];
   const hexOf = (col) => curPal().h[col.id] || col.hex;
-  const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 84%, #fff), ${hex})`;
+  const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
   function applyTheme() {
     const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
     for (const k in t.v) document.documentElement.style.setProperty('--' + k, t.v[k]);
@@ -175,11 +175,11 @@
       const el = document.createElement('div');
       el.className = 'cell'; el.dataset.i = i;
       el.style.background = fillOf(hexOf(G.colors[g]));
-      const t = r === 0 || reg[i - n] !== g ? 3 : 1;
-      const bt = r === n - 1 || reg[i + n] !== g ? 3 : 1;
-      const lf = c === 0 || reg[i - 1] !== g ? 3 : 1;
-      const rt = c === n - 1 || reg[i + 1] !== g ? 3 : 1;
-      el.style.setProperty('--tw', `${t}px ${rt}px ${bt}px ${lf}px`);
+      const f = (cond) => (cond ? '3px' : '0px');
+      el.style.setProperty('--tt', f(r === 0 || reg[i - n] !== g));
+      el.style.setProperty('--tb', f(r === n - 1 || reg[i + n] !== g));
+      el.style.setProperty('--tl', f(c === 0 || reg[i - 1] !== g));
+      el.style.setProperty('--tr', f(c === n - 1 || reg[i + 1] !== g));
       b.appendChild(el);
     }
     renderAll();
