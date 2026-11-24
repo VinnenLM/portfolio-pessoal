@@ -4,9 +4,11 @@
 
   const SAVE_KEY = 'pugzzle:save:v1';
   const MAX_LIVES = 5, START_LIVES = 3;
+  // Uma palavra por combo (acertos seguidos sem erro). Errou: volta para a primeira.
+  const COMBO_WORDS = ['Bom', 'Ótimo', 'Muito bem', 'Excelente', 'Incrível', 'Fantástico', 'Sensacional', 'Épico', 'Perfeito', 'Lendário'];
   const BONUS_TYPES = ['life', 'pug', 'hint'];
   const BONUS_NAMES = { life: '❤️ +1 vida', pug: '🐶 Pug direto', hint: '💡 Dica' };
-    const DEFAULT_MSG = 'Toque 1x para riscar (não é aqui). Toque 2x rápido para colocar o pug.';
+  const DEFAULT_MSG = '';
   const DOUBLE_MS = 350;
 
   const $ = (s) => document.querySelector(s);
@@ -14,7 +16,7 @@
 
   /* ---------- Save ---------- */
   const defaults = () => ({
-    v: 1, points: 0, level: 1, solved: 0,
+    v: 1, points: 0, level: 1, solved: 0, tutorialDone: false,
     skins: { owned: ['classico'], selected: 'classico' },
     bonuses: { life: 1, pug: 1, hint: 1 },
     settings: { music: true, sfx: true, voice: true },
@@ -110,6 +112,7 @@
     setMsg(DEFAULT_MSG);
     show('game');
     saveRun();
+    if (!save.tutorialDone) showTutorial(0);
   }
 
   function saveRun() {
@@ -142,9 +145,9 @@
   }
 
   function cellEl(i) { return $('#board').children[i]; }
-  function renderCell(i) {
+  function renderCell(i, animate) {
     const el = cellEl(i), r = (i / G.n) | 0, c = i % G.n;
-    el.innerHTML = G.pugs[r] === c ? G.pugHtml : (G.marks[i] ? '<span class="x">✕</span>' : '');
+    el.innerHTML = G.pugs[r] === c ? (animate ? G.pugHtml.replace('class="pug"', 'class="pug new"') : G.pugHtml) : (G.marks[i] ? '<span class="x">✕</span>' : '');
   }
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
 
@@ -196,26 +199,26 @@
     G.marks[i] ^= 1; A.sfx('mark'); renderCell(i); saveRun();
   }
 
-  // Elogios mais empolgados conforme a sequência de acertos sem erro.
-  function praise() {
-    const pool = G.streak <= 2 ? ['Bom!', 'Muito bem!', 'Isso aí!'] : ['Excelente!', 'Perfeito!', 'Incrível!', 'Ótimo!'];
-    return pool[Math.floor(Math.random() * pool.length)];
-  }
-
-  function tryPlace(r, c) {
+  function tryPlace(r, c, viaBonus) {
     const n = G.n, i = r * n + c;
     if (G.puz.solution[r] === c) {
-      G.pugs[r] = c; G.streak++;
-      autoMark(r, c); renderAll();
+      const before = Uint8Array.from(G.marks);
+      G.pugs[r] = c;
+      autoMark(r, c);
+      // redesenha só o que mudou (os pugs antigos não "pulam" de novo)
+      for (let k = 0; k < n * n; k++) if (k === i || before[k] !== G.marks[k]) renderCell(k, k === i);
       const finished = Array.from(G.pugs).every((x) => x >= 0);
       A.sfx('place');
-      if (!finished) A.say(praise());
+      if (!viaBonus) {
+        G.streak++;
+        A.say(COMBO_WORDS[Math.min(G.streak, COMBO_WORDS.length) - 1]);
+      }
       saveRun();
       if (finished) win();
     } else {
       G.lives--; G.streak = 0; G.marks[i] = 1; renderCell(i);
       const el = cellEl(i); el.classList.add('wrong'); setTimeout(() => el.classList.remove('wrong'), 450);
-      A.sfx('error'); A.say('Ops!');
+      A.sfx('error');
       setMsg('Aí não era! Esse quadrado agora está riscado.', 'bad');
       updateHUD(); saveRun();
       if (G.lives <= 0) lose();
@@ -229,13 +232,11 @@
     save.points += 1; save.solved += 1;
     if (G.mode === 'campaign') save.level = Math.max(save.level, G.level + 1);
     save.run = null; persist(); updateHUD();
-    A.sfx('win'); setTimeout(() => A.say('Fase completa!'), 350);
+    A.sfx('win');
     const next = G.mode === 'campaign';
-    const nextN = levelSize(save.level);
     modal(
       `<div class="pug-big">${G.pugHtml}</div><h2>Fase completa!</h2><p>+1 ponto 🐾</p>` +
-      `<div class="reward">${got.map((t) => `<span>${BONUS_NAMES[t]}</span>`).join('')}</div>` +
-      (next ? `<p>Próxima: fase ${save.level} (${nextN}×${nextN})</p>` : ''),
+      `<div class="reward">${got.map((t) => `<span>${BONUS_NAMES[t]}</span>`).join('')}</div>`,
       [
         { label: next ? 'Próxima fase' : 'Jogar de novo', cls: 'primary', fn: () => (next ? startCampaign() : startGame({ mode: 'free', n: G.n, seed: Math.floor(Math.random() * 1e9) })) },
         { label: 'Menu', fn: () => show('menu') },
@@ -268,7 +269,7 @@
       if (!rows.length) return;
       const r = rows[Math.floor(Math.random() * rows.length)];
       save.bonuses.pug--; A.sfx('bonus');
-      tryPlace(r, G.puz.solution[r]);
+      tryPlace(r, G.puz.solution[r], true);
       if (!G.done) {
         const el = cellEl(r * G.n + G.puz.solution[r]); el.classList.add('hl');
         G.hl = { show: [r * G.n + G.puz.solution[r]], elim: [] };
@@ -330,6 +331,50 @@
     });
   }
 
+
+  /* ---------- Tutorial ---------- */
+  const TUT_REGIONS = [0, 0, 1, 1, 0, 0, 1, 1, 3, 3, 2, 2, 3, 2, 2, 2];
+  const TUT_COLORS = ['#f2c94c', '#5b8def', '#6cc070', '#f49ac2'];
+  const TUT_SOL = [1, 3, 0, 2];
+  function miniBoard(pugs, bad) {
+    const pug = skinSvg(save.skins.selected);
+    let h = '<div class="mini">';
+    for (let i = 0; i < 16; i++) {
+      const r = (i / 4) | 0, c = i % 4;
+      const has = pugs.includes(i), isBad = bad && bad.includes(i);
+      h += `<div class="mc${isBad ? ' bad' : ''}" style="background:${TUT_COLORS[TUT_REGIONS[i]]}">${has ? pug : ''}</div>`;
+    }
+    return h + '</div>';
+  }
+  const TUT_PAGES = [
+    { t: 'Objetivo', html: () => miniBoard(TUT_SOL.map((c, r) => r * 4 + c)),
+      p: 'O tabuleiro é dividido em cores. Coloque <b>1 pug em cada cor</b>.' },
+    { t: 'Linhas e colunas', html: () => miniBoard(TUT_SOL.map((c, r) => r * 4 + c)),
+      p: 'Só pode ter <b>1 pug por linha</b> e <b>1 pug por coluna</b>. Aqui tem 4 cores, 4 linhas, 4 colunas e 4 pugs.' },
+    { t: 'Sem se tocar', html: () => miniBoard([1, 6], [1, 6]),
+      p: 'Os pugs <b>não podem se tocar</b>, nem na diagonal. Esses dois estão errados!' },
+    { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
+      p: 'Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 ❤️. Se todas as vidas acabarem, a fase recomeça.' },
+    { t: 'Dicas e bônus', html: () => '<div class="reward"><span>❤️ +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
+      p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>2 bônus</b>. A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
+  ];
+  function showTutorial(page) {
+    page = page || 0;
+    const pg = TUT_PAGES[page], last = page === TUT_PAGES.length - 1;
+    const card = $('#modal-card');
+    card.innerHTML = `<h2>${pg.t}</h2><div class="tut-art">${pg.html()}</div><p>${pg.p}</p>` +
+      `<div class="dots">${TUT_PAGES.map((_, i) => `<i class="${i === page ? 'on' : ''}"></i>`).join('')}</div>`;
+    const tp = card.querySelector('.tp'); if (tp) tp.innerHTML = skinSvg(save.skins.selected);
+    const row = document.createElement('div'); row.className = 'row';
+    const mk = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'btn ' + cls; b.textContent = label; b.addEventListener('click', fn); row.appendChild(b); };
+    const finish = () => { save.tutorialDone = true; persist(); closeModal(); };
+    if (page > 0) mk('Voltar', '', () => showTutorial(page - 1));
+    else mk('Pular', '', finish);
+    if (last) mk('Entendi!', 'primary', finish); else mk('Próximo', 'primary', () => showTutorial(page + 1));
+    card.appendChild(row);
+    $('#modal').classList.remove('hidden');
+  }
+
   /* ---------- Opções ---------- */
   function renderOptions() {
     $('#opt-music').checked = save.settings.music;
@@ -344,6 +389,7 @@
     $('#btn-play').addEventListener('click', startCampaign);
     $('#btn-free-toggle').addEventListener('click', () => $('#free-sizes').classList.toggle('hidden'));
     $('#btn-shop').addEventListener('click', () => { A.init(); show('shop'); });
+    $('#btn-tutorial').addEventListener('click', () => { A.init(); showTutorial(0); });
     $('#btn-options').addEventListener('click', () => { A.init(); show('options'); });
     $('#shop-back').addEventListener('click', () => show('menu'));
     $('#opt-back').addEventListener('click', () => show('menu'));
