@@ -163,11 +163,11 @@
       const el = document.createElement('div');
       el.className = 'cell'; el.dataset.i = i;
       el.style.background = G.colors[g].hex;
-      const t = r === 0 || reg[i - n] !== g ? 2 : 0;
-      const bt = r === n - 1 || reg[i + n] !== g ? 2 : 0;
-      const lf = c === 0 || reg[i - 1] !== g ? 2 : 0;
-      const rt = c === n - 1 || reg[i + 1] !== g ? 2 : 0;
-      el.style.borderWidth = `${t}px ${rt}px ${bt}px ${lf}px`;
+      const t = r === 0 || reg[i - n] !== g ? 3 : 1;
+      const bt = r === n - 1 || reg[i + n] !== g ? 3 : 1;
+      const lf = c === 0 || reg[i - 1] !== g ? 3 : 1;
+      const rt = c === n - 1 || reg[i + 1] !== g ? 3 : 1;
+      el.style.setProperty('--tw', `${t}px ${rt}px ${bt}px ${lf}px`);
       b.appendChild(el);
     }
     renderAll();
