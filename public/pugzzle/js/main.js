@@ -56,7 +56,7 @@
   ];
   const curPal = () => PALETTES.find((x) => x.id === save.palettes.selected) || PALETTES[0];
   const hexOf = (col) => curPal().h[col.id] || col.hex;
-  const fillOf = (hex) => hex;
+  const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
   function applyTheme() {
     const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
     for (const k in t.v) document.documentElement.style.setProperty('--' + k, t.v[k]);
@@ -150,8 +150,6 @@
     updateHUD();
     setMsg(startPug ? 'Esta fase já começou com um pug no lugar! 🐶' : DEFAULT_MSG);
     show('game');
-    const bd = $('#board'); bd.classList.remove('intro'); void bd.offsetWidth; bd.classList.add('intro');
-    clearTimeout(G.introT); setTimeout(() => bd.classList.remove('intro'), 2000);
     saveRun();
     if (!save.tutorialDone) showTutorial(0);
   }

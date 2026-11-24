@@ -10,8 +10,8 @@
   --edge: rgba(255, 205, 90, .92);
   --edge-glow: rgba(255, 190, 70, .45);
   --panel: #fffaf0;
-  --card-g: var(--card);
-  --panel-g: var(--panel);
+  --card-g: linear-gradient(180deg, var(--card), color-mix(in srgb, var(--card) 86%, var(--accent)));
+  --panel-g: linear-gradient(180deg, var(--panel), color-mix(in srgb, var(--panel) 86%, var(--accent)));
   --msg: rgba(255,255,255,.55);
   --tile: #f6ecd9;
   --tile2: #e8d4b4;
@@ -204,6 +204,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .theme-prev b { display: block; border-radius: 6px; height: 12px; }
 .pug .shades { transform: translate(0, var(--sy, 0px)) rotate(var(--sr, 0deg)); transform-origin: 50px 56px; transition: transform .25s ease; }
 
-.board.intro .cell::after { content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; animation: lines 1.9s ease-in-out;
-  box-shadow: inset 0 var(--tt) 0 0 var(--edge), inset calc(var(--tr) * -1) 0 0 0 var(--edge), inset 0 calc(var(--tb) * -1) 0 0 var(--edge), inset var(--tl) 0 0 0 var(--edge); }
-@keyframes lines { 0% { opacity: 0; } 20%, 65% { opacity: 1; } 100% { opacity: 0; } }
+.pal-prev { width: 96px; height: 96px; border-radius: 14px; padding: 8px; display: grid; grid-template-columns: repeat(5, 1fr); grid-auto-rows: 1fr; gap: 3px; background: var(--tile); }
+.pal-prev i { border-radius: 5px; display: block; }
+.shop-tabs .btn { padding: 8px 4px; }
