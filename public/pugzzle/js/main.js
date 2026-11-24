@@ -18,6 +18,7 @@
   const defaults = () => ({
     v: 1, points: 0, level: 1, solved: 0, tutorialDone: false,
     skins: { owned: ['classico'], selected: 'classico' },
+    themes: { owned: ['claro'], selected: 'claro' },
     bonuses: { life: 1, pug: 1, hint: 1 },
     settings: { music: true, sfx: true, voice: true },
     run: null,
@@ -35,6 +36,20 @@
     catch (e) { return defaults(); }
   }
   let save = load();
+  if (!save.themes) save.themes = { owned: ['claro'], selected: 'claro' };
+  const THEMES = [
+    { id: 'claro', name: 'Claro', price: 0, v: { bg: '#fff3dc', card: '#fffaf0', ink: '#5b3a29', 'ink-soft': '#8a6a58', accent: '#e39a4a', 'accent-dark': '#c47a2a', panel: '#fffaf0', msg: 'rgba(255,255,255,.55)', tile: '#f6ecd9', tile2: '#e8d4b4', line: 'rgba(60,35,20,.55)' } },
+    { id: 'escuro', name: 'Escuro', price: 15, v: { bg: '#1d1a24', card: '#2b2736', ink: '#f1e6d6', 'ink-soft': '#b8ab9c', accent: '#e39a4a', 'accent-dark': '#c47a2a', panel: '#2b2736', msg: 'rgba(255,255,255,.09)', tile: '#3a3547', tile2: '#4a4458', line: 'rgba(0,0,0,.7)' } },
+    { id: 'oceano', name: 'Oceano', price: 20, v: { bg: '#d9edff', card: '#f2f9ff', ink: '#1f3a5c', 'ink-soft': '#55769c', accent: '#3f8fe0', 'accent-dark': '#2a6db5', panel: '#f2f9ff', msg: 'rgba(255,255,255,.6)', tile: '#e3f0fb', tile2: '#bcd8f0', line: 'rgba(20,45,80,.6)' } },
+    { id: 'menta', name: 'Menta', price: 20, v: { bg: '#dcf4e4', card: '#f2fcf5', ink: '#24523a', 'ink-soft': '#5f8c72', accent: '#3fae6a', 'accent-dark': '#2b8a50', panel: '#f2fcf5', msg: 'rgba(255,255,255,.6)', tile: '#e4f6ea', tile2: '#b9e0c7', line: 'rgba(25,60,40,.6)' } },
+    { id: 'algodao', name: 'Algodão-doce', price: 25, v: { bg: '#ffe0ee', card: '#fff4f9', ink: '#6a2d4a', 'ink-soft': '#a1627f', accent: '#ec6fa5', 'accent-dark': '#c94f87', panel: '#fff4f9', msg: 'rgba(255,255,255,.6)', tile: '#fde8f1', tile2: '#f5bfd7', line: 'rgba(90,30,60,.55)' } },
+    { id: 'noite', name: 'Noite roxa', price: 30, v: { bg: '#16132a', card: '#26223f', ink: '#e8e0ff', 'ink-soft': '#a99fd0', accent: '#8e6bff', 'accent-dark': '#6c4de0', panel: '#26223f', msg: 'rgba(255,255,255,.09)', tile: '#332e52', tile2: '#453f6a', line: 'rgba(0,0,0,.7)' } },
+  ];
+  function applyTheme() {
+    const t = THEMES.find((x) => x.id === save.themes.selected) || THEMES[0];
+    for (const k in t.v) document.documentElement.style.setProperty('--' + k, t.v[k]);
+    const m = document.querySelector('meta[name="theme-color"]'); if (m) m.setAttribute('content', t.v.bg);
+  }
   function persist() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) { /* sem storage */ } }
 
   /* ---------- Utilidades de UI ---------- */
@@ -445,9 +460,33 @@
   }
 
   /* ---------- Loja ---------- */
+  let shopTab = 'skins';
   function renderShop() {
     $('#shop-points').textContent = save.points;
+    $('#tab-skins').classList.toggle('on', shopTab === 'skins');
+    $('#tab-themes').classList.toggle('on', shopTab === 'themes');
     const list = $('#shop-list'); list.innerHTML = '';
+    if (shopTab === 'themes') {
+      THEMES.forEach((t) => {
+        const owned = save.themes.owned.includes(t.id), sel = save.themes.selected === t.id;
+        const card = document.createElement('div');
+        card.className = 'skin-card' + (sel ? ' selected' : '');
+        card.innerHTML = `<div class="theme-prev" style="background:${t.v.bg}"><i style="background:${t.v.card};border:2px solid ${t.v.accent}"></i><i style="background:${t.v.card};border:2px solid ${t.v.accent}"></i><b style="background:${t.v.accent}"></b></div><div class="sname">${t.name}</div>`;
+        const btn = document.createElement('button'); btn.className = 'btn';
+        if (sel) { btn.textContent = 'Equipado'; btn.disabled = true; }
+        else if (owned) { btn.textContent = 'Equipar'; btn.addEventListener('click', () => { save.themes.selected = t.id; persist(); applyTheme(); renderShop(); }); }
+        else {
+          btn.textContent = `🐾 ${t.price}`; btn.disabled = save.points < t.price;
+          btn.addEventListener('click', () => {
+            if (save.points < t.price) return;
+            save.points -= t.price; save.themes.owned.push(t.id); save.themes.selected = t.id; persist(); applyTheme();
+            A.sfx('buy'); toast(`Tema ${t.name} desbloqueado!`); renderShop();
+          });
+        }
+        card.appendChild(btn); list.appendChild(card);
+      });
+      return;
+    }
     Art.SKINS.forEach((s) => {
       const owned = save.skins.owned.includes(s.id), sel = save.skins.selected === s.id;
       const card = document.createElement('div');
@@ -530,6 +569,8 @@
     $('#shop-back').addEventListener('click', () => show('menu'));
     $('#opt-back').addEventListener('click', () => show('menu'));
     $('#menu-logo').addEventListener('click', () => bark($('#menu-logo svg'), false));
+    $('#tab-skins').addEventListener('click', () => { shopTab = 'skins'; renderShop(); });
+    $('#tab-themes').addEventListener('click', () => { shopTab = 'themes'; renderShop(); });
     $('#btn-back').addEventListener('click', () => { clearHint(); saveRun(); show('menu'); });
     $('#board').addEventListener('click', (e) => {
       if (dragSuppress) return;
@@ -554,14 +595,14 @@
       try {
         const data = decode($('#save-code').value);
         if (!data || typeof data !== 'object' || data.v !== 1) throw new Error('inválido');
-        save = merge(defaults(), data); persist(); renderOptions(); renderMenu();
+        save = merge(defaults(), data); persist(); applyTheme(); renderOptions(); renderMenu();
         A.configure(save.settings); A.setMusic(save.settings.music);
         toast('Progresso importado!');
       } catch (e) { toast('Código inválido.'); }
     });
     $('#btn-reset').addEventListener('click', () => {
       modal('<h2>Apagar progresso?</h2><p>Pontos, skins, fases e bônus serão perdidos.</p>', [
-        { label: 'Apagar tudo', cls: 'danger', fn: () => { save = defaults(); persist(); A.configure(save.settings); A.setMusic(save.settings.music); renderOptions(); renderMenu(); toast('Progresso apagado.'); } },
+        { label: 'Apagar tudo', cls: 'danger', fn: () => { save = defaults(); persist(); applyTheme(); A.configure(save.settings); A.setMusic(save.settings.music); renderOptions(); renderMenu(); toast('Progresso apagado.'); } },
         { label: 'Cancelar' },
       ]);
     });
@@ -571,6 +612,7 @@
   A.configure(save.settings);
   bind();
   lookLoop();
+  applyTheme();
   renderMenu();
   // Para testes e depuração no console
   window.__pugzzle = { get game() { return G; }, get save() { return save; }, lookAround };
