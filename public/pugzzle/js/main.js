@@ -119,12 +119,13 @@
     G = Object.assign({}, cfg, {
       puz, colors, names: colors.map((c) => c.name),
       marks: new Uint8Array(n * n), pugs: new Int8Array(n).fill(-1),
-      lives: START_LIVES, lastTap: null, streak: 0, done: false, hl: null, hlTimer: null,
+      lives: START_LIVES, dirty: false, lastTap: null, streak: 0, done: false, hl: null, hlTimer: null,
     });
     if (resume) {
       (resume.marks || []).forEach((i) => { G.marks[i] = 1; });
       (resume.pugs || []).forEach((c, r) => { if (r < n) G.pugs[r] = c; });
       G.lives = resume.lives || START_LIVES;
+      G.dirty = !!resume.dirty;
     }
     G.pugHtml = skinSvg(save.skins.selected);
     buildBoard();
@@ -138,7 +139,7 @@
   function saveRun() {
     if (!G || G.done) return;
     save.run = {
-      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: G.lives,
+      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: G.lives, dirty: G.dirty,
       pugs: Array.from(G.pugs), marks: Array.from(G.marks).reduce((a, v, i) => (v ? (a.push(i), a) : a), []),
     };
     persist();
@@ -257,7 +258,7 @@
       saveRun();
       if (finished) win();
     } else {
-      G.lives--; G.streak = 0; G.marks[i] = 1; renderCell(i);
+      G.lives--; G.dirty = true; G.streak = 0; G.marks[i] = 1; renderCell(i);
       const el = cellEl(i); el.classList.add('wrong'); setTimeout(() => el.classList.remove('wrong'), 450);
       A.sfx('error');
       setMsg('Aí não era! Esse quadrado agora está riscado.', 'bad');
@@ -269,14 +270,14 @@
   function win() {
     G.done = true;
     const got = [];
-    for (let k = 0; k < 1; k++) { const t = BONUS_TYPES[Math.floor(Math.random() * 3)]; save.bonuses[t]++; got.push(t); }
+    for (let k = 0; k < (G.dirty ? 0 : 1); k++) { const t = BONUS_TYPES[Math.floor(Math.random() * 3)]; save.bonuses[t]++; got.push(t); }
     save.points += 1; save.solved += 1;
     save.level = Math.max(save.level, G.level + 1);
     save.run = null; persist(); updateHUD();
     A.sfx('win');
     setTimeout(() => modal(
       `<div class="pug-big">${G.pugHtml}</div><h2>Fase completa!</h2><p>+1 ponto 🐾</p>` +
-      `<div class="reward">${got.map((t) => `<span>${BONUS_NAMES[t]}</span>`).join('')}</div>`,
+      (got.length ? `<div class="reward">${got.map((t) => `<span>${BONUS_NAMES[t]}</span>`).join('')}</div>` : '<p class="hint-small">Sem bônus desta vez: ganhe um vencendo sem errar e sem usar bônus.</p>'),
       [
         { label: 'Próxima fase', cls: 'primary', fn: () => startCampaign() },
         { label: 'Menu', fn: () => show('menu') },
@@ -410,6 +411,13 @@
 
   /* ---------- Bônus ---------- */
   function useBonus(type) {
+    if (!G) return;
+    const before = save.bonuses[type];
+    const prev = G.dirty; G.dirty = true;
+    useBonusInner(type);
+    if (save.bonuses[type] >= before) G.dirty = prev; else saveRun();
+  }
+  function useBonusInner(type) {
     if (!G || G.done) return;
     A.init();
     if (save.bonuses[type] <= 0) return;
@@ -534,7 +542,7 @@
     { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
       p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 🦴. Se todas as vidas acabarem, a fase recomeça.' },
     { t: 'Dicas e bônus', html: () => '<div class="reward"><span>🦴 +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
-      p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>1 bônus aleatório</b>. A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
+      p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>1 bônus aleatório</b> (só se vencer sem errar e sem usar bônus). A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
   ];
   function showTutorial(page) {
     page = page || 0;
