@@ -71,7 +71,7 @@
   };
   const isLight = (hex) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114) > 170; };
   function patUri(id, hex) {
-    const c = isLight(hex) ? 'rgba(80,45,25,.26)' : 'rgba(255,255,255,.38)';
+    const c = isLight(hex) ? 'rgba(80,45,25,.13)' : 'rgba(255,255,255,.2)';
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c}" stroke="${c}">${PAT[id] || ''}</svg>`;
     return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
   }
