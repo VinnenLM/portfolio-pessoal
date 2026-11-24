@@ -177,8 +177,9 @@
     const box = $('#chips'); if (!G) return;
     const reg = G.puz.regions, n = G.n, done = new Set();
     for (let r = 0; r < n; r++) if (G.pugs[r] >= 0 && G.pugs[r] != null) done.add(reg[r * n + G.pugs[r]]);
-    if (box.childElementCount !== G.colors.length) {
-      box.innerHTML = '';
+    const key = G.colors.map((c) => c.hex).join();
+    if (box.dataset.key !== key) {
+      box.dataset.key = key; box.innerHTML = '';
       G.colors.forEach((col) => { const d = document.createElement('div'); d.className = 'chip'; d.style.background = col.hex; box.appendChild(d); });
     }
     Array.from(box.children).forEach((d, g) => {
