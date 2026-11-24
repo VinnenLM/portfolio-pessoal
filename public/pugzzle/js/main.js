@@ -50,16 +50,21 @@
     { id: 'noite', name: 'Noite roxa', price: 30, v: { bg: '#1c1838', bg2: '#33265c', card: '#30284f', ink: '#ece6ff', 'ink-soft': '#b3a8d9', accent: '#9b7bff', 'accent-dark': '#7656e6', panel: '#30284f', msg: 'rgba(255,255,255,.09)', tile: '#e4dcf7', tile2: '#4e457c', line: 'rgba(10,6,25,.7)' } },
   ];
   const PALETTES = [
-    { id: 'padrao', name: 'Padrão', price: 0, h: { vermelho: '#d9706f', amarelo: '#e6bb45', azul: '#5f7fc0', roxo: '#9b7bd6', rosa: '#f07fb5', cinza: '#a9bddb', verde: '#a6d58b', laranja: '#f0a35e', marrom: '#b0704c', bege: '#f3e4cc' } },
-    { id: 'pastel', name: 'Pastel', price: 10, h: { vermelho: '#f1a5a0', amarelo: '#f7e08f', azul: '#a5c3f0', roxo: '#c9b2ec', rosa: '#f8c4dc', cinza: '#c9cdd2', verde: '#aedcb2', laranja: '#f7c796', marrom: '#cfae92', bege: '#fbf3e3' } },
-    { id: 'terra', name: 'Terra', price: 15, h: { vermelho: '#c0605a', amarelo: '#d9b256', azul: '#5f86a8', roxo: '#8b6fa6', rosa: '#c98a9c', cinza: '#8d9496', verde: '#6f9a6a', laranja: '#d08a4e', marrom: '#8a634a', bege: '#eadfca' } },
-    { id: 'doce', name: 'Doce', price: 20, h: { vermelho: '#ff7a85', amarelo: '#ffd35c', azul: '#5eb6ff', roxo: '#b48cff', rosa: '#ff9ad1', cinza: '#b8c0cc', verde: '#5fd69a', laranja: '#ffa04d', marrom: '#b9825a', bege: '#fff1d6' } },
-    { id: 'joia', name: 'Joias', price: 25, h: { vermelho: '#d6455d', amarelo: '#e0b020', azul: '#2f7fd6', roxo: '#7e4fd0', rosa: '#d9549c', cinza: '#7f8a99', verde: '#2fa86a', laranja: '#e0782c', marrom: '#7a4f35', bege: '#d9cdb5' } },
+    { id: 'padrao', name: 'Cachorro', set: 'cao', price: 0, h: { vermelho: '#d9706f', amarelo: '#e6bb45', azul: '#5f7fc0', roxo: '#9b7bd6', rosa: '#f07fb5', cinza: '#a9bddb', verde: '#a6d58b', laranja: '#f0a35e', marrom: '#b0704c', bege: '#f3e4cc' } },
+    { id: 'pastel', name: 'Fazenda', set: 'fazenda', price: 10, h: { vermelho: '#f1a5a0', amarelo: '#f7e08f', azul: '#a5c3f0', roxo: '#c9b2ec', rosa: '#f8c4dc', cinza: '#c9cdd2', verde: '#aedcb2', laranja: '#f7c796', marrom: '#cfae92', bege: '#fbf3e3' } },
+    { id: 'terra', name: 'Floresta', set: 'floresta', price: 15, h: { vermelho: '#c0605a', amarelo: '#d9b256', azul: '#5f86a8', roxo: '#8b6fa6', rosa: '#c98a9c', cinza: '#8d9496', verde: '#6f9a6a', laranja: '#d08a4e', marrom: '#8a634a', bege: '#eadfca' } },
+    { id: 'doce', name: 'Mar', set: 'mar', price: 20, h: { vermelho: '#ff7a85', amarelo: '#ffd35c', azul: '#5eb6ff', roxo: '#b48cff', rosa: '#ff9ad1', cinza: '#b8c0cc', verde: '#5fd69a', laranja: '#ffa04d', marrom: '#b9825a', bege: '#fff1d6' } },
+    { id: 'joia', name: 'Savana', set: 'savana', price: 25, h: { vermelho: '#d6455d', amarelo: '#e0b020', azul: '#2f7fd6', roxo: '#7e4fd0', rosa: '#d9549c', cinza: '#7f8a99', verde: '#2fa86a', laranja: '#e0782c', marrom: '#7a4f35', bege: '#d9cdb5' } },
   ];
   const curPal = () => PALETTES.find((x) => x.id === save.palettes.selected) || PALETTES[0];
   const hexOf = (col) => curPal().h[col.id] || col.hex;
   const fillOf = (hex) => `linear-gradient(155deg, color-mix(in srgb, ${hex} 92%, #fff), ${hex})`;
-  const PAT = {
+  const F = (x) => '<g stroke="none">' + x + '</g>';
+  const LN = (x, w) => '<g fill="none" stroke-width="' + (w || 2.4) + '" stroke-linecap="round" stroke-linejoin="round">' + x + '</g>';
+  const STAR = 'M12 2l2.9 6.6 7.1.7-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.3l7.1-.7z';
+  const SUN = F('<circle cx="12" cy="12" r="4.5"/>') + LN('<path d="M12 2V5M12 19V22M2 12H5M19 12H22M5 5L7 7M17 17L19 19M19 5L17 7M5 19L7 17"/>');
+  const DROP = F('<path d="M12 2Q20 11 20 15A8 8 0 0 1 4 15Q4 11 12 2Z"/>');
+  const PAT_CAO = {
     vermelho: '<g stroke="none"><path d="M12 21C5 15 2 11.5 2 8c0-3 2.3-5 5-5 2 0 4 1.2 5 3 1-1.8 3-3 5-3 2.7 0 5 2 5 5 0 3.5-3 7-10 13z"/></g>',
     amarelo: '<g stroke="none"><g transform="translate(12 12) rotate(-45) scale(1.1) translate(-12 -12)"><path d="M7.5 9.5H16.5A3 3 0 1 1 20.5 12A3 3 0 1 1 16.5 14.5H7.5A3 3 0 1 1 3.5 12A3 3 0 1 1 7.5 9.5Z"/></g></g>',
     azul: '<circle cx="12" cy="12" r="9" fill="none" stroke-width="2.4"/><path d="M4 9q8 4 16 0" fill="none" stroke-width="2.2"/>',
@@ -71,10 +76,60 @@
     marrom: '<path d="M2 16l5-8 5 8 5-8 5 8" fill="none" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round"/>',
     bege: '<circle cx="12" cy="12" r="7" fill="none" stroke-width="3.2"/>',
   };
+
+  const PAT_FAZENDA = {
+    vermelho: F('<path d="M12 8Q5 5 4 12Q4 20 9 21Q12 19 15 21Q20 20 20 12Q19 5 12 8Z"/>'),
+    amarelo: F('<path d="M12 3Q19 3 19 14A7 7 0 0 1 5 14Q5 3 12 3Z"/>'),
+    azul: F('<path d="M7 18Q2 18 3 13Q4 10 8 11Q9 6 14 7Q18 8 18 12Q22 12 21 16Q20 18 17 18Z"/>'),
+    roxo: F('<circle cx="8" cy="9" r="3"/><circle cx="14" cy="9" r="3"/><circle cx="11" cy="14" r="3"/><circle cx="17" cy="14" r="3"/><circle cx="11" cy="19" r="2.5"/>'),
+    rosa: LN('<ellipse cx="12" cy="12" rx="9" ry="6.5"/>') + F('<circle cx="9" cy="12" r="1.7"/><circle cx="15" cy="12" r="1.7"/>'),
+    cinza: LN('<path d="M6 20V11A6 6 0 0 1 18 11V20"/>'),
+    verde: F('<circle cx="12" cy="7" r="3.4"/><circle cx="17" cy="12" r="3.4"/><circle cx="12" cy="17" r="3.4"/><circle cx="7" cy="12" r="3.4"/>'),
+    laranja: F('<path d="M17 4L20 7L9 21Q5 20 4 16Z"/>'),
+    marrom: LN('<path d="M4 20V8M12 20V8M20 20V8M3 12H21M3 17H21"/>'),
+    bege: LN('<path d="M12 21V6M12 9Q8 9 7 5Q11 5 12 9M12 9Q16 9 17 5Q13 5 12 9M12 14Q8 14 7 10M12 14Q16 14 17 10"/>', 2),
+  };
+  const PAT_FLORESTA = {
+    vermelho: F('<path d="M3 12Q3 4 12 4Q21 4 21 12Z"/><rect x="9.5" y="12" width="5" height="8" rx="2"/>'),
+    amarelo: SUN,
+    azul: DROP,
+    roxo: F('<path d="M16 3A9 9 0 1 0 21 15A7 7 0 0 1 16 3Z"/>'),
+    rosa: F('<circle cx="12" cy="6" r="3.2"/><circle cx="18" cy="10.5" r="3.2"/><circle cx="15.5" cy="18" r="3.2"/><circle cx="8.5" cy="18" r="3.2"/><circle cx="6" cy="10.5" r="3.2"/><circle cx="12" cy="12.5" r="2.6"/>'),
+    cinza: LN('<path d="M5 20Q5 6 20 4Q20 16 7 19M5 20L14 11"/>'),
+    verde: F('<path d="M12 2L19 11H15L20 18H4L9 11H5Z"/><rect x="11" y="18" width="2" height="4"/>'),
+    laranja: F('<path d="M6 11H18Q18 20 12 21Q6 20 6 11Z"/><path d="M5 11Q5 5 12 5Q19 5 19 11Z"/>'),
+    marrom: LN('<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/>'),
+    bege: LN('<path d="M3 12Q12 22 21 12M6 12Q12 18 18 12"/>'),
+  };
+  const PAT_MAR = {
+    vermelho: F('<ellipse cx="10" cy="12" rx="7" ry="4.6"/><path d="M15 12L22 6.5V17.5Z"/>'),
+    amarelo: F('<path d="M12 21L3 10Q4 3 12 3Q20 3 21 10Z"/>'),
+    azul: LN('<circle cx="8" cy="15" r="4.5"/><circle cx="16.5" cy="8" r="3"/><circle cx="17" cy="17" r="1.8"/>'),
+    roxo: F('<path d="' + STAR + '"/>'),
+    rosa: LN('<path d="M12 21V11M12 15L7 10V6M12 13L17 9V5"/>'),
+    cinza: LN('<path d="M2 9q4-4 8 0t8 0 4 0M2 17q4-4 8 0t8 0 4 0" />', 2.6),
+    verde: LN('<path d="M8 21Q4 15 8 11T8 3M15 21Q11 15 15 11T15 5"/>'),
+    laranja: DROP,
+    marrom: LN('<path d="M12 4V20M7 9H17M5 14Q6 20 12 20Q18 20 19 14"/><circle cx="12" cy="4.5" r="1.8"/>'),
+    bege: LN('<circle cx="12" cy="12" r="7"/>', 3) + F('<circle cx="9.5" cy="9.5" r="1.6"/>'),
+  };
+  const PAT_SAVANA = {
+    vermelho: LN('<path d="M5 4L9 20M11 3L14 21M17 4L19 20"/>', 3),
+    amarelo: F('<path d="M6 7L11 5L13 10L8 12Z"/><path d="M14 13L19 12L18 18L13 19Z"/><path d="M5 15L9 14L10 19L5 20Z"/>'),
+    azul: F('<path d="' + STAR + '"/>'),
+    roxo: F('<path d="M7 4H17L22 10L12 21L2 10Z"/>'),
+    rosa: F('<ellipse cx="7" cy="9" rx="4.5" ry="5" transform="rotate(-20 7 9)"/><ellipse cx="17" cy="9" rx="4.5" ry="5" transform="rotate(20 17 9)"/><ellipse cx="8" cy="17" rx="3.5" ry="4"/><ellipse cx="16" cy="17" rx="3.5" ry="4"/>'),
+    cinza: LN('<path d="M5 4Q6 14 10 20M11 3Q12 13 15 20M17 5Q18 13 20 19"/>', 2.8),
+    verde: LN('<path d="M12 21V10M12 10Q6 6 3 10M12 10Q18 6 21 10M12 10Q8 3 4 4M12 10Q16 3 20 4"/>'),
+    laranja: SUN,
+    marrom: LN('<path d="M12 3L20 8V16L12 21L4 16V8Z"/><path d="M12 3V21M4 8L20 16M20 8L4 16"/>', 1.8),
+    bege: LN('<circle cx="12" cy="12" r="7"/>', 3),
+  };
+  const PATSETS = { cao: PAT_CAO, fazenda: PAT_FAZENDA, floresta: PAT_FLORESTA, mar: PAT_MAR, savana: PAT_SAVANA };
   const isLight = (hex) => { const n = parseInt(hex.slice(1), 16); return ((n >> 16) * 0.299 + ((n >> 8) & 255) * 0.587 + (n & 255) * 0.114) > 170; };
-  function patUri(id, hex) {
+  function patUri(id, hex, set) {
     const c = isLight(hex) ? 'rgba(80,45,25,.13)' : 'rgba(255,255,255,.2)';
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c}" stroke="${c}">${PAT[id] || ''}</svg>`;
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${c}" stroke="${c}">${(PATSETS[set || curPal().set] || PAT_CAO)[id] || ''}</svg>`;
     return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '")';
   }
   const tileBg = (col, size) => { const hex = hexOf(col); return `${patUri(col.id, hex)} center / ${size} no-repeat, ${fillOf(hex)}`; };
@@ -555,7 +610,7 @@
         const owned = save.palettes.owned.includes(t.id), sel = save.palettes.selected === t.id;
         const card = document.createElement('div');
         card.className = 'skin-card' + (sel ? ' selected' : '');
-        card.innerHTML = '<div class="pal-prev">' + Object.values(t.h).map((h) => `<i style="background:${fillOf(h)}"></i>`).join('') + `</div><div class="sname">${t.name}</div>`;
+        card.innerHTML = '<div class="pal-prev">' + Object.keys(t.h).map((k) => `<i style="background:${patUri(k, t.h[k], t.set).replace(/"/g, "'")} center / 78% no-repeat, ${t.h[k]}"></i>`).join('') + `</div><div class="sname">${t.name}</div>`;
         const btn = document.createElement('button'); btn.className = 'btn';
         if (sel) { btn.textContent = 'Equipada'; btn.disabled = true; }
         else if (owned) { btn.textContent = 'Equipar'; btn.addEventListener('click', () => { save.palettes.selected = t.id; persist(); renderShop(); }); }
