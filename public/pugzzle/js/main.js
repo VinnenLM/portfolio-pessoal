@@ -6,7 +6,8 @@
   const MAX_LIVES = 5, START_LIVES = 3;
   const BONUS_TYPES = ['life', 'pug', 'hint'];
   const BONUS_NAMES = { life: '❤️ +1 vida', pug: '🐶 Pug direto', hint: '💡 Dica' };
-    const DEFAULT_MSG = 'Toque num quadrado para colocar um pug.';
+    const DEFAULT_MSG = 'Toque 1x para riscar (não é aqui). Toque 2x rápido para colocar o pug.';
+  const DOUBLE_MS = 350;
 
   const $ = (s) => document.querySelector(s);
   const L = window.PugLogic, A = window.PugAudio, Art = window.PugArt;
@@ -96,7 +97,7 @@
     G = Object.assign({}, cfg, {
       puz, colors, names: colors.map((c) => c.name),
       marks: new Uint8Array(n * n), pugs: new Int8Array(n).fill(-1),
-      lives: START_LIVES, input: 'pug', streak: 0, done: false, hl: null, hlTimer: null,
+      lives: START_LIVES, lastTap: null, streak: 0, done: false, hl: null, hlTimer: null,
     });
     if (resume) {
       (resume.marks || []).forEach((i) => { G.marks[i] = 1; });
@@ -105,7 +106,6 @@
     }
     G.pugHtml = skinSvg(save.skins.selected);
     buildBoard();
-    setInput('pug');
     updateHUD();
     setMsg(DEFAULT_MSG);
     show('game');
@@ -160,12 +160,6 @@
     $('#bonus-pug-icon').innerHTML = skinSvg(save.skins.selected);
   }
 
-  function setInput(mode) {
-    G.input = mode;
-    $('#mode-pug').classList.toggle('active', mode === 'pug');
-    $('#mode-x').classList.toggle('active', mode === 'x');
-  }
-
   function clearHint() {
     if (!G || !G.hl) return;
     clearTimeout(G.hlTimer);
@@ -189,15 +183,17 @@
     clearHint();
     setMsg(DEFAULT_MSG);
     const n = G.n, r = (i / n) | 0, c = i % n;
-    if (G.pugs[r] === c) return;
-    if (G.input === 'x') {
-      G.marks[i] ^= 1; A.sfx('mark'); renderCell(i); saveRun(); return;
-    }
-    if (G.marks[i]) { // quadrado riscado: protegido contra toque sem querer
-      toast('Esse quadrado está riscado. Use "Marcar" para limpar.');
+    if (G.pugs[r] === c) { G.lastTap = null; return; }
+    const now = Date.now(), last = G.lastTap;
+    if (last && last.i === i && now - last.t <= DOUBLE_MS) {
+      // segundo toque rápido: desfaz o risco do primeiro toque e coloca o pug
+      G.marks[i] = last.prev; G.lastTap = null; renderCell(i);
+      tryPlace(r, c);
       return;
     }
-    tryPlace(r, c);
+    // um toque: alterna o X (não é aqui)
+    G.lastTap = { i, t: now, prev: G.marks[i] };
+    G.marks[i] ^= 1; A.sfx('mark'); renderCell(i); saveRun();
   }
 
   // Elogios mais empolgados conforme a sequência de acertos sem erro.
@@ -353,8 +349,6 @@
     $('#opt-back').addEventListener('click', () => show('menu'));
     $('#btn-back').addEventListener('click', () => { clearHint(); saveRun(); show('menu'); });
     $('#board').addEventListener('click', (e) => { const el = e.target.closest('.cell'); if (el) onCellTap(+el.dataset.i); });
-    $('#mode-pug').addEventListener('click', () => G && setInput('pug'));
-    $('#mode-x').addEventListener('click', () => G && setInput('x'));
     BONUS_TYPES.forEach((t) => $('#bonus-' + t).addEventListener('click', () => useBonus(t)));
 
     $('#opt-music').addEventListener('change', (e) => { save.settings.music = e.target.checked; A.init(); A.setMusic(e.target.checked); persist(); });

@@ -59,9 +59,11 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .message.hint { background: #fff1b8; border: 2px solid #f2c94c; }
 .message.bad { background: #ffd9d6; }
 
+#screen-game { padding-left: 6px; padding-right: 6px; }
+
 /* Tabuleiro */
 .board-wrap { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
-.board { --size: min(94vw, calc(100dvh - 340px), 560px); width: var(--size); height: var(--size);
+.board { --size: min(calc(100vw - 12px), calc(100dvh - 250px), 560px); width: var(--size); height: var(--size);
   display: grid; grid-template-columns: repeat(var(--n), 1fr); grid-template-rows: repeat(var(--n), 1fr);
   border-radius: 10px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.2); border: 3px solid var(--line); background: #fff; }
 .cell { position: relative; display: flex; align-items: center; justify-content: center; border-style: solid; border-color: var(--line); padding: 0; cursor: pointer; }
@@ -76,9 +78,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 
 /* Controles */
 .controls { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
-.seg { display: flex; background: var(--card); border-radius: 16px; padding: 4px; gap: 4px; }
-.seg button { flex: 1; padding: 10px; border: none; background: transparent; border-radius: 12px; font-weight: bold; font-size: 16px; }
-.seg button.active { background: var(--accent); color: #fff; }
 .bonuses { display: flex; gap: 8px; }
 .bonus { flex: 1; position: relative; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 4px 6px;
   border-radius: 16px; border: 2px solid var(--accent); background: var(--card); box-shadow: 0 3px 0 var(--accent); }
@@ -117,4 +116,4 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .reward span { background: #fff1b8; padding: 6px 10px; border-radius: 12px; }
 .toast { position: fixed; left: 50%; bottom: calc(24px + var(--safe-bottom)); transform: translateX(-50%); background: #3b2a22; color: #fff; padding: 10px 16px; border-radius: 14px; z-index: 20; font-size: 14px; max-width: 90vw; text-align: center; }
 
-@media (max-height: 640px) { .rules { display: none; } .board { --size: min(94vw, calc(100dvh - 290px), 560px); } }
+@media (max-height: 640px) { .rules { display: none; } .board { --size: min(calc(100vw - 12px), calc(100dvh - 200px), 560px); } }
