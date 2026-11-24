@@ -238,3 +238,18 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .skin-card .own { color: var(--ink-soft); margin-top: -2px; }
 .shop-tabs { gap: 6px; }
 .shop-tabs .btn { font-size: 14px; }
+
+/* reações dos pugs quando olham uns para os outros (cada skin tem a sua) */
+.pug .accf, .pug .accb { transform: translate(0, var(--ay, 0px)) rotate(var(--ar, 0deg)) scale(var(--as, 1)); transform-origin: 50px 30px; transition: transform .3s cubic-bezier(.3,1.5,.5,1); }
+.pug .ear { transform: rotate(var(--er, 0deg)); transform-origin: 31px 27px; transition: transform .3s cubic-bezier(.3,1.6,.5,1); }
+.pug .nose { transform: scale(var(--ns, 1)); transform-origin: 50px 60.5px; transition: transform .25s cubic-bezier(.3,1.8,.5,1); }
+.pug .cheek { transform: scale(var(--cs, 1)); transform-box: fill-box; transform-origin: center; transition: transform .3s ease; }
+.pug .eyes { transform: scale(var(--es, 1)); transform-origin: 50px 55px; transition: transform .25s ease; }
+
+/* efeito do bônus "Pug direto" */
+.pug.bonus-pop { animation: bpop .7s cubic-bezier(.2,1.5,.4,1); filter: drop-shadow(0 0 7px #ffd54a); }
+@keyframes bpop { 0% { transform: scale(0) rotate(-220deg); } 60% { transform: scale(1.45) rotate(12deg); } 100% { transform: none; } }
+.burst-ring { position: absolute; border: 4px solid #ffd54a; border-radius: 50%; pointer-events: none; box-shadow: 0 0 14px #ffd54a, inset 0 0 10px #fff3b0; animation: bring .75s ease-out forwards; }
+@keyframes bring { from { transform: scale(.3); opacity: 1; } to { transform: scale(2.8); opacity: 0; } }
+.burst-spark { position: absolute; font-size: 20px; line-height: 1; pointer-events: none; text-shadow: 0 0 6px #fff; animation: bspark .9s ease-out forwards; }
+@keyframes bspark { from { transform: translate(-50%, -50%) scale(.4); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3) rotate(200deg); opacity: 0; } }

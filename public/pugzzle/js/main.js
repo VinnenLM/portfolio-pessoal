@@ -167,6 +167,28 @@
   function setMsg(text, cls) { const m = $('#message'); m.textContent = text; m.className = 'message' + (cls ? ' ' + cls : ''); }
   const skinSvg = (id, cls) => Art.svg(Art.byId(id), cls);
 
+  /* ---------- Efeito do bônus "Pug direto" ---------- */
+  function pugBurst(i) {
+    const cell = cellEl(i), host = $('#fx'); if (!cell || !host) return;
+    const svg = cell.querySelector('svg');
+    if (svg) { svg.classList.remove('new'); svg.classList.add('bonus-pop'); setTimeout(() => svg.classList.remove('bonus-pop'), 800); }
+    const r = cell.getBoundingClientRect(), h = host.getBoundingClientRect();
+    const cx = r.left - h.left + r.width / 2, cy = r.top - h.top + r.height / 2;
+    const ring = document.createElement('div'); ring.className = 'burst-ring';
+    ring.style.cssText = `left:${cx - r.width / 2}px;top:${cy - r.height / 2}px;width:${r.width}px;height:${r.height}px`;
+    host.appendChild(ring); setTimeout(() => ring.remove(), 800);
+    const icons = ['✨', '⭐', '🐾', '💫', '✨'];
+    for (let k = 0; k < 10; k++) {
+      const a = (k / 10) * Math.PI * 2 + Math.random() * .4, d = r.width * (1.1 + Math.random() * .9);
+      const sp = document.createElement('div'); sp.className = 'burst-spark'; sp.textContent = icons[k % icons.length];
+      sp.style.left = cx + 'px'; sp.style.top = cy + 'px';
+      sp.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px'); sp.style.setProperty('--dy', (Math.sin(a) * d).toFixed(0) + 'px');
+      host.appendChild(sp); setTimeout(() => sp.remove(), 950);
+    }
+    if (navigator.vibrate) try { navigator.vibrate([30, 40, 30]); } catch (e) { /* ignore */ }
+    setTimeout(() => { lastBark = 0; if (G && cellEl(i)) bark(cellEl(i).querySelector('svg'), true); }, 700);
+  }
+
   /* ---------- Latido ---------- */
   let lastBark = 0;
   function bark(svg, inBoard) {
@@ -412,6 +434,21 @@
 
   /* ---------- Pugs olhando uns para os outros ---------- */
   let lookTimer = null;
+  const EARS = { '--er': '-14deg' };
+  const LOOK_FX = {
+    classico: EARS,                                                    // orelhas se erguem
+    cinza: { '--er': '-18deg', '--es': '1.12' },                       // orelhas em pé e olhos arregalados
+    preto: { '--er': '-12deg', '--es': '1.18' },                       // olhos grandes e brilhantes
+    gordinho: { '--er': '-10deg', '--cs': '1.4' },                     // bochechas inflam
+    laco: { '--ar': (ux) => (ux * 12 + 6) + 'deg', '--as': '1.15', '--ay': '-2px' },   // laço balança
+    bone: { '--ay': '-6px', '--ar': (ux) => (ux * -9) + 'deg' },       // levanta o boné
+    bruxa: { '--ar': (ux) => (ux * 10) + 'deg', '--ay': '-4px', '--as': '1.06' },      // chapéu se inclina
+    palhaco: { '--ns': '1.45', '--ar': (ux) => (ux * 7) + 'deg', '--as': '1.08' },     // nariz buzina
+    oculos: {},                                                        // ergue os óculos (--sy/--sr)
+    chef: { '--ay': '-7px', '--as': '1.1' },                           // chapéu estufa
+    cartola: { '--ay': '-10px', '--ar': (ux) => (ux * -16 - 4) + 'deg' },               // tira o chapéu
+    rei: { '--ay': '-5px', '--as': '1.14' },                           // coroa se engrandece
+  };
   function setLook(from, to) {
     const svg = cellEl(from) && cellEl(from).querySelector('svg');
     if (!svg) return;
@@ -421,11 +458,13 @@
     st.setProperty('--rot', (ux * 7).toFixed(1) + 'deg');
     st.setProperty('--lx', (ux * 2.4).toFixed(1) + 'px'); st.setProperty('--ly', (uy * 1.6).toFixed(1) + 'px');
     st.setProperty('--sy', '-17px'); st.setProperty('--sr', (ux * -4).toFixed(1) + 'deg');
+    const fx = LOOK_FX[svg.dataset.skin] || LOOK_FX.classico; // reação própria de cada skin
+    Object.keys(fx).forEach((k) => st.setProperty(k, typeof fx[k] === 'function' ? fx[k](ux) : fx[k]));
     st.setProperty('--ex', (ux * 3.4).toFixed(1) + 'px'); st.setProperty('--ey', (uy * 2.6).toFixed(1) + 'px');
   }
   function clearLook(i) {
     const svg = cellEl(i) && cellEl(i).querySelector('svg');
-    if (svg) ['--rot', '--lx', '--ly', '--ex', '--ey', '--sy', '--sr'].forEach((v) => svg.style.removeProperty(v));
+    if (svg) ['--rot', '--lx', '--ly', '--ex', '--ey', '--sy', '--sr', '--ay', '--ar', '--as', '--er', '--ns', '--cs', '--es'].forEach((v) => svg.style.removeProperty(v));
   }
   function placedCells() {
     const out = [];
@@ -556,6 +595,7 @@
       const r = rows[Math.floor(Math.random() * rows.length)];
       save.bonuses.pug--; A.sfx('bonus');
       tryPlace(r, G.puz.solution[r], true);
+      pugBurst(r * G.n + G.puz.solution[r]);
       if (!G.done) {
         const el = cellEl(r * G.n + G.puz.solution[r]); el.classList.add('hl');
         G.hl = { show: [r * G.n + G.puz.solution[r]], elim: [] };

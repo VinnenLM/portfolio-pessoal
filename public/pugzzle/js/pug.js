@@ -31,7 +31,7 @@
         `<path d="M37 28 L50 3 L63 28 Z" fill="#5b8def" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
         `<path d="M43 17 L57 17" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><circle cx="50" cy="3.5" r="4.4" fill="#f2c94c" stroke="${L}" stroke-width="2"/>`,
       face: (L) =>
-        `<circle cx="50" cy="60.5" r="7.6" fill="#e8302a" stroke="${L}" stroke-width="2.2"/><circle cx="47.4" cy="57.8" r="2.1" fill="#fff" opacity=".8"/>` },
+        `<g class="nose"><circle cx="50" cy="60.5" r="7.6" fill="#e8302a" stroke="${L}" stroke-width="2.2"/><circle cx="47.4" cy="57.8" r="2.1" fill="#fff" opacity=".8"/></g>` },
     rei: { front: (L) =>
       `<path d="M29 29 L32 8 L41 20 L50 4 L59 20 L68 8 L71 29 Z" fill="#f2c94c" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
       `<circle cx="50" cy="20" r="3.2" fill="#e0605a" stroke="${L}" stroke-width="1.6"/>` +
@@ -89,8 +89,8 @@
     // orelhas: triângulos arredondados caídos, por cima da cabeça (espelhadas)
     const ear = (m) => {
       const t = m ? `translate(100 0) scale(-1 1) translate(0 ${fat ? -2 : 0})` : `translate(0 ${fat ? -2 : 0})`;
-      return `<g transform="${t}"><path d="${EAR}" fill="${k.ear}" ${st(3)}/>` +
-             `<path d="M9 39 Q7 47 11 52" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".3"/></g>`;
+      return `<g transform="${t}"><g class="ear"><path d="${EAR}" fill="${k.ear}" ${st(3)}/>` +
+             `<path d="M9 39 Q7 47 11 52" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".3"/></g></g>`;
     };
 
     const eyeCx = fat ? 30 : 31.5;
@@ -112,12 +112,12 @@
       ? soft('M19 66 Q25 70 22 78 M81 66 Q75 70 78 78', 2.4, 0.7) +
         `<path d="M30 83 Q50 90 70 83" fill="none" stroke="${L}" stroke-width="2.4" stroke-linecap="round" opacity=".6"/>` +
         `<path d="M36 89 Q50 93 64 89" fill="none" stroke="${L}" stroke-width="2.2" stroke-linecap="round" opacity=".5"/>` +
-        `<circle cx="20" cy="66" r="7" fill="#ff8fb0" opacity=".4"/><circle cx="80" cy="66" r="7" fill="#ff8fb0" opacity=".4"/>`
+        `<circle class="cheek" cx="20" cy="66" r="7" fill="#ff8fb0" opacity=".4"/><circle class="cheek" cx="80" cy="66" r="7" fill="#ff8fb0" opacity=".4"/>`
       : '';
 
-    return `<svg class="${cls || 'pug'}" viewBox="-8 -15 116 116" overflow="visible" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
+    return `<svg class="${cls || 'pug'}" data-skin="${skin.id || 'classico'}" viewBox="-8 -15 116 116" overflow="visible" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
       `<g class="tilt">` +
-      (acc && acc.back ? `<g transform="translate(0 ${dy})">${acc.back(L)}</g>` : '') +
+      (acc && acc.back ? `<g transform="translate(0 ${dy})"><g class="accb">${acc.back(L)}</g></g>` : '') +
       `<path d="${fat ? HEAD_FAT : HEAD}" fill="${k.face}" ${st(3)}/>` +
       `<g class="look"><g transform="translate(0 ${fy})"><path d="${maskD}" fill="${k.mask}"/></g></g>` +
       ear(false) + ear(true) +
@@ -136,7 +136,7 @@
         folds +
         (acc && acc.face ? acc.face(L) : '') +
       `</g></g>` +
-      (acc && acc.front ? `<g transform="translate(0 ${dy})">${acc.front(L)}</g>` : '') +
+      (acc && acc.front ? `<g transform="translate(0 ${dy})"><g class="accf">${acc.front(L)}</g></g>` : '') +
       `</g></svg>`;
   }
 
