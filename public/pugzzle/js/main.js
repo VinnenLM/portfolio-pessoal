@@ -209,6 +209,7 @@
       for (let k = 0; k < n * n; k++) if (k === i || before[k] !== G.marks[k]) renderCell(k, k === i);
       const finished = Array.from(G.pugs).every((x) => x >= 0);
       A.sfx('place');
+      setTimeout(() => { const pl = placedCells(); if (G && pl.length >= 2 && !G.done) lookAround([i, pl.filter((x) => x !== i)[Math.floor(Math.random() * (pl.length - 1))]]); }, 380);
       if (!viaBonus) {
         G.streak++;
         const word = COMBO_WORDS[Math.min(G.streak, COMBO_WORDS.length) - 1];
@@ -255,6 +256,48 @@
     ]);
   }
 
+
+
+  /* ---------- Pugs olhando uns para os outros ---------- */
+  let lookTimer = null;
+  function setLook(from, to) {
+    const svg = cellEl(from) && cellEl(from).querySelector('svg');
+    if (!svg) return;
+    const n = G.n;
+    const dx = (to % n) - (from % n), dy = ((to / n) | 0) - ((from / n) | 0), len = Math.hypot(dx, dy) || 1;
+    const ux = dx / len, uy = dy / len, st = svg.style;
+    st.setProperty('--rot', (ux * 7).toFixed(1) + 'deg');
+    st.setProperty('--lx', (ux * 2.4).toFixed(1) + 'px'); st.setProperty('--ly', (uy * 1.6).toFixed(1) + 'px');
+    st.setProperty('--ex', (ux * 3.4).toFixed(1) + 'px'); st.setProperty('--ey', (uy * 2.6).toFixed(1) + 'px');
+  }
+  function clearLook(i) {
+    const svg = cellEl(i) && cellEl(i).querySelector('svg');
+    if (svg) ['--rot', '--lx', '--ly', '--ex', '--ey'].forEach((v) => svg.style.removeProperty(v));
+  }
+  function placedCells() {
+    const out = [];
+    for (let r = 0; r < G.n; r++) if (G.pugs[r] >= 0) out.push(r * G.n + G.pugs[r]);
+    return out;
+  }
+  // Os pugs se olham de tempos em tempos (em pares); com 2 ou mais no tabuleiro.
+  function lookAround(only) {
+    if (!G || G.done) return;
+    const cells = only || placedCells();
+    if (cells.length < 2) return;
+    const list = cells.slice().sort(() => Math.random() - 0.5), seen = [];
+    for (let k = 0; k < list.length; k += 2) {
+      const a = list[k], b = list[k + 1] != null ? list[k + 1] : list[0] === a ? list[1] : list[0];
+      setLook(a, b); setLook(b, a); seen.push(a, b);
+    }
+    setTimeout(() => { if (G) seen.forEach(clearLook); }, 1600);
+  }
+  function lookLoop() {
+    clearTimeout(lookTimer);
+    lookTimer = setTimeout(() => {
+      if (G && !G.done && $('#screen-game').classList.contains('active') && $('#modal').classList.contains('hidden')) lookAround();
+      lookLoop();
+    }, 2400 + Math.random() * 2600);
+  }
 
   /* ---------- Arrastar para riscar ---------- */
   let drag = null, dragSuppress = false;
@@ -505,7 +548,8 @@
 
   A.configure(save.settings);
   bind();
+  lookLoop();
   renderMenu();
   // Para testes e depuração no console
-  window.__pugzzle = { get game() { return G; }, get save() { return save; } };
+  window.__pugzzle = { get game() { return G; }, get save() { return save; }, lookAround };
 })();
