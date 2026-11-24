@@ -104,7 +104,27 @@
     SFX[name](ctx.currentTime + 0.01);
   }
 
-  function say(text) {
+  const VOZ = ['01-bom', '02-otimo', '03-muito-bem', '04-excelente', '05-incrivel', '06-fantastico', '07-sensacional', '08-epico', '09-perfeito', '10-lendario'];
+  const clips = {};
+  let curClip = null;
+  function preload() {
+    if (typeof Audio === 'undefined') return;
+    VOZ.forEach((n, i) => { try { const a = new Audio('assets/voz/' + n + '.mp3'); a.preload = 'auto'; clips[i] = a; } catch (e) { /* ignore */ } });
+  }
+  function say(text, idx) {
+    if (!opts.voice) return;
+    const a = idx != null ? clips[idx] : null;
+    if (a) {
+      try {
+        if (curClip) { curClip.pause(); curClip.currentTime = 0; }
+        a.currentTime = 0; a.volume = 1; curClip = a;
+        const pr = a.play(); if (pr && pr.catch) pr.catch(() => speak(text));
+        return;
+      } catch (e) { /* cai na voz sintética */ }
+    }
+    speak(text);
+  }
+  function speak(text) {
     const ss = root.speechSynthesis;
     if (!opts.voice || !ss || typeof SpeechSynthesisUtterance === 'undefined') return;
     try {
@@ -125,9 +145,9 @@
   }
 
   root.PugAudio = {
-    init, sfx, say, setMusic,
+    init, preload, sfx, say, setMusic,
     setSfx(v) { opts.sfx = v; },
-    setVoice(v) { opts.voice = v; if (!v && root.speechSynthesis) root.speechSynthesis.cancel(); },
+    setVoice(v) { opts.voice = v; if (!v) { if (root.speechSynthesis) root.speechSynthesis.cancel(); if (curClip) curClip.pause(); } },
     configure(s) { opts.music = !!s.music; opts.sfx = !!s.sfx; opts.voice = !!s.voice; },
   };
 })(typeof self !== 'undefined' ? self : this);

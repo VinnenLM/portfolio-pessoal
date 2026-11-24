@@ -360,7 +360,7 @@
       if (!viaBonus) {
         G.streak++;
         const word = COMBO_WORDS[Math.min(G.streak, COMBO_WORDS.length) - 1];
-        A.say(word); showCombo(word, G.streak);
+        A.say(word, Math.min(G.streak, COMBO_WORDS.length) - 1); showCombo(word, G.streak);
       }
       saveRun();
       if (finished) win();
@@ -782,7 +782,7 @@
         { label: 'Cancelar' },
       ]);
     });
-    document.addEventListener('pointerdown', () => A.init(), { once: true });
+    A.preload(); document.addEventListener('pointerdown', () => A.init(), { once: true });
   }
 
   A.configure(save.settings);
