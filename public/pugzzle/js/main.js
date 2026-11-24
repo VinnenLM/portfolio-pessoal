@@ -7,7 +7,7 @@
   // Uma palavra por combo (acertos seguidos sem erro). Errou: volta para a primeira.
   const COMBO_WORDS = ['Bom', 'Ótimo', 'Muito bem', 'Excelente', 'Incrível', 'Fantástico', 'Sensacional', 'Épico', 'Perfeito', 'Lendário'];
   const BONUS_TYPES = ['life', 'pug', 'hint'];
-  const BONUS_NAMES = { life: '❤️ +1 vida', pug: '🐶 Pug direto', hint: '💡 Dica' };
+  const BONUS_NAMES = { life: '🦴 +1 vida', pug: '🐶 Pug direto', hint: '💡 Dica' };
   const DEFAULT_MSG = '';
   const DOUBLE_MS = 350;
 
@@ -156,6 +156,8 @@
   }
   function renderAll() { for (let i = 0; i < G.n * G.n; i++) renderCell(i); }
 
+  const BONE = (off) => '<svg class="biscuit' + (off ? ' off' : '') + '" viewBox="0 0 40 24"><path d="M9 4.5C9 1.5 4 1 3 4.5 1 6 1 9 3.5 10.2 1 11.5 1 15 3 16.5 4 21 9 20.5 9 17.5 L9 17.5 Q20 20 31 17.5 C31 20.5 36 21 37 16.5 39 15 39 11.5 36.5 10.2 39 9 39 6 37 4.5 36 1 31 1.5 31 4.5 Q20 7 9 4.5Z" fill="' + (off ? '#cfc6bd' : '#e8b56a') + '" stroke="' + (off ? '#a89d92' : '#9a5f2a') + '" stroke-width="2" stroke-linejoin="round"/>' + (off ? '' : '<path d="M13 9.5 Q20 11 27 9.5" fill="none" stroke="#fff" stroke-width="1.6" opacity=".6" stroke-linecap="round"/>') + '</svg>';
+
   function renderChips() {
     const box = $('#chips'); if (!G) return;
     const reg = G.puz.regions, n = G.n, done = new Set();
@@ -167,7 +169,7 @@
     Array.from(box.children).forEach((d, g) => {
       const ok = done.has(g);
       d.classList.toggle('ok', ok);
-      d.innerHTML = ok ? '<svg viewBox="0 0 24 24"><path d="M5 12.5 L10 17.5 L19 7" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '';
+      d.innerHTML = ok ? G.pugHtml : '';
     });
   }
 
@@ -175,7 +177,7 @@
     renderChips();
     $('#game-level').textContent = G.level;
     $('#game-points').textContent = save.points;
-    $('#game-lives').textContent = '❤️'.repeat(G.lives) + '🖤'.repeat(Math.max(0, START_LIVES - G.lives));
+    $('#game-lives').innerHTML = BONE(false).repeat(Math.max(0, G.lives)) + BONE(true).repeat(Math.max(0, START_LIVES - G.lives));
     for (const t of BONUS_TYPES) {
       $('#count-' + t).textContent = save.bonuses[t];
       $('#bonus-' + t).disabled = save.bonuses[t] <= 0;
@@ -227,6 +229,7 @@
       autoMark(r, c);
       // redesenha só o que mudou (os pugs antigos não "pulam" de novo)
       for (let k = 0; k < n * n; k++) if (k === i || before[k] !== G.marks[k]) renderCell(k, k === i);
+      renderChips();
       const finished = Array.from(G.pugs).every((x) => x >= 0);
       A.sfx('place');
       setTimeout(() => { const pl = placedCells(); if (G && pl.length >= 2 && !G.done) lookAround([i, pl.filter((x) => x !== i)[Math.floor(Math.random() * (pl.length - 1))]]); }, 380);
@@ -488,8 +491,8 @@
     { t: 'Sem se tocar', html: () => miniBoard([1, 6], [1, 6]),
       p: 'Os pugs <b>não podem se tocar</b>, nem na diagonal. Esses dois estão errados!' },
     { t: 'Como jogar', html: () => '<div class="tap-demo"><div><b>1 toque</b><span>✕</span><small>aqui não tem pug (ou arraste)</small></div><div><b>2 toques rápidos</b><span class="tp"></span><small>coloca o pug</small></div></div>',
-      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 ❤️. Se todas as vidas acabarem, a fase recomeça.' },
-    { t: 'Dicas e bônus', html: () => '<div class="reward"><span>❤️ +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
+      p: 'Dá para <b>arrastar o dedo</b> para riscar vários quadrados de uma vez. Acertou? Os X aparecem sozinhos nos quadrados que ficaram impossíveis. Errou? Você perde 1 🦴. Se todas as vidas acabarem, a fase recomeça.' },
+    { t: 'Dicas e bônus', html: () => '<div class="reward"><span>🦴 +1 vida</span><span>🐶 Pug direto</span><span>💡 Dica</span></div>',
       p: 'Cada fase vencida dá <b>1 ponto</b> (para skins na loja) e <b>2 bônus</b>. A dica explica a regra usada. Truque: se uma cor só aparece em uma linha, o pug dessa cor está nela, e o resto da linha fica livre de outras cores!' },
   ];
   function showTutorial(page) {

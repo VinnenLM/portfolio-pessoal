@@ -12,10 +12,12 @@
   // acessórios: back = atrás da cabeça, front = por cima, face = sobre o rosto
   const ACC = {
     bone: { front: (L) =>
-      `<path d="M23 36 Q23 9 52 9 Q79 9 77 36 Z" fill="#e0605a" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
-      `<path d="M60 35 Q92 30 97 41 Q80 44 60 39 Z" fill="#b94640" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
-      `<circle cx="50" cy="10" r="3.6" fill="#b94640" stroke="${L}" stroke-width="2"/>` +
-      `<path d="M27 30 Q50 24 75 30" fill="none" stroke="#fff" stroke-width="3" opacity=".55" stroke-linecap="round"/>` },
+      `<path d="M24 37 Q22 8 51 8 Q80 8 77 37 Q50 31 24 37 Z" fill="#e0605a" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
+      `<path d="M51 9 Q41 20 43 33 M51 9 Q63 20 62 33" fill="none" stroke="#b94640" stroke-width="2" stroke-linecap="round"/>` +
+      `<path d="M58 33 Q84 24 95 36 Q96 42 88 42 Q72 38 56 40 Z" fill="#c94c46" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
+      `<path d="M62 35 Q80 30 90 37" fill="none" stroke="#fff" stroke-width="2" opacity=".5" stroke-linecap="round"/>` +
+      `<circle cx="51" cy="8.5" r="3.4" fill="#b94640" stroke="${L}" stroke-width="2"/>` +
+      `<path d="M30 24 Q36 15 46 13" fill="none" stroke="#fff" stroke-width="3" opacity=".5" stroke-linecap="round"/>` },
     bruxa: { front: (L) =>
       `<ellipse cx="50" cy="33" rx="36" ry="8" fill="#3a2a5c" stroke="${L}" stroke-width="2.6"/>` +
       `<path d="M31 32 Q42 18 47 3 Q60 7 58 18 Q64 26 69 32 Z" fill="#4b3573" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
@@ -47,8 +49,10 @@
       `<path d="M30 32 Q16 28 22 17 Q22 4 38 9 Q50 -1 62 9 Q78 4 78 17 Q84 28 70 32 Z" fill="#fff" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
       `<rect x="30" y="27" width="40" height="8" rx="2.5" fill="#f1f1f1" stroke="${L}" stroke-width="2.2"/>` },
     laco: { front: (L) =>
-      `<path d="M50 26 L33 14 L33 38 Z M50 26 L67 14 L67 38 Z" fill="#f49ac2" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
-      `<circle cx="50" cy="26" r="5.5" fill="#e06fa3" stroke="${L}" stroke-width="2.2"/>` },
+      `<path d="M50 26 C44 8 20 8 22 25 C24 40 42 40 50 26 Z" fill="#f49ac2" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
+      `<path d="M50 26 C56 8 80 8 78 25 C76 40 58 40 50 26 Z" fill="#f49ac2" stroke="${L}" stroke-width="2.6" stroke-linejoin="round"/>` +
+      `<path d="M30 20 Q36 15 42 20 M70 20 Q64 15 58 20" fill="none" stroke="#fff" stroke-width="2.4" opacity=".6" stroke-linecap="round"/>` +
+      `<circle cx="50" cy="26" r="6" fill="#e06fa3" stroke="${L}" stroke-width="2.4"/>` },
   };
 
   // preços em pontos (1 ponto por fase vencida)
