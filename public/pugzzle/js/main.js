@@ -136,7 +136,7 @@
     if (resume) {
       (resume.marks || []).forEach((i) => { G.marks[i] = 1; });
       (resume.pugs || []).forEach((c, r) => { if (r < n) G.pugs[r] = c; });
-      G.lives = resume.lives || START_LIVES;
+      G.lives = Math.min(START_LIVES, resume.lives || START_LIVES);
       G.dirty = !!resume.dirty;
     }
     // em algumas fases (chance baixa, fixa por fase) já começa com 1 pug colocado
@@ -159,7 +159,7 @@
   function saveRun() {
     if (!G || G.done) return;
     save.run = {
-      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: G.lives, dirty: G.dirty,
+      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: Math.min(START_LIVES, G.lives), dirty: G.dirty,
       pugs: Array.from(G.pugs), marks: Array.from(G.marks).reduce((a, v, i) => (v ? (a.push(i), a) : a), []),
     };
     persist();
