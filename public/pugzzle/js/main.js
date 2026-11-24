@@ -127,11 +127,19 @@
       G.lives = resume.lives || START_LIVES;
       G.dirty = !!resume.dirty;
     }
+    // em algumas fases (chance baixa, fixa por fase) já começa com 1 pug colocado
+    let startPug = false;
+    if (!resume && L.mulberry32((cfg.seed ^ 0x5bd1e995) >>> 0)() < 0.15) {
+      const r = Math.floor(L.mulberry32((cfg.seed ^ 0x2545f491) >>> 0)() * n), c = G.puz.solution[r];
+      G.pugs[r] = c; autoMark(r, c); startPug = true;
+    }
     G.pugHtml = skinSvg(save.skins.selected);
     buildBoard();
     updateHUD();
-    setMsg(DEFAULT_MSG);
+    setMsg(startPug ? 'Esta fase já começou com um pug no lugar! 🐶' : DEFAULT_MSG);
     show('game');
+    const bd = $('#board'); bd.classList.remove('intro'); void bd.offsetWidth; bd.classList.add('intro');
+    clearTimeout(G.introT); setTimeout(() => bd.classList.remove('intro'), 2000);
     saveRun();
     if (!save.tutorialDone) showTutorial(0);
   }
@@ -155,10 +163,10 @@
       const el = document.createElement('div');
       el.className = 'cell'; el.dataset.i = i;
       el.style.background = G.colors[g].hex;
-      const t = r === 0 || reg[i - n] !== g ? 3 : 1;
-      const bt = r === n - 1 || reg[i + n] !== g ? 3 : 1;
-      const lf = c === 0 || reg[i - 1] !== g ? 3 : 1;
-      const rt = c === n - 1 || reg[i + 1] !== g ? 3 : 1;
+      const t = r === 0 || reg[i - n] !== g ? 2 : 0;
+      const bt = r === n - 1 || reg[i + n] !== g ? 2 : 0;
+      const lf = c === 0 || reg[i - 1] !== g ? 2 : 0;
+      const rt = c === n - 1 || reg[i + 1] !== g ? 2 : 0;
       el.style.borderWidth = `${t}px ${rt}px ${bt}px ${lf}px`;
       b.appendChild(el);
     }
