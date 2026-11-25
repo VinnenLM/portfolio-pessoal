@@ -527,7 +527,7 @@ function drawBottleRaw(c, x, y, s, rot, runs, opt){
     const h = r.h * SEG_H; if (h < .5) return;
     const top = yb - h, col = PALETTE[r.c].c;
     const rg = c.createRadialGradient(-4, top + h * .72, 1, 0, top + h * .6, BW * 1.25);
-    rg.addColorStop(0, shade(col, .42)); rg.addColorStop(.45, col); rg.addColorStop(1, shade(col, -.45));
+    rg.addColorStop(0, shade(col, .22)); rg.addColorStop(.5, col); rg.addColorStop(1, shade(col, -.12));
     c.fillStyle = rg; c.fillRect(-BW - 2, top, BW * 2 + 4, h + .7);
     if (k > 0){ c.fillStyle = 'rgba(20,0,30,.22)'; c.fillRect(-BW, yb - .6, BW * 2, 1.2); }
     if (r.h > .6){
@@ -542,7 +542,7 @@ function drawBottleRaw(c, x, y, s, rot, runs, opt){
     yb = top;
   });
   // sombra interna nas bordas
-  g = c.createRadialGradient(0, -40, BW * .55, 0, -40, BW * 1.25); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,0,50,.38)');
+  g = c.createRadialGradient(0, -40, BW * .55, 0, -40, BW * 1.25); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,0,50,.1)');
   c.fillStyle = g; c.fillRect(-BW - 2, -BODY_H - NECK_H, BW * 2 + 4, BODY_H + NECK_H + 2);
   c.restore();
   // contorno
