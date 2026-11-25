@@ -39,9 +39,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wbtn small{font-weight:600;opacity:.8}
 /* Barra inferior (botões da arte) */
 .bar{position:absolute;inset:0;pointer-events:none}
-.tool{position:absolute;pointer-events:auto;padding:0;cursor:pointer;transition:filter .15s;box-sizing:border-box;border-radius:calc(24px*var(--f));
-  border:calc(5px*var(--f)) solid #1f0d06;background:linear-gradient(180deg,#7e4828 0%,#6c3b20 100%);
-  box-shadow:inset 0 0 0 calc(8px*var(--f)) #a9693a,inset 0 0 0 calc(11px*var(--f)) #3b1d0e,inset 0 calc(14px*var(--f)) calc(10px*var(--f)) rgba(255,190,120,.12)}
+.tool{position:absolute;pointer-events:auto;padding:0;border:0;cursor:pointer;transition:filter .15s;box-sizing:border-box;background:transparent url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%22-4 -4 238 178%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%2384502d%22/%3E%3Cstop offset=%221%22 stop-color=%22%236a3a1f%22/%3E%3C/linearGradient%3E%3ClinearGradient id=%22t%22 x1=%220%22 y1=%220%22 x2=%220%22 y2=%221%22%3E%3Cstop offset=%220%22 stop-color=%22%23c58450%22/%3E%3Cstop offset=%221%22 stop-color=%22%2396592f%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d=%22M26 0H204Q204 22 230 26V144Q204 148 204 170H26Q26 148 0 144V26Q26 22 26 0Z%22 fill=%22url%28%23t%29%22 stroke=%22%231f0d06%22 stroke-width=%226%22 stroke-linejoin=%22round%22/%3E%3Cpath d=%22M26 0H204Q204 22 230 26V144Q204 148 204 170H26Q26 148 0 144V26Q26 22 26 0Z%22 transform=%22translate%289 9%29 scale%28.922 .894%29%22 fill=%22url%28%23g%29%22 stroke=%22%233b1d0e%22 stroke-width=%223%22 stroke-linejoin=%22round%22/%3E%3C/svg%3E") center/100% 100% no-repeat}
 .tool::after{content:attr(aria-label);position:absolute;left:0;right:0;bottom:calc(16px*var(--f));text-align:center;font:800 calc(36px*var(--f)) 'Cinzel',serif;text-transform:uppercase;letter-spacing:.02em;color:#f7e6c4;text-shadow:0 calc(3px*var(--f)) 0 #1c0b06}
 .tool::first-letter{}
 .tool::after::first-letter{font-size:1.3em}
@@ -400,7 +398,7 @@ function placeUI(){
     if (bd){ const R = 24; bd.style.left = (c[4] - c[0] - R) * f + 'px'; bd.style.top = (1290 - c[1] - R) * f + 'px'; bd.style.width = bd.style.height = 2 * R * f + 'px'; }
   });
   [['undo'], ['hint'], ['tube']].forEach(q => {
-    const ic = $('#' + q[0] + 'Btn .ico'), S = 78; ic.style.left = (108 - S / 2) * f + 'px'; ic.style.top = (50 - S / 2) * f + 'px'; ic.style.width = ic.style.height = S * f + 'px';
+    const ic = $('#' + q[0] + 'Btn .ico'), S = 78; ic.style.left = (115 - S / 2) * f + 'px'; ic.style.top = (52 - S / 2) * f + 'px'; ic.style.width = ic.style.height = S * f + 'px';
   });
 }
 function makeLayer(fn){
