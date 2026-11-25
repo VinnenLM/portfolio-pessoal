@@ -198,7 +198,9 @@
 /* card com dois botões: mesma largura, texto centralizado.
    Lado a lado quando cabem; um embaixo do outro, cada um na largura toda, quando não cabem. */
 .card-botoes.dois .botao-link {
-    flex: 1 1 150px;
+    flex: 1 1 0;
+    min-width: max-content;
+    white-space: nowrap;
     justify-content: center;
     align-self: stretch;
 }
