@@ -871,7 +871,7 @@ function drawBubble(txt, cx, y){ balloon(txt, cx - 60, y, cx - 4, y + 42, 1); }
 function drawSpeech(){
   if (say.t <= 0) return;
   const a = clamp(say.t * 4, 0, 1);
-  balloon(say.txt, 112, 92 + (1 - a) * 4, 104, 134, a, 250);
+  PUG() ? balloon(say.txt, 128, 66 + (1 - a) * 4, 126, 108, a, 262) : balloon(say.txt, 112, 92 + (1 - a) * 4, 104, 134, a, 250);
 }
 function runsFor(i){
   const base = tubes[i].map(c => ({c, h: 1}));
