@@ -54,7 +54,12 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .layer{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px}
 .layer.on{display:flex}
 .layer.dim{background:rgba(10,5,2,.72);animation:fade .2s}
-.layer.menuL{background:linear-gradient(rgba(10,5,2,.25),rgba(10,5,2,.15) 35%,rgba(10,5,2,.7));align-items:stretch;flex-direction:column;justify-content:space-between;padding:7% 22px 24px}
+.layer.menuL{background:linear-gradient(#16061e 0,#16061e calc(128px*var(--f)),rgba(22,6,30,.85) calc(175px*var(--f)),rgba(22,6,30,0) calc(420px*var(--f)),rgba(22,6,30,0) 46%,rgba(22,6,30,.82) 60%,rgba(18,4,24,.97) 78%);align-items:stretch;flex-direction:column;justify-content:space-between;padding:calc(30px*var(--f)) 22px 22px}
+.layer.menuL .logo{margin-top:0}
+.layer.menuL .logo .l1{font-size:calc(150px*var(--f))}
+.layer.menuL .logo .l2{margin-top:4px}
+.layer.menuL .mbtns{gap:10px}
+.layer.menuL .foot{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font:800 13px var(--f-ui);opacity:.9;color:#ffe08a}
 @keyframes fade{from{opacity:0}}
 .parch{width:100%;max-width:370px;max-height:90dvh;overflow:auto;padding:20px 18px 18px;color:var(--ink);border-radius:14px;position:relative;
   background:radial-gradient(120% 90% at 30% 10%,var(--parch1),var(--parch2));border:4px solid #5a3a1c;box-shadow:0 0 0 2px #c48a1a,0 24px 60px #000c,inset 0 0 30px #8a5a2a88;animation:pop .25s ease-out}
@@ -271,7 +276,7 @@ const BODY_H = 104, NECK_H = 26, BW = 30, NW = 9, SEG_H = 25, TOTAL_H = 148, MID
 function resize(){
   const r = stage.getBoundingClientRect();
   W = Math.max(1, r.width); H = Math.max(1, r.height);
-  dpr = Math.min(2.5, window.devicePixelRatio || 1);
+  dpr = Math.min(2, window.devicePixelRatio || 1);
   cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
   sc = W / LW; Hl = H / sc;
   topR = 125 * IS; botR = 225 * IS;
@@ -303,7 +308,16 @@ function makeLayer(fn){
   const c = document.createElement('canvas'); c.width = cv.width; c.height = cv.height;
   const g = c.getContext('2d'); g.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0); fn(g); return c;
 }
-function buildLayers(){ bgL = makeLayer(drawBG); fgL = makeLayer(drawFG); vigL = makeLayer(drawVig); }
+let boardL = null, inMenu = true;
+const bottleCache = new Map();
+function buildLayers(){ bgL = makeLayer(drawBG); bottleCache.clear(); buildBoard(); }
+function buildBoard(){
+  if (!cv.width) return;
+  boardL = makeLayer(g => {
+    const keep = ctx; drawRunesStatic(g);
+    for (let i = 0; i < tubes.length; i++){ const p = pos[i]; if (p) drawCoaster(p.x, p.by, bs, g); }
+  });
+}
 
 function layoutBoard(){
   pos = [];
@@ -317,6 +331,7 @@ function layoutBoard(){
     const start = r * perRow, cnt = Math.min(perRow, n - start);
     for (let k = 0; k < cnt; k++) pos[start + k] = {x: LW / 2 + (k - (cnt - 1) / 2) * step, by: y0 + r * (rowH + rowGap) + rowH};
   }
+  buildBoard();
 }
 
 /* ---------- Texturas / cenário estático ---------- */
@@ -385,6 +400,25 @@ function flaskPath(c){
 // (x, y) = centro do frasco; runs = [{c:idx, h:0..1}] de baixo para cima; opt: {glow, cork}
 function drawBottle(c, x, y, s, rot, runs, opt){
   opt = opt || {};
+  if (rot === 0 && c === ctx){
+    const key = s.toFixed(3) + (opt.glow ? 'g' : '') + (opt.cork ? 'c' : '') + runs.map(r => r.c + ':' + Math.round(r.h * 20)).join(',');
+    let e = bottleCache.get(key);
+    if (!e){
+      if (bottleCache.size > 160) bottleCache.clear();
+      const k = dpr * sc, pad = 22, w = (2 * BW + pad * 2) * s, h = (TOTAL_H + 30 + pad * 2) * s;
+      const cvs = document.createElement('canvas'); cvs.width = Math.ceil(w * k); cvs.height = Math.ceil(h * k);
+      const g = cvs.getContext('2d'); g.setTransform(k, 0, 0, k, 0, 0);
+      const ox = w / 2, oy = (pad + 30 + TOTAL_H - MID) * s;
+      drawBottleRaw(g, ox, oy, s, 0, runs.map(r => ({c: r.c, h: Math.round(r.h * 20) / 20})), opt);
+      e = {cvs, w, h, ox, oy}; bottleCache.set(key, e);
+    }
+    c.drawImage(e.cvs, x - e.ox, y - e.oy, e.w, e.h);
+    return;
+  }
+  drawBottleRaw(c, x, y, s, rot, runs, opt);
+}
+function drawBottleRaw(c, x, y, s, rot, runs, opt){
+  opt = opt || {};
   c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.translate(0, MID);
   const nt = -(BODY_H + NECK_H);
   // vidro
@@ -404,7 +438,7 @@ function drawBottle(c, x, y, s, rot, runs, opt){
     if (r.h > .6){
       for (let q = 0; q < 4; q++){
         const sd = r.c * 7 + k * 13 + q * 5, px = ((sd * 37) % 31) - 15, py = top + 4 + ((sd * 53) % 100) / 100 * Math.max(1, h - 8), rd = .7 + ((sd * 11) % 10) / 10 * 1.1;
-        c.fillStyle = 'rgba(255,255,255,' + (.35 + .35 * Math.sin(TT * 3 + sd)) + ')'; c.beginPath(); c.arc(px, py, rd, 0, 7); c.fill();
+        c.fillStyle = 'rgba(255,255,255,' + (.35 + .3 * ((sd * 17) % 10) / 10) + ')'; c.beginPath(); c.arc(px, py, rd, 0, 7); c.fill();
       }
     }
     if (k === runs.length - 1){
@@ -490,9 +524,9 @@ const GLYPHS = [
   [[-.5,1,-.5,-1],[.5,1,.5,-1],[-.5,-1,.5,0],[.5,-1,-.5,0]], [[-.4,-1,.4,-.3],[.4,-.3,-.4,.3],[-.4,.3,.4,1]], [[0,-1,0,1],[-.6,-.3,.6,.3]],
   [[-.5,-1,-.5,1],[-.5,0,.5,-1],[-.5,0,.5,1]]
 ];
-function drawRunes(){
+function drawRunesStatic(ctx){
   const top = BT + 8, bot = BB - 4, cx = LW / 2, cy = (top + bot) / 2, rx = Math.min(160, LW / 2 - 12), ry = (bot - top) / 2 * .93;
-  const pulse = .8 + .2 * Math.sin(TT * 1.6);
+  const pulse = 1, TT = 0;
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
   let g = ctx.createRadialGradient(cx, cy, 10, cx, cy, Math.max(rx, ry)); g.addColorStop(0, 'rgba(160,70,255,.14)'); g.addColorStop(.7, 'rgba(160,70,255,.05)'); g.addColorStop(1, 'rgba(160,70,255,0)');
   ctx.fillStyle = g; ctx.beginPath(); ctx.ellipse(cx, cy, rx * 1.05, ry * 1.05, 0, 0, 7); ctx.fill();
@@ -512,10 +546,16 @@ function drawRunes(){
   const pts = []; for (let q = 0; q < 5; q++){ const a = -Math.PI / 2 + q * 2 * Math.PI / 5 - TT * .04; pts.push([cx + Math.cos(a) * rx * .79, cy + Math.sin(a) * ry * .79]); }
   ctx.strokeStyle = 'rgba(200,130,255,' + (.16 * pulse) + ')'; ctx.lineWidth = 1.3; ctx.beginPath();
   for (let q = 0; q < 5; q++){ const p1 = pts[q], p2 = pts[(q + 2) % 5]; ctx.moveTo(p1[0], p1[1]); ctx.lineTo(p2[0], p2[1]); } ctx.stroke();
-  for (let q = 0; q < 6; q++){
-    const a = TT * .35 + q * Math.PI / 3, x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
-    g = ctx.createRadialGradient(x, y, 0, x, y, 7); g.addColorStop(0, 'rgba(255,230,255,.75)'); g.addColorStop(1, 'rgba(200,120,255,0)');
-    ctx.fillStyle = g; ctx.fillRect(x - 7, y - 7, 14, 14);
+  ctx.restore();
+}
+function drawRunes(){
+  if (boardL){ ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = .82 + .18 * Math.sin(TT * 1.6); ctx.drawImage(boardL, 0, 0); ctx.restore(); }
+  const top = BT + 8, bot = BB - 4, cx = LW / 2, cy = (top + bot) / 2, rx = Math.min(160, LW / 2 - 12), ry = (bot - top) / 2 * .93;
+  ctx.save(); ctx.globalCompositeOperation = 'lighter';
+  for (let q = 0; q < 4; q++){
+    const a = TT * .35 + q * Math.PI / 2, x = cx + Math.cos(a) * rx, y = cy + Math.sin(a) * ry;
+    ctx.fillStyle = 'rgba(230,180,255,.22)'; ctx.beginPath(); ctx.arc(x, y, 5, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,240,255,.8)'; ctx.beginPath(); ctx.arc(x, y, 1.6, 0, 7); ctx.fill();
   }
   ctx.restore();
 }
@@ -675,7 +715,7 @@ function mouthWorld(x, y, s, rot){ // boca do frasco (centro em x,y)
   const ry = -(BODY_H + NECK_H - MID) * s;
   return {x: x - ry * Math.sin(rot), y: y + ry * Math.cos(rot)};
 }
-function drawCoaster(x, by, sx){
+function drawCoaster(x, by, sx, ctx){
   const w = (2 * BW + 12) * sx, h = 13 * sx;
   ctx.save(); ctx.globalCompositeOperation = 'lighter'; const lg = ctx.createRadialGradient(x, by - 40 * sx, 4, x, by - 40 * sx, 62 * sx);
   lg.addColorStop(0, 'rgba(255,200,255,.13)'); lg.addColorStop(1, 'rgba(255,200,255,0)'); ctx.fillStyle = lg; ctx.fillRect(x - 62 * sx, by - 102 * sx, 124 * sx, 124 * sx); ctx.restore();
@@ -685,7 +725,6 @@ function drawCoaster(x, by, sx){
   ctx.strokeStyle = 'rgba(40,20,8,.5)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x - w / 6, by - 3 * sx); ctx.lineTo(x - w / 6, by + 7 * sx); ctx.moveTo(x + w / 4, by - 3 * sx); ctx.lineTo(x + w / 4, by + 7 * sx); ctx.stroke();
 }
 function drawBottles(){
-  for (let i = 0; i < tubes.length; i++){ const p = pos[i]; if (p) drawCoaster(p.x, p.by, bs); }
   const hOn = hint && TT - hint.t0 < 5;
   for (let i = 0; i < tubes.length; i++){
     const p = pos[i]; if (!p) continue;
@@ -765,15 +804,18 @@ function drawMagic(){
   if (Math.random() < .5 * a) sparks(hx + (Math.random() - .5) * 10, hy, Math.random() < .5 ? '#e6b8ff' : '#fff3c4', 1, 25);
 }
 function draw(){
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.clearRect(0, 0, cv.width, cv.height);
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.drawImage(bgL, 0, 0);
   ctx.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0);
   drawCustomer();
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(fgL, 0, 0); ctx.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0);
+  if (imgsReady) ctx.drawImage(IMG.counter, 0, 660 * IS, LW, 70 * IS);
+  const gr = ctx.createLinearGradient(0, BT - 1, 0, BT + 34); gr.addColorStop(0, 'rgba(12,2,14,.75)'); gr.addColorStop(.35, 'rgba(12,2,14,.3)'); gr.addColorStop(1, 'rgba(12,2,14,0)');
+  ctx.fillStyle = gr; ctx.fillRect(0, BT - 1, LW, 35); ctx.fillStyle = 'rgba(255,214,150,.35)'; ctx.fillRect(0, BT - 2.2, LW, 1);
   drawCauldron(); drawWisps(); drawGlows(); drawSalePotion();
-  drawRunes(); drawMotes(); drawBottles(); drawFlights(); drawParts(); drawSpeech();
+  drawRunes(); drawMotes();
+  if (!inMenu){ drawBottles(); drawFlights(); }
+  drawParts(); drawSpeech();
   if (sale && sale.sayT > 0) drawBubble(sale.say, sale.x, topR + 4);
-  ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(vigL, 0, 0);
 }
 
 /* ======================= ATUALIZAÇÃO ======================= */
@@ -974,7 +1016,7 @@ function hideLayer(){ layer.className = 'layer'; layer.innerHTML = ''; uiOpen = 
 const onOff = v => v ? 'Ligado' : 'Desligado';
 
 function showMenu(){
-  stage.classList.add('inmenu'); selected = -1;
+  stage.classList.add('inmenu'); inMenu = true; selected = -1;
   showLayer(
     '<div class="logo"><div class="l1">' + GAME_NAME + '</div><div class="l2">' + GAME_SUB + '</div></div>' +
     '<div><div class="mbtns">' +
@@ -1035,7 +1077,7 @@ function goBack(from){
 function act(a, arg){
   const parts2 = (arg || '').split('|');
   switch (a){
-    case 'play': hideLayer(); stage.classList.remove('inmenu'); if (cleared && !sale) startLevel(); break;
+    case 'play': hideLayer(); stage.classList.remove('inmenu'); inMenu = false; if (cleared && !sale) startLevel(); break;
     case 'resume': hideLayer(); break;
     case 'restart': hideLayer(); restartLevel(); break;
     case 'menu': showMenu(); break;
