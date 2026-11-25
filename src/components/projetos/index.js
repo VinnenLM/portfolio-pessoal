@@ -110,8 +110,14 @@ const projetos = [
       "Puzzle de lógica com pugs, inspirado em jogos do estilo Queens: um pug por cor, por linha e por coluna, e eles não podem se tocar. Tabuleiros de 6×6 a 10×10 com solução única, X automático a cada acerto, vidas, bônus (vida extra, pug direto e dicas que explicam a regra), loja de skins comprada com pontos, música calma e voz de incentivo. Feito em JavaScript puro, com save no aparelho.",
     link: `${process.env.PUBLIC_URL}/pugzzle/`,
     jogar: true,
+    extra: {
+      texto: "Baixar APK",
+      icone: "fa-solid fa-download",
+      link: `${process.env.PUBLIC_URL}/downloads/Pugzzle.apk`,
+      download: true,
+    },
     logo: img("pugzzle.svg"),
-    tags: ["JavaScript", "Web Audio", "Puzzle", "Web"],
+    tags: ["JavaScript", "Web Audio", "Capacitor", "Android"],
     tema: { c1: "#f2994a", c2: "#5b3a29", on: "#3b1f10", logoBg: "#f2994a" },
   },
   {
