@@ -469,6 +469,8 @@ function drawBG(g){
     g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, y0, LW, 1.5); }
   g.drawImage(IMG.decBL, 0, BB + 10 - 402 * IS, 215 * IS, 402 * IS);
   g.drawImage(IMG.decBR, 895 * IS, BB + 10 - 337 * IS, 185 * IS, 337 * IS);
+  { let fg = g.createLinearGradient(0, BB - 14, 0, BB + 2); fg.addColorStop(0, 'rgba(42,18,38,0)'); fg.addColorStop(1, 'rgba(42,18,38,1)'); g.fillStyle = fg; g.fillRect(0, BB - 14, LW, 16);
+    let pg2 = g.createLinearGradient(0, BB, 0, BB + botR); pg2.addColorStop(0, '#2a1226'); pg2.addColorStop(1, '#1d0d24'); g.fillStyle = pg2; g.fillRect(0, BB + 1.5, LW, botR); }
   let dg = g.createRadialGradient(LW / 2, (BT + BB) / 2, 40, LW / 2, (BT + BB) / 2, (BB - BT) * .75);
   dg.addColorStop(0, 'rgba(18,4,26,.18)'); dg.addColorStop(.6, 'rgba(18,4,26,.32)'); dg.addColorStop(1, 'rgba(10,2,16,.55)');
   g.fillStyle = dg; g.fillRect(0, BT, LW, BB - BT);
