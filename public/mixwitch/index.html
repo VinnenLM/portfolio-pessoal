@@ -39,7 +39,10 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wbtn small{font-weight:600;opacity:.8}
 /* Barra inferior (botões da arte) */
 .bar{position:absolute;inset:0;pointer-events:none}
-.tool{position:absolute;pointer-events:auto;border:0;padding:0;cursor:pointer;background:transparent center/100% 100% no-repeat;transition:filter .15s}
+.tool{position:absolute;pointer-events:auto;padding:0;cursor:pointer;transition:filter .15s;box-sizing:border-box;border-radius:calc(38px*var(--f));
+  border:calc(7px*var(--f)) solid #2e1408;background:linear-gradient(180deg,#d98f48 0%,#a8602b 48%,#7b4020 100%);
+  box-shadow:inset 0 calc(6px*var(--f)) 0 rgba(255,226,170,.5),inset 0 calc(-10px*var(--f)) 0 rgba(40,12,2,.28),inset 0 0 0 calc(3px*var(--f)) rgba(255,200,120,.25)}
+.tool::after{content:attr(aria-label);position:absolute;left:0;right:0;bottom:calc(14px*var(--f));text-align:center;font:800 calc(40px*var(--f)) 'Cinzel',serif;text-transform:uppercase;letter-spacing:.03em;color:#fff1d2;text-shadow:0 calc(3px*var(--f)) 0 #3a1a0a,0 0 calc(8px*var(--f)) rgba(0,0,0,.5)}
 .tool:active{transform:translateY(2px)}
 .badge{position:absolute;display:grid;place-items:center;border-radius:50%;font:800 calc(30px*var(--f)) var(--f-ui);color:#3a2204;
   background:radial-gradient(circle at 40% 32%,#ffe9a0,#f3b928 60%,#c98a10);border:calc(4px*var(--f)) solid #3a2008;box-shadow:0 2px 3px #0007;filter:none}
@@ -363,7 +366,6 @@ const IMG = {};
 let imgsReady = false;
 Promise.all(Object.keys(ASSET).map(k => new Promise(res => { const im = new Image(); im.onload = im.onerror = res; im.src = ASSET[k]; IMG[k] = im; }))).then(() => {
   imgsReady = true; resize();
-  ['undo', 'hint', 'tube', 'shop'].forEach(n => { $('#' + n + 'Btn').style.backgroundImage = 'url(' + ASSET['b_' + n] + ')'; });
 });
 const IS = 1 / 3;               // pixel da arte -> unidade lógica
 let BT = 243, BB = 640;          // topo/base da área das poções
@@ -389,14 +391,14 @@ function placeUI(){
     st.top = (bottom ? H - (1457 - y0) * f : y0 * f) + 'px';
   };
   put($('#menuBtn'), 45, 22, 155, 112); put($('#ribbon'), 398, 22, 682, 120); fitHud(); put($('#coinbox'), 905, 38, 990, 96); put($('#plusBtn'), 990, 28, 1060, 104);
-  const D = 104, C = {undo:[56 + D, 1250, 318 + D, 1436, 282 + D], hint:[306 + D, 1250, 566 + D, 1436, 531 + D], tube:[556 + D, 1250, 816 + D, 1436, 780 + D]};
+  const D = 104, C = {undo:[72 + D, 1262, 302 + D, 1432, 272 + D], hint:[322 + D, 1262, 552 + D, 1432, 522 + D], tube:[572 + D, 1262, 802 + D, 1432, 772 + D]};
   Object.keys(C).forEach(n => {
     const c = C[n], b = $('#' + n + 'Btn'); put(b, c[0], c[1], c[2], c[3], true);
     const bd = b.querySelector('.badge');
-    if (bd){ const R = 24; bd.style.left = (c[4] - c[0] - R) * f + 'px'; bd.style.top = (1281 - c[1] - R) * f + 'px'; bd.style.width = bd.style.height = 2 * R * f + 'px'; }
+    if (bd){ const R = 24; bd.style.left = (c[4] - c[0] - R) * f + 'px'; bd.style.top = (1290 - c[1] - R) * f + 'px'; bd.style.width = bd.style.height = 2 * R * f + 'px'; }
   });
-  [['undo', 56 + D, 1250, 185 + D, 1322], ['hint', 306 + D, 1250, 436 + D, 1318], ['tube', 556 + D, 1250, 683 + D, 1318]].forEach(q => {
-    const ic = $('#' + q[0] + 'Btn .ico'), S = 74; ic.style.left = (q[3] - q[1] - S / 2) * f + 'px'; ic.style.top = (q[4] - q[2] - S / 2) * f + 'px'; ic.style.width = ic.style.height = S * f + 'px';
+  [['undo'], ['hint'], ['tube']].forEach(q => {
+    const ic = $('#' + q[0] + 'Btn .ico'), S = 78; ic.style.left = (108 - S / 2) * f + 'px'; ic.style.top = (50 - S / 2) * f + 'px'; ic.style.width = ic.style.height = S * f + 'px';
   });
 }
 function makeLayer(fn){
@@ -459,12 +461,16 @@ function drawBG(g){
   g.drawImage(IMG.scene, 0, 0, LW, 730 * IS);
   g.drawImage(IMG.decTL, 0, BT - 1, 110 * IS, 155 * IS);
   g.drawImage(IMG.decTR, 990 * IS, BT - 1, 90 * IS, 155 * IS);
+  { const y0 = BB, h = botR; let pg = g.createLinearGradient(0, y0, 0, y0 + h); pg.addColorStop(0, '#4a2438'); pg.addColorStop(.12, '#3a1b30'); pg.addColorStop(1, '#1d0d24');
+    g.fillStyle = pg; g.fillRect(0, y0, LW, h);
+    g.strokeStyle = 'rgba(0,0,0,.22)'; g.lineWidth = 1; for (let x = 45; x < LW; x += 60){ g.beginPath(); g.moveTo(x, y0 + 10); g.lineTo(x, y0 + h); g.stroke(); }
+    let wg = g.createLinearGradient(0, y0 - 2, 0, y0 + 11); wg.addColorStop(0, '#d79a58'); wg.addColorStop(.35, '#b97a3e'); wg.addColorStop(1, '#6e3b1d');
+    g.fillStyle = wg; g.fillRect(0, y0 - 2, LW, 13); g.fillStyle = 'rgba(255,230,180,.55)'; g.fillRect(0, y0 - 2, LW, 1.5); g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(0, y0 + 11, LW, 3); }
   g.drawImage(IMG.decBL, 0, BB + 10 - 402 * IS, 215 * IS, 402 * IS);
   g.drawImage(IMG.decBR, 895 * IS, BB + 10 - 337 * IS, 185 * IS, 337 * IS);
   let dg = g.createRadialGradient(LW / 2, (BT + BB) / 2, 40, LW / 2, (BT + BB) / 2, (BB - BT) * .75);
   dg.addColorStop(0, 'rgba(18,4,26,.18)'); dg.addColorStop(.6, 'rgba(18,4,26,.32)'); dg.addColorStop(1, 'rgba(10,2,16,.55)');
   g.fillStyle = dg; g.fillRect(0, BT, LW, BB - BT);
-  g.drawImage(IMG.barbg, 0, BB, LW, botR);
   const bg2 = g.createLinearGradient(0, BB - 18, 0, BB); bg2.addColorStop(0, 'rgba(10,2,16,0)'); bg2.addColorStop(1, 'rgba(10,2,16,.45)'); g.fillStyle = bg2; g.fillRect(0, BB - 18, LW, 18);
 }
 function drawFG(g){
