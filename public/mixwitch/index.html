@@ -463,10 +463,10 @@ function drawBG(g){
   g.drawImage(IMG.scene, 0, 0, LW, 730 * IS);
   g.drawImage(IMG.decTL, 0, BT - 1, 110 * IS, 155 * IS);
   g.drawImage(IMG.decTR, 990 * IS, BT - 1, 90 * IS, 155 * IS);
-  { const y0 = BB, h = botR; let pg = g.createLinearGradient(0, y0, 0, y0 + h); pg.addColorStop(0, '#4a2438'); pg.addColorStop(.12, '#3a1b30'); pg.addColorStop(1, '#1d0d24');
+  { const y0 = BB, h = botR; let pg = g.createLinearGradient(0, y0, 0, y0 + h); pg.addColorStop(0, '#2a1226'); pg.addColorStop(1, '#1d0d24');
     g.fillStyle = pg; g.fillRect(0, y0, LW, h);
     g.strokeStyle = 'rgba(0,0,0,.22)'; g.lineWidth = 1; for (let x = 45; x < LW; x += 60){ g.beginPath(); g.moveTo(x, y0 + 10); g.lineTo(x, y0 + h); g.stroke(); }
-    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, y0, LW, 1.5); g.fillStyle = 'rgba(255,200,140,.18)'; g.fillRect(0, y0 + 1.5, LW, 1); }
+    g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, y0, LW, 1.5); }
   g.drawImage(IMG.decBL, 0, BB + 10 - 402 * IS, 215 * IS, 402 * IS);
   g.drawImage(IMG.decBR, 895 * IS, BB + 10 - 337 * IS, 185 * IS, 337 * IS);
   let dg = g.createRadialGradient(LW / 2, (BT + BB) / 2, 40, LW / 2, (BT + BB) / 2, (BB - BT) * .75);
