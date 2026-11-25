@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
 
-  let ctx = null, master, musicBus, sfxBus, timer = null, nextBar = 0, barIdx = 0;
+  let ctx = null, voiceBus, master, musicBus, sfxBus, timer = null, nextBar = 0, barIdx = 0;
   const opts = { music: true, sfx: true, voice: true };
   const BPM = 64, BEAT = 60 / BPM, BAR = BEAT * 4;
   const CHORDS = [[0, 4, 7], [9, 12, 16], [5, 9, 12], [7, 11, 14]]; // C, Am, F, G
@@ -23,6 +23,8 @@
     musicBus.connect(master); musicBus.connect(delay); delay.connect(lp); lp.connect(fb); fb.connect(delay); lp.connect(master);
     sfxBus = ctx.createGain(); sfxBus.gain.value = 0.7; sfxBus.connect(master);
     setMusic(opts.music);
+    voiceBus = ctx.createGain(); voiceBus.gain.value = 1.15; voiceBus.connect(master);
+    loadVoices();
   }
 
   function tone(freq, t, dur, o) {
@@ -111,8 +113,31 @@
     if (typeof Audio === 'undefined') return;
     VOZ.forEach((n, i) => { try { const a = new Audio('assets/voz/' + n + '.mp3'); a.preload = 'auto'; clips[i] = a; } catch (e) { /* ignore */ } });
   }
+  // Vozes decodificadas no Web Audio: tocam na hora, mesmo em acertos rápidos (o <audio> falhava no Android)
+  const bufs = {};
+  let curSrc = null;
+  function loadVoices() {
+    if (!ctx || typeof fetch === 'undefined') return;
+    VOZ.forEach((n, i) => {
+      if (bufs[i]) return;
+      fetch('assets/voz/' + n + '.mp3').then((r) => r.arrayBuffer())
+        .then((ab) => new Promise((ok, no) => ctx.decodeAudioData(ab, ok, no)))
+        .then((b) => { bufs[i] = b; }).catch(() => { /* usa o <audio> como reserva */ });
+    });
+  }
+  function playBuf(i) {
+    if (curSrc) { try { curSrc.g.gain.cancelScheduledValues(ctx.currentTime); curSrc.g.gain.setTargetAtTime(0.0001, ctx.currentTime, 0.015); curSrc.s.stop(ctx.currentTime + 0.08); } catch (e) { /* ignore */ } }
+    const s = ctx.createBufferSource(), g = ctx.createGain();
+    s.buffer = bufs[i]; s.connect(g); g.connect(voiceBus); g.gain.value = 1;
+    s.start(ctx.currentTime + 0.02); curSrc = { s, g };
+    s.onended = () => { if (curSrc && curSrc.s === s) curSrc = null; };
+  }
   function say(text, idx) {
     if (!opts.voice) return;
+    if (idx != null && ctx && bufs[idx]) {
+      if (ctx.state === 'suspended') ctx.resume();
+      try { playBuf(idx); return; } catch (e) { /* tenta o <audio> */ }
+    }
     const a = idx != null ? clips[idx] : null;
     if (a) {
       try {
@@ -147,7 +172,7 @@
   root.PugAudio = {
     init, preload, sfx, say, setMusic,
     setSfx(v) { opts.sfx = v; },
-    setVoice(v) { opts.voice = v; if (!v) { if (root.speechSynthesis) root.speechSynthesis.cancel(); if (curClip) curClip.pause(); } },
+    setVoice(v) { opts.voice = v; if (!v) { if (root.speechSynthesis) root.speechSynthesis.cancel(); if (curClip) curClip.pause(); if (curSrc) { try { curSrc.s.stop(); } catch (e) { /* ignore */ } curSrc = null; } } },
     configure(s) { opts.music = !!s.music; opts.sfx = !!s.sfx; opts.voice = !!s.voice; },
   };
 })(typeof self !== 'undefined' ? self : this);
