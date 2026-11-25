@@ -88,7 +88,7 @@ const projetos = [
       link: `${process.env.PUBLIC_URL}/downloads/Fortmancer.apk`,
       download: true,
     },
-    logo: img("fortmancer.svg"),
+    logo: img("fortmancer.png"),
     tags: ["JavaScript", "Canvas", "Capacitor", "Android"],
     tema: { c1: "#c58bff", c2: "#1a1040", on: "#1a1040", logoBg: "#1a1040" },
   },
