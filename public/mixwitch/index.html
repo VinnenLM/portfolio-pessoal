@@ -160,6 +160,8 @@ const PALETTE = [
   {n:'Noite',    c:'#2b2140'}, {n:'Safira',   c:'#1670ff'}, {n:'Ametista',c:'#9a34ff'}, {n:'Rosa',   c:'#ff4fb6'},
   {n:'Terra',    c:'#9b4a16'}, {n:'Névoa',    c:'#f2eeff'}
 ];
+const PHRASES_PUG = ['Au au!', 'Que cheirinho!', 'Mais ração!', 'Nham nham!', 'Quem é um bom menino?', 'Rabinho abanando!', 'Pugtástico!'];
+const CPHR_PUG = ['Ração nota 10!', 'Meu pug vai amar!', 'Au au, aprovado!', 'A melhor da região!', 'Até abanei o rabo!', 'Vale cada moeda!'];
 const PHRASES = ['Hihihi!', 'Borbulha, borbulha!', 'Mais uma poção!', 'Que cheirinho!', 'Perfeito!', 'Abracadabra!', 'A casa paga!'];
 
 /* ======================= SAVE ======================= */
@@ -768,7 +770,7 @@ function updateSale(dt){
     const hx = S.xc, hy = sceneB - 76;
     coinsBurst(hx, hy, 12); texts.push({txt: '+' + S.price, x: hx, y: hy - 36, life: 1.5, max: 1.5}); Snd.coin();
     const cb = $('#coins'); cb.classList.remove('bump'); void cb.offsetWidth; cb.classList.add('bump');
-    S.say = rand(CPHR); S.sayT = 2.2; say.txt = 'Volte sempre!'; say.t = 2;
+    S.say = rand(PUG() ? CPHR_PUG : CPHR); S.sayT = 2.2; say.txt = PUG() ? 'Volte sempre, au au!' : 'Volte sempre!'; say.t = 2;
   }
   if (!S.done && st >= 4.9){ S.done = true; sale = null; showClear(); }
 }
@@ -1059,7 +1061,7 @@ function onTap(x, y){
   if (sale && !uiOpen){ sale.t0 = Math.min(sale.t0, TT - 4.8); return; }
   if (uiOpen || busy || cleared) return;
   hint = null;
-  if (y < sceneB && x < 112 && y > sceneB - 120){ say.txt = rand(PHRASES); say.t = 1.8; return; }
+  if (y < sceneB && x < 112 && y > sceneB - 120){ say.txt = rand(PUG() ? PHRASES_PUG : PHRASES); say.t = 1.8; return; }
   let hit = -1;
   for (let i = 0; i < tubes.length; i++){
     const p = pos[i]; if (!p) continue;
@@ -1104,7 +1106,7 @@ function landing(f){
   const g = cauldronGeo(); lastColor = f.c;
   brewTarget = hex(PALETTE[f.c].c); ripple = 1;
   if (PUG()) kibPuff(g.mouthX, g.mouthY - 2, PALETTE[f.c].c, 16); else sparks(g.mouthX, g.mouthY, PALETTE[f.c].c, 22, 80); Snd.bubble();
-  say.txt = rand(PHRASES); say.t = 1.8;
+  say.txt = rand(PUG() ? PHRASES_PUG : PHRASES); say.t = 1.8;
   pendingFlights--; updateHud();
   if (pendingFlights === 0 && tubes.every(t => !t.length)) levelClear();
 }
@@ -1252,7 +1254,7 @@ function showClear(){
 function levelClear(){
   cleared = true; save.level++; persist(); updateHud();
   const g = cauldronGeo(); sparks(g.mouthX, g.mouthY, '#f3c85a', 40, 110); Snd.win();
-  say.txt = 'Hora de vender!'; say.t = 2;
+  say.txt = PUG() ? 'Hora de vender, au!' : 'Hora de vender!'; say.t = 2;
   startSale();
 }
 function goBack(from){
