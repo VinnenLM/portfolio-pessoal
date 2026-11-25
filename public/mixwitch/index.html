@@ -164,7 +164,7 @@ const PHRASES = ['Hihihi!', 'Borbulha, borbulha!', 'Mais uma poção!', 'Que che
 
 /* ======================= SAVE ======================= */
 const SAVE_KEY = 'brewmancer-v1';
-let save = {coins:0, level:1, undo:3, hint:3, tubes:2, up:{cauldron:0, luck:0, extra:0}, opt:{sound:true, music:true}};
+let save = {coins:0, level:1, undo:3, hint:3, tubes:2, up:{cauldron:0, luck:0, extra:0}, opt:{sound:true, music:true, theme:'pug'}};
 try {
   let raw = localStorage.getItem(SAVE_KEY) || localStorage.getItem('pocoes-da-bruxa-v1');
   const s = JSON.parse(raw || 'null');
