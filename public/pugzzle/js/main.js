@@ -348,6 +348,8 @@
     $('#game-level').textContent = G.level;
     $('#game-time').textContent = fmtTime(G.time || 0);
     $('#game-points').textContent = save.points;
+    const totalLives = Math.max(START_LIVES, G.lives);
+    $('#game-lives').className = 'stat lives' + (totalLives >= 5 ? ' m5' : totalLives === 4 ? ' m4' : '');
     $('#game-lives').innerHTML = BONE(false).repeat(Math.max(0, G.lives)) + BONE(true).repeat(Math.max(0, START_LIVES - G.lives));
     for (const t of BONUS_TYPES) {
       $('#count-' + t).textContent = save.bonuses[t];
