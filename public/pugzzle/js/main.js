@@ -260,14 +260,21 @@
     let startPug = false;
     if (!resume && L.mulberry32((cfg.seed ^ 0x5bd1e995) >>> 0)() < 0.15) {
       const r = Math.floor(L.mulberry32((cfg.seed ^ 0x2545f491) >>> 0)() * n), c = G.puz.solution[r];
-      G.pugs[r] = c; autoMark(r, c); startPug = true;
+      startPug = { r, c };
     }
     G.pugHtml = skinSvg(save.skins.selected);
     buildBoard();
     updateHUD();
-    setMsg(puz.theme ? '✨ Fase temática: ' + L.THEMES[puz.theme].name + ' — as cores formam um desenho!' + (startPug ? ' Já começou com um pug.' : '') : startPug ? 'Esta fase já começou com um pug no lugar! 🐶' : DEFAULT_MSG);
+    setMsg(DEFAULT_MSG);
     show('game');
     saveRun();
+    if (startPug) { // o pug inicial aparece na hora, com o mesmo efeito do bônus
+      const g0 = G;
+      setTimeout(() => {
+        if (G !== g0 || G.done || G.pugs[startPug.r] >= 0) return;
+        A.sfx('bonus'); tryPlace(startPug.r, startPug.c, true); pugBurst(startPug.r * G.n + startPug.c);
+      }, 650);
+    }
     if (!save.tutorialDone) showTutorial(0);
   }
 
