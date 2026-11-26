@@ -220,17 +220,30 @@
     ? 6 + Math.floor((lv - 1) / 5) // começo: do mais fácil (6x6) subindo até 9x9
     : 6 + Math.floor(L.mulberry32((levelSeed(lv) ^ 0x9e3779b1) >>> 0)() * 5); // depois: tamanho aleatório de 6x6 a 10x10
   const levelSeed = (lv) => 1000 + lv * 37;
+  const THEMED = typeof PugThemed !== 'undefined' ? PugThemed : null;
+  // A cada 4 fases (depois da 20) vem uma fase temática: as cores formam um desenho.
+  function levelInfo(lv) {
+    if (THEMED && lv > 20 && lv % 4 === 0) {
+      const rnd = L.mulberry32((levelSeed(lv) ^ 0x7f4a7c15) >>> 0);
+      const ids = L.THEME_IDS.filter((id) => THEMED[id] && Object.keys(THEMED[id]).length);
+      if (ids.length) {
+        const id = ids[Math.floor(rnd() * ids.length)], sizes = Object.keys(THEMED[id]).map(Number);
+        return { n: sizes[Math.floor(rnd() * sizes.length)], theme: id };
+      }
+    }
+    return { n: levelSize(lv), theme: null };
+  }
 
   function startCampaign() {
     A.init();
     const r = save.run;
-    if (r && r.mode === 'campaign') startGame({ mode: 'campaign', level: r.level, n: r.n, seed: r.seed }, r);
-    else startGame({ mode: 'campaign', level: save.level, n: levelSize(save.level), seed: levelSeed(save.level) });
+    if (r && r.mode === 'campaign') startGame({ mode: 'campaign', level: r.level, n: r.n, seed: r.seed, theme: r.theme || null }, r);
+    else { const inf = levelInfo(save.level); startGame({ mode: 'campaign', level: save.level, n: inf.n, seed: levelSeed(save.level), theme: inf.theme }); }
   }
 
   function startGame(cfg, resume) {
     const n = cfg.n;
-    const puz = L.generate(n, cfg.seed);
+    const puz = (cfg.theme && L.fromThemed(THEMED, cfg.theme, n, cfg.seed)) || L.generate(n, cfg.seed);
     const colors = L.pickColors(n, cfg.seed);
     G = Object.assign({}, cfg, {
       puz, colors, names: colors.map((c) => c.name),
@@ -252,7 +265,7 @@
     G.pugHtml = skinSvg(save.skins.selected);
     buildBoard();
     updateHUD();
-    setMsg(startPug ? 'Esta fase já começou com um pug no lugar! 🐶' : DEFAULT_MSG);
+    setMsg(puz.theme ? '✨ Fase temática: ' + L.THEMES[puz.theme].name + ' — as cores formam um desenho!' + (startPug ? ' Já começou com um pug.' : '') : startPug ? 'Esta fase já começou com um pug no lugar! 🐶' : DEFAULT_MSG);
     show('game');
     saveRun();
     if (!save.tutorialDone) showTutorial(0);
@@ -261,7 +274,7 @@
   function saveRun() {
     if (!G || G.done) return;
     save.run = {
-      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, lives: Math.min(START_LIVES, G.lives), dirty: G.dirty, time: G.time,
+      mode: G.mode, level: G.level || 0, n: G.n, seed: G.seed, theme: G.puz.theme || null, lives: Math.min(START_LIVES, G.lives), dirty: G.dirty, time: G.time,
       pugs: Array.from(G.pugs), marks: Array.from(G.marks).reduce((a, v, i) => (v ? (a.push(i), a) : a), []),
     };
     persist();
@@ -423,7 +436,7 @@
   function lose() {
     G.done = true; save.run = null; persist();
     A.sfx('lose');
-    const cfg = { mode: G.mode, level: G.level, n: G.n, seed: G.seed };
+    const cfg = { mode: G.mode, level: G.level, n: G.n, seed: G.seed, theme: G.puz.theme || null };
     modal('<h2>Acabaram as vidas</h2><p>Os pugs precisam de mais um tempinho para pensar. Tente de novo!</p>', [
       { label: 'Tentar de novo', cls: 'primary', fn: () => startGame(cfg) },
       { label: 'Menu', fn: () => show('menu') },
