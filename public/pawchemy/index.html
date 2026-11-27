@@ -108,9 +108,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mapi>svg{position:absolute;left:0;top:0}
 .lvn{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border:0;padding:0;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 40% 35%,#b0603a,#6b3119 70%);box-shadow:0 0 0 3px #2a1206,inset 0 0 0 3px #f0a253,inset 0 0 0 5px #8a4420,0 5px 0 3px #2a1206;color:#fff0cf;font:800 21px 'Cinzel',serif;-webkit-text-stroke:3px #2a1205;paint-order:stroke fill}
 .lvn .num{display:grid;place-items:center;width:100%;height:100%}
-.lvn .num svg{width:26px;height:26px;display:block;-webkit-text-stroke:0}
+.lvn .num svg{width:40px;height:40px;display:block;-webkit-text-stroke:0}
 .lvn.cur{background:radial-gradient(circle at 40% 35%,#ffe08a,#f0901c 70%);box-shadow:0 0 0 3px #2a1206,inset 0 0 0 3px #fff0b0,inset 0 0 0 5px #b8640c,0 5px 0 3px #2a1206,0 0 22px rgba(255,200,90,.8);animation:lvp 1.4s ease-in-out infinite}
-.lvn.here::before{content:'';position:absolute;left:100%;top:50%;width:24px;height:24px;margin:-12px 0 0 8px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%23ffc94a' stroke='%232a1206' stroke-width='4'%3E%3Cellipse cx='32' cy='41' rx='13' ry='10.5'/%3E%3Cellipse cx='15.5' cy='27' rx='5.5' ry='7'/%3E%3Cellipse cx='25.5' cy='17.5' rx='5.5' ry='7.2'/%3E%3Cellipse cx='38.5' cy='17.5' rx='5.5' ry='7.2'/%3E%3Cellipse cx='48.5' cy='27' rx='5.5' ry='7'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;animation:lvb 1s ease-in-out infinite}
 .lvn.lock{cursor:default;background:radial-gradient(circle at 40% 35%,#6a6070,#3a3240 70%);box-shadow:0 0 0 3px #1a1420,inset 0 0 0 3px #8a8090,0 5px 0 3px #1a1420}
 .lvn .lst{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);display:flex;gap:0;font-size:15px;-webkit-text-stroke:2.5px #2a1205;white-space:nowrap}
 .lvn .lst i{font-style:normal;color:#5a4a50}
@@ -1532,8 +1531,8 @@ function showMap(from){
   let nodes = '';
   pts.forEach((p, k) => {
     const n = k + 1, st = save.stars[n] | 0, lock = n > save.level, cur = n === save.level, here = n === (cleared ? Math.min(save.level, curLevel + 1) : curLevel) && !lock;
-    nodes += '<button class="lvn' + (lock ? ' lock' : cur ? ' cur' : ' ok') + (here ? ' here' : '') + '" style="left:' + p[0] + 'px;top:' + p[1] + 'px"' + (lock ? ' disabled' : ' data-act="lvl" data-arg="' + n + '"') + '>' +
-      '<span class="num">' + (lock ? '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="#cfc6d8" stroke="#2a1206" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" fill="none" stroke="#2a1206" stroke-width="2.4"/></svg>' : n) + '</span>' +
+    nodes += '<button class="lvn' + (lock ? ' lock' : here ? ' cur' : ' ok') + '" style="left:' + p[0] + 'px;top:' + p[1] + 'px"' + (lock ? ' disabled' : ' data-act="lvl" data-arg="' + n + '"') + '>' +
+      '<span class="num">' + (lock || here ? '<svg viewBox="0 0 64 64"><g fill="' + (lock ? '#b9b0c4' : '#6b3119') + '" stroke="#2a1206" stroke-width="3.5"><ellipse cx="32" cy="41" rx="13" ry="10.5"/><ellipse cx="15.5" cy="27" rx="5.5" ry="7" transform="rotate(-20 15.5 27)"/><ellipse cx="25.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="38.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="48.5" cy="27" rx="5.5" ry="7" transform="rotate(20 48.5 27)"/></g></svg>' : n) + '</span>' +
       (lock ? '' : '<span class="lst">' + [0, 1, 2].map(j => '<i class="' + (j < st ? 'on' : '') + '">&#9733;</i>').join('') + '</span>') + '</button>';
   });
   showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + '</div>' +
