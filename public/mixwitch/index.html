@@ -1216,8 +1216,9 @@ function draw(){
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.drawImage(bgL, 0, 0);
   ctx.setTransform(dpr * sc, 0, 0, dpr * sc, 0, 0);
-  drawPugSprite(); drawCustomer();
+  drawCustomer();
   if (imgsReady) ctx.drawImage(IM('counter'), 0, 660 * IS, LW, 70 * IS);
+  drawPugSprite();
   const gr = ctx.createLinearGradient(0, BT - 1, 0, BT + 34); gr.addColorStop(0, 'rgba(12,2,14,.75)'); gr.addColorStop(.35, 'rgba(12,2,14,.3)'); gr.addColorStop(1, 'rgba(12,2,14,0)');
   ctx.fillStyle = gr; ctx.fillRect(0, BT - 1, LW, 35); ctx.fillStyle = 'rgba(255,214,150,.35)'; ctx.fillRect(0, BT - 2.2, LW, 1);
   drawCauldron(); drawWisps(); drawGlows(); drawSalePotion();
