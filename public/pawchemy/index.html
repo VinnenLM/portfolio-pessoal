@@ -1509,7 +1509,7 @@ function showOptions(from){
   showLayer('<div class="parch"><h2>Opções</h2>' +
     '<div class="sw"><div><b>Música</b><span class="d">Trilha da taverna</span></div><button class="wbtn ' + (save.opt.music ? 'gold' : '') + '" data-act="tog" data-arg="music|' + from + '">' + onOff(save.opt.music) + '</button></div>' +
     '<div class="sw"><div><b>Som</b><span class="d">Efeitos sonoros</span></div><button class="wbtn ' + (save.opt.sound ? 'gold' : '') + '" data-act="tog" data-arg="sound|' + from + '">' + onOff(save.opt.sound) + '</button></div>' +
-    '<div class="sw"><div><b>Apagar progresso</b><span class="d">Fase, moedas e melhorias</span></div><button class="wbtn danger" data-act="reset" data-arg="' + from + '">Apagar</button></div>' +
+    '<div class="sw"><div><b>Apagar progresso</b><span class="d">Fases, estrelas, moedas e melhorias</span></div><button class="wbtn danger" data-act="reset" data-arg="' + from + '">Apagar</button></div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
 }
 function showHow(from){
@@ -1618,7 +1618,7 @@ function act(a, arg){
       persist(); updateHud(); showShop(parts2[1], it.id); Snd.coin(); break;
     }
     case 'reset':
-      showLayer('<div class="parch"><h2>Apagar tudo?</h2><p>Fase, moedas e melhorias voltam ao começo. Isso não pode ser desfeito.</p>' +
+      showLayer('<div class="parch"><h2>Apagar tudo?</h2><p>Fases, estrelas, moedas e melhorias voltam ao começo. Isso não pode ser desfeito.</p>' +
         '<div class="row"><button class="wbtn" data-act="back" data-arg="' + arg + '">Cancelar</button><button class="wbtn danger" data-act="resetyes">Apagar</button></div></div>');
       break;
     case 'resetyes':
