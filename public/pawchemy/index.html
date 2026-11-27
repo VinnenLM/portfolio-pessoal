@@ -373,11 +373,19 @@ function solve(start, wantPath, limit){
   if (wantPath) return r ? path : null;
   return r ? true : (aborted ? null : false);
 }
+const MAX_LEVEL = 1000;
+function levelSpec(level){
+  let nColors = Math.min(10, 3 + Math.floor((level - 1) / 5)), hard = false;
+  if (level > 40 && level % 10 === 0) nColors = 8;            // fase de descanso
+  else if (level > 150 && level % 25 === 0){ hard = true; nColors = 7; } // fase desafio: só 1 pote vazio
+  return {nColors, hard};
+}
 function genLevel(level){
-  const nColors = Math.min(10, 3 + Math.floor(level / 1.5));
-  const empties = 2 + save.up.extra;
+  const sp = levelSpec(level), nColors = sp.nColors;
+  let empties = 2 + save.up.extra - (sp.hard ? 1 : 0);
   let unknown = null, last = null; const rnd = seeded(level * 97 + 13);
   for (let a = 0; a < 14; a++){
+    if (sp.hard && a === 8 && !unknown) empties++;
     const ids = shuffle([...PALETTE.keys()], rnd).slice(0, nColors);
     const pool = [];
     ids.forEach(id => { for (let i = 0; i < CAP; i++) pool.push(id); });
@@ -1296,7 +1304,7 @@ function updatePour(){
 
 /* ======================= LÓGICA ======================= */
 function startLevel(lv){
-  curLevel = clamp(lv || curLevel || save.level, 1, save.level);
+  curLevel = clamp(lv || curLevel || save.level, 1, Math.min(save.level, MAX_LEVEL));
   cleared = false; selected = -1; history = []; busy = false; pour = null; sale = null; hint = null; addedTubes = 0; levelCoins = 0; moveCount = 0; sentPotions = 0; pendingFlights = 0;
   flights.length = 0;
   tubes = genLevel(curLevel); initial = JSON.stringify(tubes); lift = tubes.map(() => 0);
@@ -1521,7 +1529,7 @@ function showShop(from){
   showLayer(h);
 }
 function showMap(from){
-  const N = save.level + 5, H = 84, top = 60, W = 300, pts = [];
+  const N = Math.min(MAX_LEVEL, save.level + 5), H = 84, top = 60, W = 300, pts = [];
   for (let i = 1; i <= N; i++) pts.push([W / 2 + Math.sin(i * .95) * 92, top + (N - i) * H]);
   let d = 'M' + pts[0][0] + ' ' + pts[0][1];
   for (let i = 1; i < pts.length; i++){ const a = pts[i - 1], b = pts[i], my = (a[1] + b[1]) / 2; d += ' C' + a[0] + ' ' + my + ' ' + b[0] + ' ' + my + ' ' + b[0] + ' ' + b[1]; }
@@ -1536,7 +1544,7 @@ function showMap(from){
       '<span class="num">' + (lock || here ? '<svg viewBox="0 0 64 64"><g fill="' + (lock ? '#b9b0c4' : '#6b3119') + '" stroke="#2a1206" stroke-width="3.5"><ellipse cx="32" cy="41" rx="13" ry="10.5"/><ellipse cx="15.5" cy="27" rx="5.5" ry="7" transform="rotate(-20 15.5 27)"/><ellipse cx="25.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="38.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="48.5" cy="27" rx="5.5" ry="7" transform="rotate(20 48.5 27)"/></g></svg>' : n) + '</span>' +
       (lock ? '' : '<span class="lst">' + [0, 1, 2].map(j => '<i class="' + (j < st ? 'on' : '') + '">&#9733;</i>').join('') + '</span>') + '</button>';
   });
-  showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + '</div>' +
+  showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + ' &nbsp;&middot;&nbsp; Fase ' + save.level + ' / ' + MAX_LEVEL + '</div>' +
     '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/><path d="' + dd + '" fill="none" stroke="#ffc94a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></svg>' + nodes + '</div></div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
   const mw0 = $('#mapw');
@@ -1555,11 +1563,12 @@ function showClear(){
   showLayer('<div class="parch"><div class="stars">' + '&#9733;'.repeat(saleInfo.stars) + '<span style="opacity:.25">' + '&#9733;'.repeat(3 - saleInfo.stars) + '</span></div><h2>Fase concluída!</h2>' +
     '<p>' + (PUG() ? 'Ração vendida' : 'Poção vendida') + ' por <b>+' + lastSale + '</b> moedas' + (saleInfo.lucky ? ' (sorte em dobro!)' : '') + '.<br>Jogadas: <b>' + saleInfo.moves + '</b> &middot; Ideal: <b>' + saleInfo.par + '</b><br><span class="d">Menos jogadas = mais moedas</span></p>' +
     (saleInfo.stars < 3 ? '<p class="d" style="text-align:center;margin:6px 0 0">Tente de novo para pegar as 3 estrelas!</p>' : '') +
-    '<div class="row"><button class="wbtn" data-act="retry">Tentar de novo</button><button class="wbtn gold" data-act="next">Próxima fase</button></div>' +
+    (curLevel >= MAX_LEVEL ? '<p style="text-align:center"><b>Você completou todas as ' + MAX_LEVEL + ' fases!</b></p>' : '') +
+    '<div class="row"><button class="wbtn' + (curLevel >= MAX_LEVEL ? ' gold' : '') + '" data-act="retry">Tentar de novo</button>' + (curLevel < MAX_LEVEL ? '<button class="wbtn gold" data-act="next">Próxima fase</button>' : '') + '</div>' +
     '<div class="row"><button class="wbtn" data-act="menu">Menu</button><button class="wbtn" data-act="map" data-arg="clear">Fases</button><button class="wbtn" data-act="shop" data-arg="clear">Lojinha</button></div></div>');
 }
 function levelClear(){
-  cleared = true; if (curLevel >= save.level) save.level = curLevel + 1; persist(); updateHud();
+  cleared = true; if (curLevel >= save.level) save.level = Math.min(MAX_LEVEL, curLevel + 1); persist(); updateHud();
   const g = cauldronGeo(); sparks(g.mouthX, g.mouthY, '#f3c85a', 40, 110); Snd.win();
   say.txt = PUG() ? 'Hora de vender, au!' : 'Hora de vender!'; say.t = 2;
   startSale();
