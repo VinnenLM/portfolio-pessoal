@@ -1322,6 +1322,7 @@ function updatePour(){
 /* ======================= LÓGICA ======================= */
 let introT = -9;
 function startLevel(lv){
+  usedB = {undo:0, hint:0, tubes:0};
   introT = TT;
   curLevel = clamp(lv || curLevel || save.level, 1, Math.min(save.level, MAX_LEVEL));
   cleared = false; selected = -1; history = []; busy = false; pour = null; sale = null; hint = null; addedTubes = 0; levelCoins = 0; moveCount = 0; sentPotions = 0; pendingFlights = 0;
@@ -1333,6 +1334,8 @@ function startLevel(lv){
 }
 function restartLevel(){
   if (busy || cleared) return;
+  const rf = usedB.undo + usedB.hint + usedB.tubes;
+  if (rf){ save.undo += usedB.undo; save.hint += usedB.hint; save.tubes += usedB.tubes; usedB = {undo:0, hint:0, tubes:0}; persist(); setTimeout(() => toast('Bônus usados nesta tentativa foram devolvidos.'), 500); }
   tubes = JSON.parse(initial); selected = -1; history = []; hint = null; addedTubes = 0; moveCount = 0; sentPotions = 0; flights.length = 0; pendingFlights = 0;
   totalPotions = tubes.filter(t => t.length).length; lift = tubes.map(() => 0);
   layoutBoard(); updateHud();
@@ -1397,9 +1400,10 @@ function landing(f){
 }
 function undo(){
   if (uiOpen || busy || cleared) return;
+  { const now = performance.now(); if (now < undoCd) return; undoCd = now + 350; }
   if (!history.length){ toast('Nada para voltar agora.'); return; }
   if (save.undo <= 0){ toast('Sem voltas! Veja a lojinha.'); return; }
-  tubes = JSON.parse(history.pop()); lift = tubes.map(() => 0); save.undo--; selected = -1; hint = null; persist(); updateHud(); Snd.sel();
+  tubes = JSON.parse(history.pop()); lift = tubes.map(() => 0); save.undo--; usedB.undo++; selected = -1; hint = null; persist(); updateHud(); Snd.sel();
 }
 function checkStuck(){
   if (cleared || pendingFlights || busy || pour || uiOpen || !tubes.length || anyMove()) return;
@@ -1442,14 +1446,14 @@ function findHint(){
   }
   return {stuck: true};
 }
-let hintCd = 0, tubeCd = 0;
+let hintCd = 0, tubeCd = 0, undoCd = 0, usedB = {undo:0, hint:0, tubes:0};
 function useHint(){
   if (uiOpen || busy || cleared) return;
   const now = performance.now(); if (now < hintCd || (hint && TT - hint.t0 < 5)) return; hintCd = now + 1200;
   if (save.hint <= 0){ toast('Sem dicas! Veja a lojinha.'); return; }
   const r = findHint();
   if (!r || r.stuck){ toast('Sem saída por aqui! Use Voltar ou um Frasco extra (a dica não foi gasta).'); stuckT = TT; return; }
-  save.hint--; persist(); selected = -1; hint = {a: r.mv[0], b: r.mv[1], t0: TT}; updateHud(); Snd.sel();
+  save.hint--; usedB.hint++; persist(); selected = -1; hint = {a: r.mv[0], b: r.mv[1], t0: TT}; updateHud(); Snd.sel();
 }
 function useTube(){
   if (uiOpen || busy || cleared) return;
@@ -1457,7 +1461,7 @@ function useTube(){
   if (addedTubes >= 2){ toast('Máximo de 2 frascos extras por fase.'); return; }
   if (save.tubes <= 0){ toast('Sem frascos mágicos! Veja a lojinha.'); return; }
   if (tubes.length >= 14){ toast('A mesa está cheia!'); return; }
-  save.tubes--; addedTubes++; persist();
+  save.tubes--; usedB.tubes++; addedTubes++; persist();
   tubes.push([]); lift.push(0);
   history = history.map(h => { const a = JSON.parse(h); a.push([]); return JSON.stringify(a); });
   selected = -1; hint = null; layoutBoard(); updateHud(); Snd.splash();
