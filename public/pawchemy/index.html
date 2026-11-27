@@ -214,6 +214,7 @@ try {
   const s = JSON.parse(raw || 'null');
   if (s && typeof s === 'object') save = {...save, ...s, up:{...save.up, ...(s.up || {})}, opt:{...save.opt, ...(s.opt || {})}};
   if (!save.stars || typeof save.stars !== 'object') save.stars = {};
+  if (!save.starMig){ for (let i = 1; i < save.level; i++) if (!save.stars[i]) save.stars[i] = 3; save.starMig = 1; }
   if (save.up.extra > 1){ save.coins += 4500 * (save.up.extra - 1); save.up.extra = 1; }
 } catch (e) {}
 let curLevel = save.level;
