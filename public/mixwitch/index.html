@@ -852,7 +852,8 @@ function drawPugSprite(){
   const x0 = 20 * IS, y0 = 190 * IS, w = im.naturalWidth * IS, h = im.naturalHeight * IS, ax = 235 * IS, ay = 668 * IS;
   const ht = TT - pugHop, hop = ht < .45 ? Math.sin(Math.PI * ht / .45) : 0;
   const sy = 1 + .009 * (.5 + .5 * Math.sin(TT * 2.4)) + .045 * hop, sx = 1 + .004 * (.5 + .5 * Math.sin(TT * 2.4)) + .012 * hop;
-  ctx.save(); ctx.translate(ax, ay); ctx.scale(sx, sy); ctx.translate(-ax, -ay);
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, LW, 660 * IS); ctx.rect(232 * IS, 660 * IS, 92 * IS, 14 * IS); ctx.clip();
+  ctx.translate(ax, ay); ctx.scale(sx, sy); ctx.translate(-ax, -ay);
   ctx.drawImage(im, x0, y0, w, h);
   // piscar
   if (TT > pugBlink + .16) pugBlink = TT + 2.2 + Math.random() * 3;
