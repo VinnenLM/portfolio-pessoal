@@ -600,6 +600,7 @@ function drawBottleRaw(c, x, y, s, rot, runs, opt){
     c.strokeStyle = 'rgba(255,255,255,.4)'; c.lineWidth = 1.6; c.beginPath(); c.moveTo(-BW + 12, -22); c.lineTo(-BW + 14, -92); c.stroke();
     c.fillStyle = 'rgba(255,255,255,.12)'; c.beginPath(); c.moveTo(-BW + 18, -100); c.lineTo(-BW + 30, -100); c.lineTo(BW - 20, -20); c.lineTo(BW - 32, -20); c.closePath(); c.fill();
     c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.arc(BW - 11, -96, 2, 0, 7); c.fill();
+    paw(c, 0, -62, 15, 'rgba(255,190,215,.26)');
     // aro de vidro no topo
     let rg2 = c.createLinearGradient(0, -134, 0, -124); rg2.addColorStop(0, '#fff6e4'); rg2.addColorStop(1, '#cdb08a');
     rr(c, -26, -134, 52, 10, 4); c.fillStyle = rg2; c.fill(); c.strokeStyle = '#3a2214'; c.lineWidth = 2.2; c.stroke();
