@@ -258,3 +258,9 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes bring { from { transform: scale(.3); opacity: 1; } to { transform: scale(2.8); opacity: 0; } }
 .burst-spark { position: absolute; font-size: 20px; line-height: 1; pointer-events: none; text-shadow: 0 0 6px #fff; animation: bspark .9s ease-out forwards; }
 @keyframes bspark { from { transform: translate(-50%, -50%) scale(.4); opacity: 1; } to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.3) rotate(200deg); opacity: 0; } }
+
+/* entrada da fase */
+.cell.intro { animation: tileIn .5s cubic-bezier(.2,1.5,.4,1) var(--d, 0ms) backwards; }
+@keyframes tileIn { from { transform: scale(.2) rotate(-18deg); opacity: 0; filter: brightness(1.6); } 60% { opacity: 1; } to { transform: none; opacity: 1; filter: none; } }
+.chips.intro { animation: chipsIn .6s ease-out backwards; }
+@keyframes chipsIn { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }

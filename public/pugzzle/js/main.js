@@ -264,6 +264,7 @@
     }
     G.pugHtml = skinSvg(save.skins.selected);
     buildBoard();
+    introWave();
     updateHUD();
     setMsg(DEFAULT_MSG);
     show('game');
@@ -285,6 +286,18 @@
       pugs: Array.from(G.pugs), marks: Array.from(G.marks).reduce((a, v, i) => (v ? (a.push(i), a) : a), []),
     };
     persist();
+  }
+
+  // Ao começar a fase os quadrados "pipocam" em onda, da quina de cima até a de baixo.
+  function introWave() {
+    const n = G.n, cells = $('#board').children;
+    for (let i = 0; i < cells.length; i++) {
+      cells[i].style.setProperty('--d', (((i / n) | 0) + (i % n)) * 28 + 'ms');
+      cells[i].classList.add('intro');
+    }
+    const box = $('.chips'); if (box) { box.classList.remove('intro'); void box.offsetWidth; box.classList.add('intro'); }
+    const g0 = G;
+    setTimeout(() => { if (G === g0) for (let i = 0; i < cells.length; i++) cells[i].classList.remove('intro'); if (box) box.classList.remove('intro'); }, 1400);
   }
 
   function buildBoard() {
