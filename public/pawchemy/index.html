@@ -1442,8 +1442,10 @@ function findHint(){
   }
   return {stuck: true};
 }
+let hintCd = 0, tubeCd = 0;
 function useHint(){
   if (uiOpen || busy || cleared) return;
+  const now = performance.now(); if (now < hintCd || (hint && TT - hint.t0 < 5)) return; hintCd = now + 1200;
   if (save.hint <= 0){ toast('Sem dicas! Veja a lojinha.'); return; }
   const r = findHint();
   if (!r || r.stuck){ toast('Sem saída por aqui! Use Voltar ou um Frasco extra (a dica não foi gasta).'); stuckT = TT; return; }
@@ -1451,6 +1453,7 @@ function useHint(){
 }
 function useTube(){
   if (uiOpen || busy || cleared) return;
+  const now = performance.now(); if (now < tubeCd) return; tubeCd = now + 900;
   if (addedTubes >= 2){ toast('Máximo de 2 frascos extras por fase.'); return; }
   if (save.tubes <= 0){ toast('Sem frascos mágicos! Veja a lojinha.'); return; }
   if (tubes.length >= 14){ toast('A mesa está cheia!'); return; }
