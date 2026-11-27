@@ -106,6 +106,21 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .mapw::-webkit-scrollbar{display:none}
 .mapi{position:relative;width:300px;margin:0 auto}
 .mapi>svg{position:absolute;left:0;top:0}
+.mdec{position:absolute;transform:translate(-50%,-50%);pointer-events:none;animation:mbob 3s ease-in-out infinite;filter:drop-shadow(0 4px 2px rgba(0,0,0,.45))}
+.mdec svg,.mdec img{display:block}
+.mdec.cust{animation:mhop 1.9s ease-in-out infinite}
+.mdec.cust img{height:76px;width:auto;-webkit-mask-image:linear-gradient(#000 70%,transparent);mask-image:linear-gradient(#000 70%,transparent)}
+.mdec.bone{animation:mspin 4s ease-in-out infinite}
+.mdec .bub{animation:mbub 1.8s ease-in infinite;transform-box:fill-box;transform-origin:center}
+.mdec .b2{animation-delay:-.6s}.mdec .b3{animation-delay:-1.2s}
+.mdec .flag{animation:mflag 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:left center}
+.msp{position:absolute;width:6px;height:6px;margin:-3px;border-radius:50%;background:#ffe9a8;box-shadow:0 0 8px 2px rgba(255,220,140,.7);animation:mtw 3s ease-in-out infinite;pointer-events:none}
+@keyframes mbob{0%,100%{transform:translate(-50%,-50%)}50%{transform:translate(-50%,calc(-50% - 6px))}}
+@keyframes mhop{0%,100%{transform:translate(-50%,-50%) scale(1,1)}20%{transform:translate(-50%,-50%) scale(1.05,.94)}45%{transform:translate(-50%,calc(-50% - 10px)) scale(.96,1.05)}70%{transform:translate(-50%,-50%) scale(1.03,.97)}}
+@keyframes mspin{0%,100%{transform:translate(-50%,-50%) rotate(-15deg)}50%{transform:translate(-50%,calc(-50% - 5px)) rotate(15deg)}}
+@keyframes mbub{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:.9}100%{transform:translateY(-34px) scale(1.1);opacity:0}}
+@keyframes mflag{50%{transform:skewY(8deg) scaleX(.85)}}
+@keyframes mtw{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}}
 .lvn{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border:0;padding:0;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 40% 35%,#b0603a,#6b3119 70%);box-shadow:0 0 0 3px #2a1206,inset 0 0 0 3px #f0a253,inset 0 0 0 5px #8a4420,0 5px 0 3px #2a1206;color:#fff0cf;font:800 21px 'Cinzel',serif;-webkit-text-stroke:3px #2a1205;paint-order:stroke fill}
 .lvn .num{display:grid;place-items:center;width:100%;height:100%}
 .lvn .num svg{width:40px;height:40px;display:block;-webkit-text-stroke:0}
@@ -1528,6 +1543,14 @@ function showShop(from){
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>';
   showLayer(h);
 }
+
+const MAPDECO = {
+  castle: '<svg viewBox="0 0 90 90" width="78" height="78"><g stroke="#2a1206" stroke-width="3" stroke-linejoin="round"><path d="M14 86V44h14v42M62 86V44h14v42" fill="#6a5a80"/><path d="M24 86V52h42v34z" fill="#7d6c96"/><path d="M38 86V70a7 7 0 0114 0v16z" fill="#3a2214"/><path d="M10 46L21 20L32 46z" fill="#8a3ad6"/><path d="M58 46L69 20L80 46z" fill="#8a3ad6"/><path d="M34 54L45 24L56 54z" fill="#9a4ae6"/><rect x="18" y="56" width="6" height="9" rx="3" fill="#ffd36a"/><rect x="66" y="56" width="6" height="9" rx="3" fill="#ffd36a"/></g><path d="M45 24V8" stroke="#2a1206" stroke-width="2.5"/><path class="flag" d="M45 8h16l-4 5 4 5H45z" fill="#ffc94a" stroke="#2a1206" stroke-width="2"/></svg>',
+  cauldron: '<svg viewBox="0 0 90 90" width="76" height="76"><circle class="bub" cx="38" cy="40" r="5" fill="#9dff8a" opacity=".85"/><circle class="bub b2" cx="52" cy="42" r="4" fill="#c4ffb4" opacity=".8"/><circle class="bub b3" cx="45" cy="44" r="3.5" fill="#9dff8a" opacity=".8"/><g stroke="#2a1206" stroke-width="3" stroke-linejoin="round"><path d="M14 50h62c0 22-12 32-31 32S14 72 14 50z" fill="#4a2a66"/><ellipse cx="45" cy="50" rx="33" ry="8" fill="#5e3a80"/><ellipse cx="45" cy="50" rx="26" ry="5" fill="#6ee05a"/><path d="M22 80l-4 6M68 80l4 6" stroke-width="4"/></g><path d="M24 62q4 10 12 13" stroke="#8a6ab0" stroke-width="3" fill="none" stroke-linecap="round"/></svg>',
+  sack: '<svg viewBox="0 0 90 90" width="72" height="72"><g stroke="#2a1206" stroke-width="3" stroke-linejoin="round"><path d="M22 34q-8 20-6 38q2 12 29 12t29-12q2-18-6-38z" fill="#c8945a"/><path d="M26 34q19-12 38 0q-4 6-19 6t-19-6z" fill="#a8743e"/></g><g fill="#c0622a" stroke="#2a1206" stroke-width="1.6"><ellipse cx="36" cy="30" rx="5" ry="4"/><ellipse cx="46" cy="27" rx="5" ry="4"/><ellipse cx="55" cy="31" rx="5" ry="4"/><ellipse cx="44" cy="33" rx="5" ry="4"/></g><path d="M34 60h22m-22 0a4 4 0 11-2-5m2 5a4 4 0 10-2 5M56 60a4 4 0 112-5m-2 5a4 4 0 102 5" fill="#fff4dc" stroke="#2a1206" stroke-width="2.5" stroke-linecap="round"/></svg>',
+  jars: '<svg viewBox="0 0 90 90" width="72" height="72"><g stroke="#2a1206" stroke-width="3" stroke-linejoin="round"><rect x="14" y="40" width="28" height="40" rx="7" fill="rgba(230,240,255,.35)"/><rect x="48" y="30" width="28" height="50" rx="7" fill="rgba(230,240,255,.35)"/><rect x="17" y="54" width="22" height="23" rx="4" fill="#ff4fb6"/><rect x="51" y="44" width="22" height="16" rx="3" fill="#1670ff"/><rect x="51" y="60" width="22" height="17" rx="4" fill="#ffd60a"/><rect x="16" y="32" width="24" height="9" rx="3" fill="#d89a5a"/><rect x="50" y="22" width="24" height="9" rx="3" fill="#d89a5a"/></g><path d="M19 46v26M53 36v38" stroke="#fff" stroke-width="2.5" stroke-linecap="round" opacity=".8"/></svg>',
+  bone: '<svg viewBox="0 0 90 90" width="54" height="54"><path d="M28 45h34m-34 0a8 8 0 11-5-11m5 11a8 8 0 10-5 11M62 45a8 8 0 115-11m-5 11a8 8 0 105 11" fill="#fff4dc" stroke="#2a1206" stroke-width="4" stroke-linecap="round"/></svg>'
+};
 function showMap(from){
   const N = Math.min(MAX_LEVEL, save.level + 5), H = 84, top = 60, W = 300, pts = [];
   for (let i = 1; i <= N; i++) pts.push([W / 2 + Math.sin(i * .95) * 92, top + (N - i) * H]);
@@ -1537,6 +1560,15 @@ function showMap(from){
   let dd = 'M' + pts[0][0] + ' ' + pts[0][1];
   for (let i = 1; i <= done; i++){ const a = pts[i - 1], b = pts[i], my = (a[1] + b[1]) / 2; dd += ' C' + a[0] + ' ' + my + ' ' + b[0] + ' ' + my + ' ' + b[0] + ' ' + b[1]; }
   const hgt = top * 2 + (N - 1) * H;
+  const kinds = ['castle', 'cust', 'cauldron', 'sack', 'cust', 'jars', 'bone', 'cust'];
+  let deco = '', kd = 0, lastY = null, lastS = 0;
+  for (let i = 0; i < pts.length; i++){
+    const sn = Math.sin((i + 1) * .95); if (Math.abs(sn) < .55 || (lastY !== null && Math.abs(lastY - pts[i][1]) < 120 && lastS === Math.sign(sn))) continue; lastY = pts[i][1]; lastS = Math.sign(sn);
+    const kind = kinds[kd++ % kinds.length], x = sn > 0 ? 62 : W - 62, y = pts[i][1] + (i % 2 ? -10 : 8), dl = ((i * 37) % 20) / 10;
+    const inner = kind === 'cust' ? '<img src="' + ASSET['pc' + ((i * 5) % 8)] + '" alt="">' : MAPDECO[kind];
+    deco += '<span class="mdec ' + kind + '" style="left:' + x + 'px;top:' + y + 'px;animation-delay:-' + dl + 's">' + inner + '</span>';
+  }
+  for (let i = 0; i < N; i += 2){ const x = 20 + ((i * 53) % 260), y = top + (N - 1 - i) * H + 40; deco += '<i class="msp" style="left:' + x + 'px;top:' + y + 'px;animation-delay:-' + ((i * 7) % 30) / 10 + 's"></i>'; }
   let nodes = '';
   pts.forEach((p, k) => {
     const n = k + 1, st = save.stars[n] | 0, lock = n > save.level, cur = n === save.level, here = n === (cleared ? Math.min(save.level, curLevel + 1) : curLevel) && !lock;
@@ -1545,7 +1577,7 @@ function showMap(from){
       (lock ? '' : '<span class="lst">' + [0, 1, 2].map(j => '<i class="' + (j < st ? 'on' : '') + '">&#9733;</i>').join('') + '</span>') + '</button>';
   });
   showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + ' &nbsp;&middot;&nbsp; Fase ' + save.level + ' / ' + MAX_LEVEL + '</div>' +
-    '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/><path d="' + dd + '" fill="none" stroke="#ffc94a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></svg>' + nodes + '</div></div>' +
+    '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/><path d="' + dd + '" fill="none" stroke="#ffc94a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></svg>' + deco + nodes + '</div></div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
   const mw0 = $('#mapw');
   if (mw0){
