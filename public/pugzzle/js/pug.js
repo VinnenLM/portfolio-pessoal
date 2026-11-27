@@ -115,7 +115,10 @@
         `<circle class="cheek" cx="20" cy="66" r="7" fill="#ff8fb0" opacity=".4"/><circle class="cheek" cx="80" cy="66" r="7" fill="#ff8fb0" opacity=".4"/>`
       : '';
 
-    return `<svg class="${cls || 'pug'}" data-skin="${skin.id || 'classico'}" viewBox="-8 -15 116 116" overflow="visible" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
+    // centro vertical do desenho (cabeça + acessório) para ficar no meio do quadrado
+    const CY = { laco: 46, bone: 46, chef: 41, oculos: 56.5 };
+    const cy = skin.fat ? 57 : skin.acc ? (CY[skin.acc] || 43) : 56.5;
+    return `<svg class="${cls || 'pug'}" data-skin="${skin.id || 'classico'}" viewBox="-8 ${(cy - 58).toFixed(1)} 116 116" overflow="visible" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">` +
       `<g class="tilt">` +
       (acc && acc.back ? `<g transform="translate(0 ${dy})"><g class="accb">${acc.back(L)}</g></g>` : '') +
       `<path d="${fat ? HEAD_FAT : HEAD}" fill="${k.face}" ${st(3)}/>` +
