@@ -639,6 +639,8 @@ function drawJarPug(c, runs, opt){
   // Approved glass artwork overlays the existing clipped kibble layers.
   if (spriteReady('v2Jar')) {
     c.save(); jarOuter(c); c.fillStyle='rgba(190,165,245,.08)'; c.fill(); c.restore();
+    c.save();if(opt.glow){c.shadowColor='rgba(255,225,140,.8)';c.shadowBlur=14;}
+    c.drawImage(IMG.v2Jar,-BW-2,-134,BW*2+4,136);c.restore();
     c.save(); jarInner(c); c.clip();
     const total=runs.reduce((sum,r)=>sum+r.h,0)*SEG_H, ends=[]; let acc=0;
     runs.forEach(r=>{acc+=r.h*SEG_H;ends.push(acc);});
@@ -656,8 +658,7 @@ function drawJarPug(c, runs, opt){
       }
     }
     c.restore();
-    c.save();if(opt.glow){c.shadowColor='rgba(255,225,140,.8)';c.shadowBlur=14;}
-    c.drawImage(IMG.v2Jar,-BW-2,-134,BW*2+4,136);c.restore();return;
+    c.save();c.globalAlpha=.3;c.drawImage(IMG.v2Jar,-BW-2,-134,BW*2+4,136);c.restore();return;
   }
   // sombra + vidro de fundo
   c.save(); c.shadowColor = 'rgba(8,0,14,.5)'; c.shadowBlur = 9; c.shadowOffsetY = 4; jarOuter(c); c.fillStyle = 'rgba(255,240,225,.10)'; c.fill(); c.restore();
