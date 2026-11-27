@@ -169,20 +169,22 @@
 
   /* ---------- Efeito do bônus "Pug direto" ---------- */
   function pugBurst(i) {
-    const cell = cellEl(i), host = $('#fx'); if (!cell || !host) return;
+    const cell = cellEl(i); if (!cell) return;
+    let host = $('#fx-top');
+    if (!host) { host = document.createElement('div'); host.id = 'fx-top'; host.className = 'fx-top'; document.body.appendChild(host); }
     const svg = cell.querySelector('svg');
     if (svg) { svg.classList.remove('new'); svg.classList.add('bonus-pop'); setTimeout(() => svg.classList.remove('bonus-pop'), 800); }
-    const r = cell.getBoundingClientRect(), h = host.getBoundingClientRect();
-    const cx = r.left - h.left + r.width / 2, cy = r.top - h.top + r.height / 2;
+    const r = cell.getBoundingClientRect(), W = window.innerWidth, H = window.innerHeight;
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
     const ring = document.createElement('div'); ring.className = 'burst-ring';
     ring.style.cssText = `left:${cx - r.width / 2}px;top:${cy - r.height / 2}px;width:${r.width}px;height:${r.height}px`;
     host.appendChild(ring); setTimeout(() => ring.remove(), 800);
     const icons = ['✨', '⭐', '🐾', '💫', '✨'];
-    for (let k = 0; k < 10; k++) {
-      const a = (k / 10) * Math.PI * 2 + Math.random() * .4, d = r.width * (1.1 + Math.random() * .9);
+    for (let k = 0; k < 12; k++) {
+      const a = (k / 12) * Math.PI * 2 + Math.random() * .4, d = r.width * (1.2 + Math.random() * 1.0);
+      const tx = Math.max(14, Math.min(W - 14, cx + Math.cos(a) * d)), ty = Math.max(14, Math.min(H - 14, cy + Math.sin(a) * d));
       const sp = document.createElement('div'); sp.className = 'burst-spark'; sp.textContent = icons[k % icons.length];
       sp.style.left = cx + 'px'; sp.style.top = cy + 'px';
-      const tx = Math.max(12, Math.min(h.width - 12, cx + Math.cos(a) * d)), ty = Math.max(12, Math.min(h.height - 12, cy + Math.sin(a) * d));
       sp.style.setProperty('--dx', (tx - cx).toFixed(0) + 'px'); sp.style.setProperty('--dy', (ty - cy).toFixed(0) + 'px');
       host.appendChild(sp); setTimeout(() => sp.remove(), 950);
     }

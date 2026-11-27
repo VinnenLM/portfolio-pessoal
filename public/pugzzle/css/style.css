@@ -264,3 +264,5 @@ button { font: inherit; color: inherit; cursor: pointer; }
 @keyframes tileIn { from { transform: scale(.2) rotate(-18deg); opacity: 0; filter: brightness(1.6); } 60% { opacity: 1; } to { transform: none; opacity: 1; filter: none; } }
 .chips.intro { animation: chipsIn .6s ease-out backwards; }
 @keyframes chipsIn { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+.fx-top { position: fixed; inset: 0; pointer-events: none; overflow: hidden; z-index: 60; }
