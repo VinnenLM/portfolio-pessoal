@@ -429,16 +429,29 @@ function kibPath(c, t, r){
   else if (t === 2){ for (let i = 0; i < 3; i++){ const a = -Math.PI / 2 + i * Math.PI * 2 / 3, a2 = a + Math.PI / 3; c.lineTo(Math.cos(a) * r * 1.05, Math.sin(a) * r * 1.05); c.quadraticCurveTo(Math.cos(a2) * r * .75, Math.sin(a2) * r * .75, Math.cos(a + Math.PI * 2 / 3) * r * 1.05, Math.sin(a + Math.PI * 2 / 3) * r * 1.05); } c.closePath(); }
   else { for (let i = 0; i < 4; i++){ const a = i * Math.PI / 2; c.moveTo(Math.cos(a) * r * .5 + r * .45 * Math.cos(a), Math.sin(a) * r * .5 + r * .45 * Math.sin(a)); c.arc(Math.cos(a) * r * .5, Math.sin(a) * r * .5, r * .45, 0, 7); } c.moveTo(r * .5, 0); c.arc(0, 0, r * .5, 0, 7); }
 }
-function kib(c, x, y, r, col, t, ang){
-  c.save(); c.translate(x, y); c.rotate(ang || 0);
-  if (t === 2) c.scale(1, .85); else if (t === 0) c.scale(1, .82);
-  kibPath(c, t, r); c.fillStyle = shade(col, -.6); c.fill();
-  c.translate(0, -.4); c.scale(.87, .87); kibPath(c, t, r); c.fillStyle = shade(col, -.25); c.fill();
-  c.save(); c.clip(); c.fillStyle = col; c.beginPath(); c.arc(-r * .22, -r * .25, r * .95, 0, 7); c.fill(); c.fillStyle = shade(col, .22); c.beginPath(); c.arc(-r * .4, -r * .45, r * .55, 0, 7); c.fill(); c.restore();
-  c.fillStyle = 'rgba(255,255,255,.55)'; c.beginPath(); c.ellipse(-r * .4, -r * .48, r * .22, r * .12, -.6, 0, 7); c.fill();
-  c.fillStyle = shade(col, -.45); [[.2, .1], [-.25, .3], [.45, -.25]].forEach(p => { c.beginPath(); c.arc(p[0] * r, p[1] * r, r * .085, 0, 7); c.fill(); });
-  if (t === 0){ c.fillStyle = shade(col, -.55); c.beginPath(); c.arc(r * .08, r * .08, r * .26, 0, 7); c.fill(); c.strokeStyle = shade(col, .25); c.lineWidth = r * .1; c.beginPath(); c.arc(r * .08, r * .08, r * .3, Math.PI * .1, Math.PI * .9); c.stroke(); }
+const kibCache = new Map(), KR = 18;
+function kibSprite(col, t){
+  const A = hex(col).map(v => Math.min(255, Math.round(v / 12) * 12)), key = A.join(',') + t;
+  let cv = kibCache.get(key); if (cv) return cv;
+  if (kibCache.size > 400) kibCache.clear();
+  const base = 'rgb(' + A.join(',') + ')', S = KR * 2 + 8;
+  cv = document.createElement('canvas'); cv.width = cv.height = S; const c = cv.getContext('2d');
+  c.translate(S / 2, S / 2); const r = KR;
+  if (t === 2) c.scale(1, .86); else if (t === 0) c.scale(1, .84);
+  c.lineJoin = 'round';
+  kibPath(c, t, r * .9); c.lineWidth = 4.2; c.strokeStyle = shade(base, -.72); c.stroke(); c.fillStyle = base; c.fill();
+  c.save(); kibPath(c, t, r * .9); c.clip();
+  c.fillStyle = shade(base, -.24); c.beginPath(); c.arc(r * .55, r * .7, r * 1.05, 0, 7); c.fill();
+  c.fillStyle = shade(base, .42); c.beginPath(); c.ellipse(-r * .3, -r * .38, r * .36, r * .2, -.55, 0, 7); c.fill();
   c.restore();
+  c.fillStyle = 'rgba(255,255,255,.85)'; c.beginPath(); c.ellipse(-r * .42, -r * .44, r * .13, r * .08, -.6, 0, 7); c.fill();
+  if (t === 0){ c.beginPath(); c.arc(r * .06, r * .06, r * .24, 0, 7); c.fillStyle = shade(base, -.72); c.fill(); }
+  kibCache.set(key, cv); return cv;
+}
+function kib(c, x, y, r, col, t, ang){
+  const sp = kibSprite(col, t), d = r * (KR * 2 + 8) / KR / 2;
+  if (ang){ c.save(); c.translate(x, y); c.rotate(ang); c.drawImage(sp, -d, -d, d * 2, d * 2); c.restore(); }
+  else c.drawImage(sp, x - d, y - d, d * 2, d * 2);
 }
 function ball(c, x, y, r, col, seed){ const sd = seed === undefined ? Math.floor((x * 7.3 + y * 13.1) * 10) : seed; kib(c, x, y, r, col, Math.abs(sd) % 4, (Math.abs(sd) % 17) * .37); }
 function pellets(c, x0, y0, w, h, col, seed, sz){
@@ -545,7 +558,7 @@ function flaskPath(c){
   c.lineTo(NW, nt); c.closePath();
 }
 // (x, y) = centro do frasco; runs = [{c:idx, h:0..1}] de baixo para cima; opt: {glow, cork}
-const JR = 6.6, JDY = 25 / 3;
+const JR = 7.6, JDY = 12.5;
 function jarOuter(c){
   c.beginPath(); c.moveTo(-21, -124); c.lineTo(-21, -118); c.bezierCurveTo(-21, -112, -BW, -114, -BW, -100); c.lineTo(-BW, -12); c.quadraticCurveTo(-BW, 0, -BW + 12, 0); c.lineTo(BW - 12, 0); c.quadraticCurveTo(BW, 0, BW, -12); c.lineTo(BW, -100); c.bezierCurveTo(BW, -114, 21, -112, 21, -118); c.lineTo(21, -124); c.closePath();
 }
@@ -566,11 +579,10 @@ function drawJarPug(c, runs, opt){
     const hy = (i + .5) * JDY; let k = 0; while (k < cum.length - 1 && hy > cum[k] + .01) k++;
     rows.push({i, k, col: PALETTE[runs[k].c].c, y: -3 - JR - i * JDY});
   }
-  rows.forEach(R => { c.fillStyle = shade(R.col, -.55); c.fillRect(-BW, R.y - JDY / 2 - .5, BW * 2, JDY + (R.i ? 1 : 6)); });
-  rows.forEach(R => { for (let j = -1; j < 7; j++){ const x = -BW + 1 + j * 9.4 + (R.i % 2 ? 0 : 4.7), sd = R.i * 13 + j * 29 + R.k * 5; kib(c, x, R.y - 2, JR * .9, shade(R.col, -.3), [0, 2, 0, 1][sd % 4], sd * .7); } });
+  rows.forEach(R => { c.fillStyle = shade(R.col, -.45); c.fillRect(-BW, R.y - JDY / 2 - .5, BW * 2, JDY + (R.i ? 1 : 6)); });
   rows.forEach(R => {
-    const off = R.i % 2 ? 4.7 : 0;
-    for (let j = -1; j < 7; j++){ const x = -BW + 4 + j * 9.4 + off; if (x < -BW - 5 || x > BW + 5) continue; const sd = (R.i * 7 + j * 13 + R.k * 3) % 10, t = [0, 2, 0, 1, 0, 3, 2, 0, 1, 2][(R.i * 3 + j * 7 + R.k) % 10]; kib(c, x + (sd - 5) * .22, R.y + ((sd * 3) % 10 - 5) * .16, JR * (.96 + sd * .012), shade(R.col, (sd - 5) * .016), t, (R.i * 31 + j * 17) * .61); }
+    const off = R.i % 2 ? 5.6 : 0;
+    for (let j = -1; j < 6; j++){ const x = -BW + 5 + j * 11.2 + off; if (x < -BW - 5 || x > BW + 5) continue; const sd = (R.i * 7 + j * 13 + R.k * 3) % 10, t = [2, 1, 0, 2, 3, 1, 2, 0, 1, 3][(R.i * 3 + j * 7 + R.k) % 10]; kib(c, x + (sd - 5) * .22, R.y + ((sd * 3) % 10 - 5) * .16, JR * (.96 + sd * .012), shade(R.col, (sd - 5) * .016), t, (R.i * 31 + j * 17) * .61); }
   });
   // sombra interna
   g = c.createLinearGradient(-BW, 0, BW, 0); g.addColorStop(0, 'rgba(30,10,0,.18)'); g.addColorStop(.18, 'rgba(0,0,0,0)'); g.addColorStop(.82, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(30,10,0,.22)');
@@ -594,10 +606,10 @@ function drawJarPug(c, runs, opt){
   c.fillStyle = rg2; c.fill(); c.strokeStyle = '#3a2214'; c.lineWidth = 2.4; c.stroke();
   c.strokeStyle = 'rgba(255,255,255,.9)'; c.lineWidth = 1.4; c.beginPath(); c.moveTo(-19, -127.5); c.lineTo(10, -127.5); c.stroke();
 }
-function drawCorkPug(c, x, y, s, rot, open, dir){
-  c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.translate(0, MID);
-  if (open > .001){ const e = open; c.translate(-dir * 20 * e, -24 * e - Math.sin(Math.PI * Math.min(1, e)) * 6); c.translate(0, -136); c.rotate(-dir * .85 * e + Math.sin(TT * 9) * .05 * e); c.translate(0, 136); }
-  else c.fillStyle = 'rgba(30,14,4,.4)';
+function corkSprite(k){
+  const key = k.toFixed(2); let cv = corkC.get(key); if (cv) return cv;
+  cv = document.createElement('canvas'); cv.width = Math.ceil(56 * k); cv.height = Math.ceil(34 * k);
+  const c = cv.getContext('2d'); c.setTransform(k, 0, 0, k, 28 * k, 154 * k);
   c.lineJoin = 'round';
   const top = -152, bot = -126;
   c.beginPath(); c.moveTo(-22, bot); c.lineTo(-25, top + 6); c.quadraticCurveTo(-25, top, -19, top); c.lineTo(19, top); c.quadraticCurveTo(25, top, 25, top + 6); c.lineTo(22, bot); c.closePath();
@@ -606,11 +618,18 @@ function drawCorkPug(c, x, y, s, rot, open, dir){
   c.beginPath(); c.ellipse(0, top + 3.5, 21, 3.4, 0, 0, 7); c.fillStyle = '#f2c792'; c.fill(); c.strokeStyle = 'rgba(90,50,20,.5)'; c.lineWidth = 1; c.stroke();
   c.fillStyle = 'rgba(110,62,26,.45)'; [[-14, -142], [-6, -136], [5, -144], [13, -134], [-11, -131], [16, -142], [0, -132]].forEach(p => { c.beginPath(); c.arc(p[0], p[1], 1.1, 0, 7); c.fill(); });
   c.strokeStyle = 'rgba(255,240,210,.6)'; c.lineWidth = 2; c.beginPath(); c.moveTo(-18, -146); c.lineTo(-17, -131); c.stroke();
+  corkC.set(key, cv); return cv;
+}
+function drawCorkPug(c, x, y, s, rot, open, dir){
+  c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.translate(0, MID);
+  if (open > .001){ const e = open; c.translate(-dir * 20 * e, -24 * e - Math.sin(Math.PI * Math.min(1, e)) * 6); c.translate(0, -136); c.rotate(-dir * .85 * e + Math.sin(TT * 9) * .05 * e); c.translate(0, 136); }
+  c.drawImage(corkSprite(Math.min(4, dpr * sc * s)), -28, -154, 56, 34);
   c.restore();
 }
 function drawBottle(c, x, y, s, rot, runs, opt){
   opt = opt || {};
-  if (rot === 0 && c === ctx){
+  if (c === ctx && (rot === 0 || PUG())){
+    const s0 = s, sr = PUG() ? bs : s; s = sr;
     const key = (PUG() ? 'P' : '') + s.toFixed(3) + (opt.glow ? 'g' : '') + (opt.cork && !PUG() ? 'c' : '') + runs.map(r => r.c + ':' + Math.round(r.h * 20)).join(',');
     let e = bottleCache.get(key);
     if (!e){
@@ -622,7 +641,8 @@ function drawBottle(c, x, y, s, rot, runs, opt){
       drawBottleRaw(g, ox, oy, s, 0, runs.map(r => ({c: r.c, h: Math.round(r.h * 20) / 20})), opt);
       e = {cvs, w, h, ox, oy}; bottleCache.set(key, e);
     }
-    c.drawImage(e.cvs, x - e.ox, y - e.oy, e.w, e.h);
+    const f = s0 / sr; if (rot || f !== 1){ c.save(); c.translate(x, y); c.rotate(rot); c.scale(f, f); c.drawImage(e.cvs, -e.ox, -e.oy, e.w, e.h); c.restore(); } else c.drawImage(e.cvs, x - e.ox, y - e.oy, e.w, e.h);
+    s = s0;
   } else drawBottleRaw(c, x, y, s, rot, runs, opt);
   if (PUG() && !opt.nocork) drawCorkPug(c, x, y, s, rot, opt.lid || 0, opt.lidDir || 1);
 }
@@ -734,17 +754,25 @@ function drawCauldron(){
     ctx.restore(); ctx.save();
     const hc = '#' + rgb.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join(''), cx = g.mouthX, cy = g.mouthY, rx = g.rx, ry = g.ry, dome = 7 + ripple * 3;
     ctx.fillStyle = shade(hc, -.65); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 7); ctx.fill();
-    const jump = ripple * 2.4 * Math.abs(Math.sin(TT * 18)), kr = 5;
-    let sd = 7;
-    for (let v = -1.05; v <= 1.0; v += .3){
-      const hw = Math.sqrt(Math.max(0, 1 - v * v * .85)), n = Math.max(2, Math.round(hw * rx * 2 / (kr * 1.7)));
-      for (let q = 0; q < n; q++){
-        sd = (sd * 9301 + 49297) % 233280; const jt = sd / 233280;
-        const u = n > 1 ? (q / (n - 1) * 2 - 1) * hw * .96 : 0, d = 1 - (u * u + v * v);
-        const x = cx + u * rx + (jt - .5) * 2.4, y = cy + v * ry * .95 - Math.max(0, d) * dome - jump * Math.max(0, d) + (jt - .5) * 1.5;
-        kib(ctx, x, y, kr * (.92 + jt * .2), shade(hc, (jt - .5) * .16 - (v < -.5 ? .12 : 0)), Math.floor(jt * 40) % 4, jt * 6);
+    const jump = ripple * 2.4 * Math.abs(Math.sin(TT * 18)), dq = Math.round(dome);
+    const pk = hc + dq + '|' + (dpr * sc).toFixed(2);
+    if (!pileC || pileK !== pk){
+      const k = dpr * sc, W2 = rx * 2 + 16, H2 = ry * 2 + dq + 16;
+      if (!pileC) pileC = document.createElement('canvas');
+      pileC.width = Math.ceil(W2 * k); pileC.height = Math.ceil(H2 * k);
+      const pc = pileC.getContext('2d'); pc.setTransform(k, 0, 0, k, 0, 0); pc.translate(W2 / 2, ry + dq + 8);
+      let sd = 7; const kr = 5;
+      for (let v = -1.05; v <= 1.0; v += .3){
+        const hw = Math.sqrt(Math.max(0, 1 - v * v * .85)), n = Math.max(2, Math.round(hw * rx * 2 / (kr * 1.7)));
+        for (let q = 0; q < n; q++){
+          sd = (sd * 9301 + 49297) % 233280; const jt = sd / 233280;
+          const u = n > 1 ? (q / (n - 1) * 2 - 1) * hw * .96 : 0, d = 1 - (u * u + v * v);
+          kib(pc, u * rx + (jt - .5) * 2.4, v * ry * .95 - Math.max(0, d) * dq + (jt - .5) * 1.5, kr * (.92 + jt * .2), shade(hc, (jt - .5) * .16 - (v < -.5 ? .12 : 0)), Math.floor(jt * 40) % 4, jt * 6);
+        }
       }
+      pileK = pk; pileM = {w: W2, h: H2, oy: ry + dq + 8};
     }
+    ctx.drawImage(pileC, cx - pileM.w / 2, cy - pileM.oy - jump, pileM.w, pileM.h);
     const lp = IMG.lip_p; if (lp && lp.naturalWidth) ctx.drawImage(lp, 450 * IS, 525 * IS, lp.naturalWidth * IS, lp.naturalHeight * IS);
   } else { ctx.globalAlpha = .82; ctx.fillStyle = lg; ctx.fillRect(g.mouthX - g.rx, g.mouthY - g.ry, g.rx * 2, g.ry * 2); ctx.globalAlpha = 1; }
   for (let i = 0; i < (PUG() ? 0 : 7); i++){
@@ -764,14 +792,14 @@ function wisp(x0, y0, rgb, len, amp, spd, ph, wd, alpha){
   }
   ctx.restore();
 }
-let smkC = null, smkCol = '';
+let smkC = null, smkCol = '', pileC = null, pileK = '', pileM = null, corkC = new Map();
 function smokeTint(){
   const rgb = brewCur.map(v => Math.round(clamp(v, 0, 255))), col = 'rgb(' + rgb.join(',') + ')', m = IMG.smk_p;
   if (!m || !m.naturalWidth) return;
   if (!smkC){ smkC = document.createElement('canvas'); smkC.width = m.naturalWidth; smkC.height = m.naturalHeight; }
   if (smkCol !== col){ const c = smkC.getContext('2d'); c.globalCompositeOperation = 'source-over'; c.clearRect(0, 0, smkC.width, smkC.height); c.drawImage(m, 0, 0); c.globalCompositeOperation = 'source-in'; c.fillStyle = col; c.fillRect(0, 0, smkC.width, smkC.height); smkCol = col; }
   ctx.save(); ctx.globalCompositeOperation = 'color'; ctx.drawImage(smkC, 440 * IS, 220 * IS, smkC.width * IS, smkC.height * IS);
-  ctx.globalCompositeOperation = 'soft-light'; ctx.globalAlpha = .5; ctx.drawImage(smkC, 440 * IS, 220 * IS, smkC.width * IS, smkC.height * IS); ctx.restore();
+  ctx.restore();
 }
 function drawSmokePug(){
   const g = cauldronGeo(), rgb = brewCur.map(v => Math.round(clamp(v, 0, 255))), col = 'rgb(' + rgb.join(',') + ')', m = IMG.smk_p;
