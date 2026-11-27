@@ -1435,10 +1435,6 @@ function drawMagic(){
   ctx.save(); ctx.globalCompositeOperation = 'lighter';
   const g = ctx.createRadialGradient(hx, hy, 1, hx, hy, 18); g.addColorStop(0, 'rgba(230,170,255,' + (.7 * a) + ')'); g.addColorStop(1, 'rgba(160,80,255,0)');
   ctx.fillStyle = g; ctx.fillRect(hx - 18, hy - 18, 36, 36);
-  if (tx !== null){
-    ctx.strokeStyle = 'rgba(220,160,255,' + (.55 * a) + ')'; ctx.lineWidth = 2; ctx.setLineDash([3, 5]); ctx.lineDashOffset = -TT * 40;
-    ctx.beginPath(); ctx.moveTo(hx, hy); ctx.quadraticCurveTo((hx + tx) / 2, Math.min(hy, ty) - 30, tx, ty); ctx.stroke(); ctx.setLineDash([]);
-  }
   ctx.restore();
   // The existing update loop owns particle lifetimes; use deterministic motes here.
   for(let i=0;i<3;i++){const q=(TT*1.6+i/3)%1;ctx.save();ctx.globalAlpha=a*Math.sin(Math.PI*q);star4(ctx,hx+Math.sin(q*5+i)*12,hy-q*18,1.7,'#ffeac4');ctx.restore();}
