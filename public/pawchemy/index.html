@@ -76,6 +76,11 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .layer{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px}
 .layer.on{display:flex}
 .layer.dim{background:rgba(10,5,2,.72);animation:fade .2s}
+.wipe{position:absolute;inset:0;z-index:60;pointer-events:none;background:radial-gradient(circle at 50% 45%,#5a2a7a,#1e0a2c 70%);clip-path:circle(0% at 50% 45%);transition:clip-path .34s cubic-bezier(.6,0,.4,1)}
+.wipe.on{pointer-events:auto;clip-path:circle(80% at 50% 45%)}
+.wipe .wpaw{position:absolute;left:50%;top:45%;width:96px;height:96px;margin:-48px 0 0 -48px;transform:scale(0) rotate(-30deg);transition:transform .3s cubic-bezier(.3,1.7,.5,1);filter:drop-shadow(0 6px 0 rgba(0,0,0,.4)) drop-shadow(0 0 18px rgba(255,200,90,.6))}
+.wipe.on .wpaw{transform:scale(1) rotate(0deg);transition-delay:.12s}
+.wipe .wpaw svg{width:100%;height:100%}
 .layer.noanim,.layer.noanim .parch{animation:none}
 .scard.bought{animation:sbuy .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes sbuy{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-10px) scale(1.06)}65%{transform:translateY(0) scale(.97)}100%{transform:none}}
@@ -187,6 +192,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
   </div>
   <div class="layer" id="layer"></div>
   <div class="toast" id="toast"></div>
+  <div class="wipe" id="wipe"><div class="wpaw"><svg viewBox="0 0 64 64"><g fill="#ffc94a" stroke="#2a1206" stroke-width="3"><ellipse cx="32" cy="41" rx="13" ry="10.5"/><ellipse cx="15.5" cy="27" rx="5.5" ry="7" transform="rotate(-20 15.5 27)"/><ellipse cx="25.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="38.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="48.5" cy="27" rx="5.5" ry="7" transform="rotate(20 48.5 27)"/></g></svg></div></div>
 </div>
 
 <script>
@@ -1166,6 +1172,8 @@ function drawBottles(){
     const l = lift[i] || 0;
     const y = p.by - MID * bs - l * 16 * bs;
     let jg = 0; if (PUG() && pour && pour.stream && i === pour.b) jg = .025 * Math.sin(TT * 34);
+    const ik = (TT - introT - .12 - i * .055) / .5;
+    if (ik < 1){ if (ik <= 0) continue; const e = 1 + 2.4 * Math.pow(ik - 1, 3) + 1.4 * Math.pow(ik - 1, 2); ctx.save(); ctx.globalAlpha = Math.min(1, ik * 3); ctx.translate(0, -70 * (1 - e)); drawBottle(ctx, p.x, y, bs, 0, runsFor(i), {}); ctx.restore(); continue; }
     if (PUG() && bump[i]){ const bt = TT - bump[i]; if (bt < .4) jg += .06 * Math.sin(bt * 30) * (1 - bt / .4); }
     if (jg){ ctx.save(); ctx.translate(p.x, p.by); ctx.scale(1 + jg, 1 - jg); ctx.translate(-p.x, -p.by); }
     drawBottle(ctx, p.x, y, bs * (1 + l * .04), 0, runsFor(i), {lid: lidO[i] || 0, lidDir: pour && i === pour.b ? -pour.dir : 1, glow: l > .4 || (hOn && (i === hint.a || i === hint.b) && Math.sin(TT * 8) > 0)});
@@ -1310,7 +1318,9 @@ function updatePour(){
 }
 
 /* ======================= LÓGICA ======================= */
+let introT = -9;
 function startLevel(lv){
+  introT = TT;
   curLevel = clamp(lv || curLevel || save.level, 1, Math.min(save.level, MAX_LEVEL));
   cleared = false; selected = -1; history = []; busy = false; pour = null; sale = null; hint = null; addedTubes = 0; levelCoins = 0; moveCount = 0; sentPotions = 0; pendingFlights = 0;
   flights.length = 0;
@@ -1589,23 +1599,29 @@ function levelClear(){
 function goBack(from){
   if (from === 'map') showMap('menu'); else if (from === 'menu') showMenu(); else if (from === 'pause') showPause(); else if (from === 'clear') showClear(); else hideLayer();
 }
+let wiping = false;
+function wipe(fn){
+  if (wiping) return; wiping = true; const w = $('#wipe');
+  w.classList.add('on'); try { Snd.sel(); } catch (e) {}
+  setTimeout(() => { try { fn(); } catch (e) { console.error(e); } setTimeout(() => { w.classList.remove('on'); setTimeout(() => { wiping = false; }, 340); }, 140); }, 460);
+}
 function act(a, arg){
   const parts2 = (arg || '').split('|');
   switch (a){
-    case 'play': hideLayer(); stage.classList.remove('inmenu'); inMenu = false; if (cleared && !sale) startLevel(Math.min(save.level, curLevel + 1)); break;
-    case 'retry': hideLayer(); startLevel(curLevel); break;
+    case 'play': wipe(() => { hideLayer(); stage.classList.remove('inmenu'); inMenu = false; if (cleared && !sale) startLevel(Math.min(save.level, curLevel + 1)); else introT = TT; }); break;
+    case 'retry': wipe(() => { hideLayer(); startLevel(curLevel); }); break;
     case 'map': showMap(arg); break;
-    case 'lvl': { const n = +parts2[0]; if (n >= 1 && n <= save.level && !sale){ hideLayer(); stage.classList.remove('inmenu'); inMenu = false; startLevel(n); } break; }
+    case 'lvl': { const n = +parts2[0]; if (n >= 1 && n <= save.level && !sale) wipe(() => { hideLayer(); stage.classList.remove('inmenu'); inMenu = false; startLevel(n); }); break; }
     case 'resume': hideLayer(); break;
-    case 'restart': hideLayer(); restartLevel(); break;
+    case 'restart': wipe(() => { hideLayer(); restartLevel(); introT = TT; }); break;
     case 'stuckUndo': hideLayer(); undo(); break;
     case 'stuckTube': hideLayer(); useTube(); break;
-    case 'menu': showMenu(); break;
+    case 'menu': wipe(() => showMenu()); break;
     case 'options': showOptions(arg); break;
     case 'how': showHow(arg); break;
     case 'shop': showShop(arg); break;
     case 'back': goBack(arg); break;
-    case 'next': hideLayer(); startLevel(Math.min(save.level, curLevel + 1)); break;
+    case 'next': wipe(() => { hideLayer(); startLevel(Math.min(save.level, curLevel + 1)); }); break;
     case 'theme': save.opt.theme = PUG() ? 'witch' : 'pug'; persist(); Snd.init(); Snd.sel(); buildLayers(); showOptions(arg); break;
     case 'tog': save.opt[parts2[0]] = !save.opt[parts2[0]]; persist(); Snd.init(); Snd.music(save.opt.music); showOptions(parts2[1]); break;
     case 'buy': {
