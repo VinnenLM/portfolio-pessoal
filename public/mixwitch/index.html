@@ -177,6 +177,7 @@ try {
   let raw = localStorage.getItem(SAVE_KEY) || localStorage.getItem('pocoes-da-bruxa-v1');
   const s = JSON.parse(raw || 'null');
   if (s && typeof s === 'object') save = {...save, ...s, up:{...save.up, ...(s.up || {})}, opt:{...save.opt, ...(s.opt || {})}};
+  if (save.up.extra > 1){ save.coins += 4500 * (save.up.extra - 1); save.up.extra = 1; }
 } catch (e) {}
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 
@@ -1404,7 +1405,7 @@ const SHOP_ICO = {"undo": "<svg viewBox=\"0 0 24 24\"><path d=\"M9.5 4.5L4 10l5.
 const SHOP = [
   {id:'cauldron', name:'Caldeirão', desc:'+25% moedas na venda', max:8, cost:l => Math.round(120 * Math.pow(1.75, l))},
   {id:'luck', name:'Trevo', desc:'+15% chance de venda dobrada', max:5, cost:l => Math.round(250 * Math.pow(1.9, l))},
-  {id:'extra', name:'Reserva', desc:'+1 frasco vazio por fase', max:2, cost:l => [1500, 4500][l]},
+  {id:'extra', name:'Reserva', desc:'+1 frasco vazio por fase', max:1, cost:l => [1500][l]},
   {id:'undo', name:'Voltar', desc:'+3 usos', consumable:true, cost:() => 90, have:() => save.undo, give:() => { save.undo += 3; }},
   {id:'hint', name:'Dica', desc:'+3 usos', consumable:true, cost:() => 120, have:() => save.hint, give:() => { save.hint += 3; }},
   {id:'tube', name:'Frasco', desc:'+2 usos', consumable:true, cost:() => 220, have:() => save.tubes, give:() => { save.tubes += 2; }}
