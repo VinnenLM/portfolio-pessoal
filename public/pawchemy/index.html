@@ -1322,6 +1322,7 @@ function updatePour(){
 /* ======================= LÓGICA ======================= */
 let introT = -9;
 function startLevel(lv){
+  if (!cleared && usedB && usedB.undo + usedB.hint + usedB.tubes){ save.undo += usedB.undo; save.hint += usedB.hint; save.tubes += usedB.tubes; persist(); setTimeout(() => toast('Bônus usados na fase anterior foram devolvidos.'), 600); }
   usedB = {undo:0, hint:0, tubes:0};
   introT = TT;
   curLevel = clamp(lv || curLevel || save.level, 1, Math.min(save.level, MAX_LEVEL));
@@ -1647,7 +1648,7 @@ function act(a, arg){
         '<div class="row"><button class="wbtn" data-act="back" data-arg="' + arg + '">Cancelar</button><button class="wbtn danger" data-act="resetyes">Apagar</button></div></div>');
       break;
     case 'resetyes':
-      save = {coins:0, level:1, undo:3, hint:3, tubes:2, stars:{}, up:{cauldron:0, luck:0, extra:0}, opt:save.opt}; persist(); startLevel(1); showMenu(); break;
+      save = {coins:0, level:1, undo:3, hint:3, tubes:2, stars:{}, up:{cauldron:0, luck:0, extra:0}, opt:save.opt}; usedB = {undo:0, hint:0, tubes:0}; persist(); startLevel(1); showMenu(); break;
   }
 }
 layer.addEventListener('click', e => {
