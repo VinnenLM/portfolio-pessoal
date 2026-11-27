@@ -214,6 +214,7 @@ try {
   if (save.up.extra > 1){ save.coins += 4500 * (save.up.extra - 1); save.up.extra = 1; }
 } catch (e) {}
 let curLevel = save.level;
+function maxStars(){ return 3 * Math.max(Object.keys(save.stars).length, save.level - 1 + (save.stars[1000] ? 1 : 0)); }
 function totalStars(){ return Object.values(save.stars).reduce((a, v) => a + (v | 0), 0); }
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 
@@ -1486,7 +1487,7 @@ function showMenu(){
     '<div class="logo"><div class="l1">' + GAME_NAME + '</div><div class="l2">' + GAME_SUB + '</div></div>' +
     '<div><div class="mbtns">' +
       '<button class="wbtn gold" data-act="play">Jogar &middot; Fase ' + (cleared ? Math.min(save.level, curLevel + 1) : curLevel) + '</button>' +
-      '<button class="wbtn" data-act="map" data-arg="menu">Fases &middot; &#9733; ' + totalStars() + '/' + (save.level * 3) + '</button>' +
+      '<button class="wbtn" data-act="map" data-arg="menu">Fases &middot; &#9733; ' + totalStars() + '/' + maxStars() + '</button>' +
       '<button class="wbtn" data-act="shop" data-arg="menu">Lojinha</button>' +
       '<button class="wbtn" data-act="options" data-arg="menu">Opções</button>' +
       '<button class="wbtn" data-act="how" data-arg="menu">Como jogar</button>' +
@@ -1549,7 +1550,7 @@ function showMap(from){
       '<span class="num">' + (lock || here ? '<svg viewBox="0 0 64 64"><g fill="' + (lock ? '#b9b0c4' : '#6b3119') + '" stroke="#2a1206" stroke-width="3.5"><ellipse cx="32" cy="41" rx="13" ry="10.5"/><ellipse cx="15.5" cy="27" rx="5.5" ry="7" transform="rotate(-20 15.5 27)"/><ellipse cx="25.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="38.5" cy="17.5" rx="5.5" ry="7.2"/><ellipse cx="48.5" cy="27" rx="5.5" ry="7" transform="rotate(20 48.5 27)"/></g></svg>' : n) + '</span>' +
       (lock ? '' : '<span class="lst">' + [0, 1, 2].map(j => '<i class="' + (j < st ? 'on' : '') + '">&#9733;</i>').join('') + '</span>') + '</button>';
   });
-  showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + ' &nbsp;&middot;&nbsp; Fase ' + save.level + ' / ' + MAX_LEVEL + '</div>' +
+  showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + maxStars() + ' &nbsp;&middot;&nbsp; Fase ' + save.level + ' / ' + MAX_LEVEL + '</div>' +
     '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/></svg>' + deco + nodes + '</div></div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
   const mw0 = $('#mapw');
