@@ -752,7 +752,7 @@ function corkSprite(k){
 function drawCorkPug(c, x, y, s, rot, open, dir){
   c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.translate(0, MID);
   if (open > .001){ const e = open; c.translate(-dir * 20 * e, -24 * e - Math.sin(Math.PI * Math.min(1, e)) * 6); c.translate(0, -136); c.rotate(-dir * .85 * e + Math.sin(TT * 9) * .05 * e); c.translate(0, 136); }
-  if(spriteReady('v2Cork')) c.drawImage(IMG.v2Cork,-20,-154,40,29.5);
+  if(spriteReady('v2Cork')) c.drawImage(IMG.v2Cork,-26,-161,52,38.3);
   else c.drawImage(corkSprite(Math.min(4, dpr * sc * s)), -28, -154, 56, 34);
   c.restore();
 }
@@ -1218,7 +1218,6 @@ function drawSalePotion(){
   const c = PALETTE[lastColor].c, gr = ctx.createRadialGradient(x, y - 4, 2, x, y - 4, 34);
   gr.addColorStop(0, 'rgba(255,255,255,.55)'); gr.addColorStop(.35, c + '88'); gr.addColorStop(1, 'rgba(0,0,0,0)');
   ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(x, y - 4, 34, 0, 7); ctx.fill();
-  if (Math.random() < .6) sparks(x + (Math.random() - .5) * 14, y + 10, Math.random() < .5 ? '#fff6c8' : c, 1, 30);
   drawBottle(ctx, x, y, sc, Math.sin(TT * 7) * .12, [{c: lastColor, h: 1}, {c: lastColor, h: 1}, {c: lastColor, h: 1}, {c: lastColor, h: 1}], {cork: true});
 }
 function circ(x, y, r){ ctx.beginPath(); ctx.arc(x, y, r, 0, 7); }
