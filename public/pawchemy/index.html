@@ -81,7 +81,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wipe .wpaw{position:absolute;left:50%;top:45%;width:96px;height:96px;margin:-48px 0 0 -48px;transform:scale(0) rotate(-30deg);transition:transform .3s cubic-bezier(.3,1.7,.5,1);filter:drop-shadow(0 6px 0 rgba(0,0,0,.4)) drop-shadow(0 0 18px rgba(255,200,90,.6))}
 .wipe.on .wpaw{transform:scale(1) rotate(0deg);transition-delay:.12s}
 .wipe .wpaw svg{width:100%;height:100%}
-.layer.noanim,.layer.noanim .parch{animation:none}
+.layer.noanim,.layer.noanim .parch,.layer.menuL.noanim *{animation:none}
 .layer.nofade{animation:none}
 .layer.leave{opacity:0;transition:opacity .16s;pointer-events:none}
 .scard.bought{animation:sbuy .5s cubic-bezier(.3,1.6,.5,1)}
@@ -1515,7 +1515,7 @@ function showMenu(){
       '<button class="wbtn" data-act="shop" data-arg="menu">Lojinha</button>' +
       '<button class="wbtn" data-act="options" data-arg="menu">Opções</button>' +
       '<button class="wbtn" data-act="how" data-arg="menu">Como jogar</button>' +
-    '</div><div class="foot">&#9733; ' + save.coins + ' moedas guardadas</div></div>', 'menuL');
+    '</div><div class="foot" data-act="cheat" style="cursor:pointer">&#9733; ' + save.coins + ' moedas guardadas</div></div>', 'menuL');
 }
 function showPause(){
   showLayer('<div class="parch"><h2>Pausa</h2><div class="stack">' +
@@ -1627,6 +1627,7 @@ function act(a, arg){
     case 'stuckUndo': hideLayer(); undo(); break;
     case 'stuckTube': hideLayer(); useTube(); break;
     case 'menu': wipe(() => showMenu()); break;
+    case 'cheat': save.coins += 500; persist(); updateHud(); showMenu(); layer.classList.add('noanim'); Snd.coin(); break;
     case 'options': showOptions(arg); break;
     case 'how': showHow(arg); break;
     case 'shop': showShop(arg); break;
