@@ -57,7 +57,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .tool:active{filter:drop-shadow(0 calc(2px*var(--f)) 0 rgba(18,5,16,.55))}
 .tool.off{filter:drop-shadow(0 calc(6px*var(--f)) 0 rgba(18,5,16,.55)) grayscale(.75) brightness(.72)}
 .stage.inmenu .hud,.stage.inmenu .bar{visibility:hidden}
-.stage.inmenu.sub .hud{visibility:visible}.stage.sub .hud{pointer-events:none}
+.stage.inmenu.sub .hud,.stage.inmenu.sub .bar{visibility:visible}.stage.sub .bar{pointer-events:none}.stage.sub .hud{pointer-events:none}
 
 /* Camadas */
 .layer{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px}
@@ -1210,7 +1210,7 @@ function draw(){
   ctx.fillStyle = gr; ctx.fillRect(0, BT - 1, LW, 35); ctx.fillStyle = 'rgba(255,214,150,.35)'; ctx.fillRect(0, BT - 2.2, LW, 1);
   drawCauldron(); drawWisps(); drawGlows(); drawSalePotion();
   drawRunes(); drawMotes();
-  if (!inMenu){ if (coastL){ ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(coastL, 0, 0); ctx.restore(); } drawBottles(); drawFlights(); }
+  if (!inMenu || stage.classList.contains('sub')){ if (coastL){ ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.drawImage(coastL, 0, 0); ctx.restore(); } drawBottles(); drawFlights(); }
   drawParts(); drawPugTier(); drawSpeech();
   if (sale && sale.sayT > 0) drawBubble(sale.say, sale.x, topR + 4);
 }
