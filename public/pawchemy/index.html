@@ -641,7 +641,7 @@ function drawJarPug(c, runs, opt){
     c.save(); jarOuter(c); c.fillStyle='rgba(190,165,245,.08)'; c.fill(); c.restore();
     c.save();if(opt.glow){c.shadowColor='rgba(255,225,140,.8)';c.shadowBlur=14;}
     c.drawImage(IMG.v2Jar,-BW-2,-134,BW*2+4,136);c.restore();
-    c.save(); jarInner(c); c.clip();
+    c.save(); c.beginPath(); c.moveTo(-BW+4,-80); c.quadraticCurveTo(-BW+4,-98,-BW+20,-98); c.lineTo(BW-20,-98); c.quadraticCurveTo(BW-4,-98,BW-4,-80); c.lineTo(BW-4,-13); c.quadraticCurveTo(BW-4,-3,BW-13,-3); c.lineTo(-BW+13,-3); c.quadraticCurveTo(-BW+4,-3,-BW+4,-13); c.closePath(); c.clip();
     const total=runs.reduce((sum,r)=>sum+r.h,0)*SEG_H, ends=[]; let acc=0;
     runs.forEach(r=>{acc+=r.h*SEG_H;ends.push(acc);});
     for(let i=0;(i+.5)*JDY<=total+.01;i++){
