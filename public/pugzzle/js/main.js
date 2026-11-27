@@ -182,7 +182,8 @@
       const a = (k / 10) * Math.PI * 2 + Math.random() * .4, d = r.width * (1.1 + Math.random() * .9);
       const sp = document.createElement('div'); sp.className = 'burst-spark'; sp.textContent = icons[k % icons.length];
       sp.style.left = cx + 'px'; sp.style.top = cy + 'px';
-      sp.style.setProperty('--dx', (Math.cos(a) * d).toFixed(0) + 'px'); sp.style.setProperty('--dy', (Math.sin(a) * d).toFixed(0) + 'px');
+      const tx = Math.max(12, Math.min(h.width - 12, cx + Math.cos(a) * d)), ty = Math.max(12, Math.min(h.height - 12, cy + Math.sin(a) * d));
+      sp.style.setProperty('--dx', (tx - cx).toFixed(0) + 'px'); sp.style.setProperty('--dy', (ty - cy).toFixed(0) + 'px');
       host.appendChild(sp); setTimeout(() => sp.remove(), 950);
     }
     if (navigator.vibrate) try { navigator.vibrate([30, 40, 30]); } catch (e) { /* ignore */ }
@@ -203,7 +204,9 @@
     const r = svg.getBoundingClientRect(), h = host.getBoundingClientRect();
     const b = document.createElement('div'); b.className = 'bark-bubble'; b.textContent = 'Au! Au!';
     b.style.left = (r.left - h.left + r.width * .7) + 'px'; b.style.top = (r.top - h.top - 4) + 'px';
-    host.appendChild(b); setTimeout(() => b.remove(), 900);
+    host.appendChild(b);
+    const bw = b.offsetWidth; b.style.left = Math.max(2, Math.min(h.width - bw - 2, parseFloat(b.style.left))) + 'px';
+    setTimeout(() => b.remove(), 900);
   }
 
   /* ---------- Menu ---------- */

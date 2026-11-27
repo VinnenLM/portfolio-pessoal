@@ -161,7 +161,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .modal-card .row { margin-top: 0; }
 
 /* Efeito da palavra de combo */
-.fx { position: absolute; inset: 0; pointer-events: none; overflow: visible; z-index: 5; }
+.fx { position: absolute; inset: -26px; pointer-events: none; overflow: hidden; z-index: 5; }
 .combo-word { position: absolute; left: 50%; top: 40%; transform: translate(-50%, -50%) scale(.3); opacity: 0; text-align: center;
   font-weight: 900; font-size: calc(30px + var(--lv) * 3.5px); line-height: 1; white-space: nowrap; letter-spacing: 1px;
   color: var(--c); text-shadow: 0 3px 0 var(--g), 0 -2px 0 var(--g), 2px 0 0 var(--g), -2px 0 0 var(--g), 0 0 22px var(--c);
