@@ -579,7 +579,7 @@ function drawBG(g){
   g.drawImage(IMG.decBR, 895 * IS, BB + 10 - 337 * IS, 185 * IS, 337 * IS);
   { let fg = g.createLinearGradient(0, BB - 14, 0, BB + 2); fg.addColorStop(0, PUG() ? 'rgba(90,56,34,0)' : 'rgba(42,18,38,0)'); fg.addColorStop(1, PUG() ? 'rgba(90,56,34,1)' : 'rgba(42,18,38,1)'); g.fillStyle = fg; g.fillRect(0, BB - 14, LW, 16);
     let pg2 = g.createLinearGradient(0, BB, 0, BB + botR); pg2.addColorStop(0, PUG() ? '#5a3822' : '#2a1226'); pg2.addColorStop(1, PUG() ? '#3a2316' : '#1d0d24'); g.fillStyle = pg2; g.fillRect(0, BB + 1.5, LW, botR);
-    if (PUG()){ [[22, 34], [LW - 22, 38]].forEach(q => paw(g, q[0], BB + q[1], 7, 'rgba(255,214,170,.22)')); g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, BB + 1.5, LW, 2); } }
+    if (PUG()){ [176 * IS / 2, LW - 176 * IS / 2].forEach(x => paw(g, x, Hl - 110 * IS + 1, 7, 'rgba(255,214,170,.22)')); g.fillStyle = 'rgba(0,0,0,.28)'; g.fillRect(0, BB + 1.5, LW, 2); } }
   let dg = g.createRadialGradient(LW / 2, (BT + BB) / 2, 40, LW / 2, (BT + BB) / 2, (BB - BT) * .75);
   dg.addColorStop(0, 'rgba(18,4,26,.18)'); dg.addColorStop(.6, 'rgba(18,4,26,.32)'); dg.addColorStop(1, 'rgba(10,2,16,.55)');
   g.fillStyle = dg; g.fillRect(0, BT, LW, BB - BT);
