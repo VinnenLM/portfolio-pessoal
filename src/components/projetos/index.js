@@ -93,13 +93,13 @@ const projetos = [
     tema: { c1: "#c58bff", c2: "#1a1040", on: "#1a1040", logoBg: "#1a1040" },
   },
   {
-    titulo: "Mixwitch",
+    titulo: "Pawchemy",
     categoria: "jogo",
     descricao:
       "Puzzle de juntar cores com ração numa taverna medieval: despeje a ração entre os potes de vidro até cada um ter uma cor só. O pug bruxo joga os potes prontos no caldeirão e, ao fim da fase, vende ração para um cliente; quanto menos jogadas, mais moedas. Bônus de voltar jogada, dica e frasco extra, lojinha de melhorias e fases sempre com solução. Feito em JavaScript puro com Canvas.",
-    link: `${process.env.PUBLIC_URL}/mixwitch/`,
+    link: `${process.env.PUBLIC_URL}/pawchemy/`,
     jogar: true,
-    logo: img("mixwitch.png"),
+    logo: img("pawchemy.png"),
     tags: ["JavaScript", "Canvas", "Puzzle", "Web"],
     tema: { c1: "#b46bff", c2: "#2a1240", on: "#1a0b2a", logoBg: "#2a1240" },
   },
