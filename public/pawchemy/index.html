@@ -101,6 +101,23 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .steps{margin:0;padding:0;list-style:none;counter-reset:s}
 .steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px;font:600 13.5px/1.4 var(--f-ui)}
 .steps li::before{content:counter(s);position:absolute;left:0;top:5px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:800 14px var(--f-ui);color:var(--cream);background:linear-gradient(var(--wood1),var(--wood2));border:2px solid var(--wood3)}
+.mapp{max-width:360px}
+.mapw{position:relative;height:min(58dvh,520px);overflow-y:auto;overflow-x:hidden;margin-top:10px;border-radius:12px;background:radial-gradient(ellipse at 50% 30%,#4a2a50,#26142c 75%);box-shadow:inset 0 0 0 3px #2a1206,inset 0 0 0 5px #c8742f,inset 0 0 24px rgba(0,0,0,.6);scrollbar-width:thin}
+.mapi{position:relative;width:300px;margin:0 auto}
+.mapi>svg{position:absolute;left:0;top:0}
+.lvn{position:absolute;width:54px;height:54px;margin:-27px 0 0 -27px;border:0;padding:0;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 40% 35%,#b0603a,#6b3119 70%);box-shadow:0 0 0 3px #2a1206,inset 0 0 0 3px #f0a253,inset 0 0 0 5px #8a4420,0 5px 0 3px #2a1206;color:#fff0cf;font:800 21px 'Cinzel',serif;-webkit-text-stroke:3px #2a1205;paint-order:stroke fill}
+.lvn .num{display:grid;place-items:center;width:100%;height:100%}
+.lvn .num svg{width:26px;height:26px;display:block;-webkit-text-stroke:0}
+.lvn.cur{background:radial-gradient(circle at 40% 35%,#ffe08a,#f0901c 70%);box-shadow:0 0 0 3px #2a1206,inset 0 0 0 3px #fff0b0,inset 0 0 0 5px #b8640c,0 5px 0 3px #2a1206,0 0 22px rgba(255,200,90,.8);animation:lvp 1.4s ease-in-out infinite}
+.lvn.here::before{content:'';position:absolute;left:50%;top:-30px;width:22px;height:22px;margin-left:-11px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cg fill='%23ffc94a' stroke='%232a1206' stroke-width='4'%3E%3Cellipse cx='32' cy='41' rx='13' ry='10.5'/%3E%3Cellipse cx='15.5' cy='27' rx='5.5' ry='7'/%3E%3Cellipse cx='25.5' cy='17.5' rx='5.5' ry='7.2'/%3E%3Cellipse cx='38.5' cy='17.5' rx='5.5' ry='7.2'/%3E%3Cellipse cx='48.5' cy='27' rx='5.5' ry='7'/%3E%3C/g%3E%3C/svg%3E") center/contain no-repeat;animation:lvb 1s ease-in-out infinite}
+.lvn.lock{cursor:default;background:radial-gradient(circle at 40% 35%,#6a6070,#3a3240 70%);box-shadow:0 0 0 3px #1a1420,inset 0 0 0 3px #8a8090,0 5px 0 3px #1a1420}
+.lvn .lst{position:absolute;left:50%;bottom:-17px;transform:translateX(-50%);display:flex;gap:0;font-size:15px;-webkit-text-stroke:2.5px #2a1205;white-space:nowrap}
+.lvn .lst i{font-style:normal;color:#5a4a50}
+.lvn .lst i.on{color:#ffd23a}
+.lvn .lst i:nth-child(2){transform:translateY(3px)}
+.mstar{color:#e8a010}
+@keyframes lvp{50%{transform:scale(1.08)}}
+@keyframes lvb{50%{transform:translateY(-5px)}}
 .stars{font-size:34px;text-align:center;color:#d99a12;text-shadow:0 2px 0 #7a5208;letter-spacing:6px}
 .sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0}
 .sw b{font:800 14px var(--f-ui)}
@@ -186,13 +203,16 @@ const PHRASES = ['Hihihi!', 'Borbulha, borbulha!', 'Mais uma poção!', 'Que che
 
 /* ======================= SAVE ======================= */
 const SAVE_KEY = 'brewmancer-v1';
-let save = {coins:0, level:1, undo:3, hint:3, tubes:2, up:{cauldron:0, luck:0, extra:0}, opt:{sound:true, music:true, theme:'pug'}};
+let save = {coins:0, level:1, undo:3, hint:3, tubes:2, stars:{}, up:{cauldron:0, luck:0, extra:0}, opt:{sound:true, music:true, theme:'pug'}};
 try {
   let raw = localStorage.getItem(SAVE_KEY) || localStorage.getItem('pocoes-da-bruxa-v1');
   const s = JSON.parse(raw || 'null');
   if (s && typeof s === 'object') save = {...save, ...s, up:{...save.up, ...(s.up || {})}, opt:{...save.opt, ...(s.opt || {})}};
+  if (!save.stars || typeof save.stars !== 'object') save.stars = {};
   if (save.up.extra > 1){ save.coins += 4500 * (save.up.extra - 1); save.up.extra = 1; }
 } catch (e) {}
+let curLevel = save.level;
+function totalStars(){ return Object.values(save.stars).reduce((a, v) => a + (v | 0), 0); }
 function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch (e) {} }
 
 /* ======================= UTIL ======================= */
@@ -956,7 +976,7 @@ function ccs(){ return .86; }
 function pw(st, a, b){ return ease(clamp((st - a) / (b - a), 0, 1)); }
 function customerHand(){ return [(sale ? sale.xc : 290) + 2, sceneB - 12]; }
 function startSale(){
-  const base = 40 + (save.level - 1) * 8, eff = clamp(parMoves / Math.max(1, moveCount), .25, 1.5);
+  const base = 40 + (curLevel - 1) * 8, eff = clamp(parMoves / Math.max(1, moveCount), .25, 1.5);
   let price = base * (.5 + eff) * (1 + .25 * save.up.cauldron);
   const lucky = Math.random() < Math.min(.75, .15 * save.up.luck); if (lucky) price *= 2;
   saleInfo = {moves: moveCount, par: parMoves, lucky, stars: eff >= 1 ? 3 : eff >= .6 ? 2 : 1};
@@ -1274,10 +1294,11 @@ function updatePour(){
 }
 
 /* ======================= LÓGICA ======================= */
-function startLevel(){
+function startLevel(lv){
+  curLevel = clamp(lv || curLevel || save.level, 1, save.level);
   cleared = false; selected = -1; history = []; busy = false; pour = null; sale = null; hint = null; addedTubes = 0; levelCoins = 0; moveCount = 0; sentPotions = 0; pendingFlights = 0;
   flights.length = 0;
-  tubes = genLevel(save.level); initial = JSON.stringify(tubes); lift = tubes.map(() => 0);
+  tubes = genLevel(curLevel); initial = JSON.stringify(tubes); lift = tubes.map(() => 0);
   totalPotions = tubes.filter(t => t.length).length;
   const pth = solve(tubes.map(x => x.slice()), true); parMoves = Math.max(totalPotions, pth ? Math.ceil(pth.length * .7) : totalPotions * 2);
   layoutBoard(); updateHud();
@@ -1417,7 +1438,7 @@ function fitHud(){
 }
 function updateHud(){
   document.body.classList.toggle('stuck', TT - stuckT < 6);
-  $('#lv').textContent = 'Fase ' + (cleared ? Math.max(1, save.level - 1) : save.level);
+  $('#lv').textContent = 'Fase ' + curLevel;
   $('#pr').innerHTML = '<span class="pill" title="Potes"><svg viewBox="0 0 24 24"><path d="M9.5 2.5h5M10.3 2.8v4.4a8 8 0 103.4 0V2.8" fill="#c79cff" stroke="#2a1208" stroke-width="1.6"/><path d="M5.2 14a6.8 6.8 0 0013.6 0z" fill="#b051ff"/></svg>' + sentPotions + '/' + totalPotions + '</span><span class="pill" title="Jogadas"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" fill="none" stroke="#ffd56a" stroke-width="2.6" stroke-linecap="round"/><path d="M18.6 3v4.2h-4.2M5.4 21v-4.2h4.2" fill="none" stroke="#ffd56a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' + moveCount + '</span>'; fitHud();
   const ce = $('#coins'), cn = save.coins; ce.textContent = cn >= 100000 ? Math.floor(cn / 1000) + 'k' : cn >= 10000 ? (cn / 1000).toFixed(1).replace('.0', '') + 'k' : cn;
   ce.style.display = 'inline-block'; ce.style.whiteSpace = 'nowrap'; ce.style.transform = ''; { const bw = $('#coinbox').clientWidth, ow = ce.offsetWidth; if (bw > 0 && ow > 0){ const k = Math.min(1, bw / ow); ce.style.transform = k < 1 ? 'scale(' + k + ')' : ''; } else if (!hudRetry) hudRetry = setTimeout(() => { hudRetry = 0; updateHud(); }, 250); }
@@ -1453,7 +1474,8 @@ function showMenu(){
   showLayer(
     '<div class="logo"><div class="l1">' + GAME_NAME + '</div><div class="l2">' + GAME_SUB + '</div></div>' +
     '<div><div class="mbtns">' +
-      '<button class="wbtn gold" data-act="play">Jogar &middot; Fase ' + save.level + '</button>' +
+      '<button class="wbtn gold" data-act="play">Jogar &middot; Fase ' + (cleared ? Math.min(save.level, curLevel + 1) : curLevel) + '</button>' +
+      '<button class="wbtn" data-act="map" data-arg="menu">Fases &middot; &#9733; ' + totalStars() + '</button>' +
       '<button class="wbtn" data-act="shop" data-arg="menu">Lojinha</button>' +
       '<button class="wbtn" data-act="options" data-arg="menu">Opções</button>' +
       '<button class="wbtn" data-act="how" data-arg="menu">Como jogar</button>' +
@@ -1463,6 +1485,7 @@ function showPause(){
   showLayer('<div class="parch"><h2>Pausa</h2><div class="stack">' +
     '<button class="wbtn gold" data-act="resume">Continuar</button>' +
     '<button class="wbtn" data-act="restart">Reiniciar fase</button>' +
+    '<button class="wbtn" data-act="map" data-arg="pause">Escolher fase</button>' +
     '<button class="wbtn" data-act="options" data-arg="pause">Opções</button>' +
     '<button class="wbtn danger" data-act="menu">Menu principal</button></div></div>');
 }
@@ -1496,24 +1519,51 @@ function showShop(from){
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>';
   showLayer(h);
 }
+function showMap(from){
+  const N = save.level + 5, H = 84, top = 60, W = 300, pts = [];
+  for (let i = 1; i <= N; i++) pts.push([W / 2 + Math.sin(i * .95) * 92, top + (N - i) * H]);
+  let d = 'M' + pts[0][0] + ' ' + pts[0][1];
+  for (let i = 1; i < pts.length; i++){ const a = pts[i - 1], b = pts[i], my = (a[1] + b[1]) / 2; d += ' C' + a[0] + ' ' + my + ' ' + b[0] + ' ' + my + ' ' + b[0] + ' ' + b[1]; }
+  const done = Math.min(save.level, N) - 1;
+  let dd = 'M' + pts[0][0] + ' ' + pts[0][1];
+  for (let i = 1; i <= done; i++){ const a = pts[i - 1], b = pts[i], my = (a[1] + b[1]) / 2; dd += ' C' + a[0] + ' ' + my + ' ' + b[0] + ' ' + my + ' ' + b[0] + ' ' + b[1]; }
+  const hgt = top * 2 + (N - 1) * H;
+  let nodes = '';
+  pts.forEach((p, k) => {
+    const n = k + 1, st = save.stars[n] | 0, lock = n > save.level, cur = n === save.level, here = n === curLevel && !lock;
+    nodes += '<button class="lvn' + (lock ? ' lock' : cur ? ' cur' : ' ok') + (here ? ' here' : '') + '" style="left:' + p[0] + 'px;top:' + p[1] + 'px"' + (lock ? ' disabled' : ' data-act="lvl" data-arg="' + n + '"') + '>' +
+      '<span class="num">' + (lock ? '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="#cfc6d8" stroke="#2a1206" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" fill="none" stroke="#2a1206" stroke-width="2.4"/></svg>' : n) + '</span>' +
+      (lock ? '' : '<span class="lst">' + [0, 1, 2].map(j => '<i class="' + (j < st ? 'on' : '') + '">&#9733;</i>').join('') + '</span>') + '</button>';
+  });
+  showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + ((save.level - 1) * 3) + '</div>' +
+    '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/><path d="' + dd + '" fill="none" stroke="#ffc94a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></svg>' + nodes + '</div></div>' +
+    '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
+  const mw = $('#mapw'), cp = pts[Math.max(0, curLevel - 1)]; if (mw) mw.scrollTop = Math.max(0, cp[1] - mw.clientHeight / 2);
+}
 function showClear(){
   showLayer('<div class="parch"><div class="stars">' + '&#9733;'.repeat(saleInfo.stars) + '<span style="opacity:.25">' + '&#9733;'.repeat(3 - saleInfo.stars) + '</span></div><h2>Fase concluída!</h2>' +
     '<p>' + (PUG() ? 'Ração vendida' : 'Poção vendida') + ' por <b>+' + lastSale + '</b> moedas' + (saleInfo.lucky ? ' (sorte em dobro!)' : '') + '.<br>Jogadas: <b>' + saleInfo.moves + '</b> &middot; Ideal: <b>' + saleInfo.par + '</b><br><span class="d">Menos jogadas = mais moedas</span></p>' +
-    '<div class="row"><button class="wbtn" data-act="menu">Menu</button><button class="wbtn" data-act="shop" data-arg="clear">Lojinha</button><button class="wbtn gold" data-act="next">Próxima fase</button></div></div>');
+    (saleInfo.stars < 3 ? '<p class="d" style="text-align:center;margin:6px 0 0">Tente de novo para pegar as 3 estrelas!</p>' : '') +
+    '<div class="row"><button class="wbtn" data-act="retry">Tentar de novo</button><button class="wbtn gold" data-act="next">Próxima fase</button></div>' +
+    '<div class="row"><button class="wbtn" data-act="menu">Menu</button><button class="wbtn" data-act="map" data-arg="clear">Fases</button><button class="wbtn" data-act="shop" data-arg="clear">Lojinha</button></div></div>');
 }
 function levelClear(){
-  cleared = true; save.level++; persist(); updateHud();
+  cleared = true; if (curLevel >= save.level) save.level = curLevel + 1; persist(); updateHud();
   const g = cauldronGeo(); sparks(g.mouthX, g.mouthY, '#f3c85a', 40, 110); Snd.win();
   say.txt = PUG() ? 'Hora de vender, au!' : 'Hora de vender!'; say.t = 2;
   startSale();
+  save.stars[curLevel] = Math.max(save.stars[curLevel] | 0, saleInfo.stars); persist();
 }
 function goBack(from){
-  if (from === 'menu') showMenu(); else if (from === 'pause') showPause(); else if (from === 'clear') showClear(); else hideLayer();
+  if (from === 'map') showMap('menu'); else if (from === 'menu') showMenu(); else if (from === 'pause') showPause(); else if (from === 'clear') showClear(); else hideLayer();
 }
 function act(a, arg){
   const parts2 = (arg || '').split('|');
   switch (a){
-    case 'play': hideLayer(); stage.classList.remove('inmenu'); inMenu = false; if (cleared && !sale) startLevel(); break;
+    case 'play': hideLayer(); stage.classList.remove('inmenu'); inMenu = false; if (cleared && !sale) startLevel(Math.min(save.level, curLevel + 1)); break;
+    case 'retry': hideLayer(); startLevel(curLevel); break;
+    case 'map': showMap(arg); break;
+    case 'lvl': { const n = +parts2[0]; if (n >= 1 && n <= save.level && !sale){ hideLayer(); stage.classList.remove('inmenu'); inMenu = false; startLevel(n); } break; }
     case 'resume': hideLayer(); break;
     case 'restart': hideLayer(); restartLevel(); break;
     case 'stuckUndo': hideLayer(); undo(); break;
@@ -1523,7 +1573,7 @@ function act(a, arg){
     case 'how': showHow(arg); break;
     case 'shop': showShop(arg); break;
     case 'back': goBack(arg); break;
-    case 'next': hideLayer(); startLevel(); break;
+    case 'next': hideLayer(); startLevel(Math.min(save.level, curLevel + 1)); break;
     case 'theme': save.opt.theme = PUG() ? 'witch' : 'pug'; persist(); Snd.init(); Snd.sel(); buildLayers(); showOptions(arg); break;
     case 'tog': save.opt[parts2[0]] = !save.opt[parts2[0]]; persist(); Snd.init(); Snd.music(save.opt.music); showOptions(parts2[1]); break;
     case 'buy': {
@@ -1540,7 +1590,7 @@ function act(a, arg){
         '<div class="row"><button class="wbtn" data-act="back" data-arg="' + arg + '">Cancelar</button><button class="wbtn danger" data-act="resetyes">Apagar</button></div></div>');
       break;
     case 'resetyes':
-      save = {coins:0, level:1, undo:3, hint:3, tubes:2, up:{cauldron:0, luck:0, extra:0}, opt:save.opt}; persist(); startLevel(); showMenu(); break;
+      save = {coins:0, level:1, undo:3, hint:3, tubes:2, stars:{}, up:{cauldron:0, luck:0, extra:0}, opt:save.opt}; persist(); startLevel(1); showMenu(); break;
   }
 }
 layer.addEventListener('click', e => {
@@ -1568,7 +1618,7 @@ function frame(now){
 }
 window.addEventListener('resize', resize);
 resize();
-startLevel();
+startLevel(save.level);
 showMenu();
 requestAnimationFrame(frame);
 try { if (document.fonts && document.fonts.load) Promise.all([document.fonts.load('17px "MedievalSharp"'), document.fonts.load('800 12px "Cinzel"')]).then(buildLayers).catch(() => {}); } catch (e) {}
