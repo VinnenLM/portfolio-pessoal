@@ -752,7 +752,7 @@ function corkSprite(k){
 function drawCorkPug(c, x, y, s, rot, open, dir){
   c.save(); c.translate(x, y); c.rotate(rot); c.scale(s, s); c.translate(0, MID);
   if (open > .001){ const e = open; c.translate(-dir * 20 * e, -24 * e - Math.sin(Math.PI * Math.min(1, e)) * 6); c.translate(0, -136); c.rotate(-dir * .85 * e + Math.sin(TT * 9) * .05 * e); c.translate(0, 136); }
-  if(spriteReady('v2Cork')) c.drawImage(IMG.v2Cork,-26,-161,52,38.3);
+  if(spriteReady('v2Cork')) c.drawImage(IMG.v2Cork,0,0,237,126,-26,-150,52,27.6);
   else c.drawImage(corkSprite(Math.min(4, dpr * sc * s)), -28, -154, 56, 34);
   c.restore();
 }
