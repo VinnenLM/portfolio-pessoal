@@ -102,7 +102,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .steps li{counter-increment:s;position:relative;padding:6px 0 6px 38px;font:600 13.5px/1.4 var(--f-ui)}
 .steps li::before{content:counter(s);position:absolute;left:0;top:5px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font:800 14px var(--f-ui);color:var(--cream);background:linear-gradient(var(--wood1),var(--wood2));border:2px solid var(--wood3)}
 .mapp{max-width:360px}
-.mapw{position:relative;height:min(58dvh,520px);overflow-y:auto;overflow-x:hidden;margin-top:10px;border-radius:12px;background:radial-gradient(ellipse at 50% 30%,#4a2a50,#26142c 75%);box-shadow:inset 0 0 0 3px #2a1206,inset 0 0 0 5px #c8742f,inset 0 0 24px rgba(0,0,0,.6);scrollbar-width:none;-ms-overflow-style:none}
+.mapw{position:relative;cursor:grab;user-select:none;-webkit-user-select:none;height:min(58dvh,520px);overflow-y:auto;overflow-x:hidden;margin-top:10px;border-radius:12px;background:radial-gradient(ellipse at 50% 30%,#4a2a50,#26142c 75%);box-shadow:inset 0 0 0 3px #2a1206,inset 0 0 0 5px #c8742f,inset 0 0 24px rgba(0,0,0,.6);scrollbar-width:none;-ms-overflow-style:none}
 .mapw::-webkit-scrollbar{display:none}
 .mapi{position:relative;width:300px;margin:0 auto}
 .mapi>svg{position:absolute;left:0;top:0}
@@ -1538,6 +1538,16 @@ function showMap(from){
   showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + '</div>' +
     '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/><path d="' + dd + '" fill="none" stroke="#ffc94a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></svg>' + nodes + '</div></div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
+  const mw0 = $('#mapw');
+  if (mw0){
+    let down = false, sy = 0, st = 0, moved = false;
+    mw0.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse' || e.button !== 0) return; down = true; moved = false; sy = e.clientY; st = mw0.scrollTop; mw0.style.cursor = 'grabbing'; });
+    mw0.addEventListener('pointermove', e => { if (!down) return; const dy = e.clientY - sy; if (!moved && Math.abs(dy) > 4){ moved = true; try { mw0.setPointerCapture(e.pointerId); } catch (_) {} } if (moved){ mw0.scrollTop = st - dy; e.preventDefault(); } });
+    const up = () => { if (!down) return; down = false; mw0.style.cursor = ''; setTimeout(() => { moved = false; }, 0); };
+    mw0.addEventListener('pointerup', up); mw0.addEventListener('pointercancel', up); mw0.addEventListener('lostpointercapture', up);
+    mw0.addEventListener('click', e => { if (moved){ e.stopPropagation(); e.preventDefault(); } }, true);
+    mw0.addEventListener('dragstart', e => e.preventDefault());
+  }
   const mw = $('#mapw'), cp = pts[Math.max(0, (cleared ? Math.min(save.level, curLevel + 1) : curLevel) - 1)]; if (mw) mw.scrollTop = Math.max(0, cp[1] - mw.clientHeight / 2);
 }
 function showClear(){
