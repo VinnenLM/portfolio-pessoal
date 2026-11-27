@@ -1393,15 +1393,16 @@ function useTube(){
   selected = -1; hint = null; layoutBoard(); updateHud(); Snd.splash();
   const p = pos[tubes.length - 1]; if (p) sparks(p.x, p.by - 60 * bs, '#bff3ff', 18, 70);
 }
+let hudRetry = 0;
 function fitHud(){
-  const pr = $('#pr'), rb = $('#ribbon'); pr.style.transform = ''; const k = Math.min(1, (rb.clientWidth - 4) / Math.max(1, pr.scrollWidth)); pr.style.transform = 'scale(' + k + ')';
+  const pr = $('#pr'), rb = $('#ribbon'); pr.style.transform = ''; const rw = rb.clientWidth - 4, pw2 = pr.scrollWidth; if (rw > 0 && pw2 > 0){ const k = Math.min(1, rw / pw2); pr.style.transform = k < 1 ? 'scale(' + k + ')' : ''; }
 }
 function updateHud(){
   document.body.classList.toggle('stuck', TT - stuckT < 6);
   $('#lv').textContent = 'Fase ' + (cleared ? Math.max(1, save.level - 1) : save.level);
   $('#pr').innerHTML = '<span class="pill" title="Poções"><svg viewBox="0 0 24 24"><path d="M9.5 2.5h5M10.3 2.8v4.4a8 8 0 103.4 0V2.8" fill="#c79cff" stroke="#2a1208" stroke-width="1.6"/><path d="M5.2 14a6.8 6.8 0 0013.6 0z" fill="#b051ff"/></svg>' + sentPotions + '/' + totalPotions + '</span><span class="pill" title="Jogadas"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0114-5.3M20 12a8 8 0 01-14 5.3" fill="none" stroke="#ffd56a" stroke-width="2.6" stroke-linecap="round"/><path d="M18.6 3v4.2h-4.2M5.4 21v-4.2h4.2" fill="none" stroke="#ffd56a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>' + moveCount + '</span>'; fitHud();
   const ce = $('#coins'), cn = save.coins; ce.textContent = cn >= 100000 ? Math.floor(cn / 1000) + 'k' : cn >= 10000 ? (cn / 1000).toFixed(1).replace('.0', '') + 'k' : cn;
-  ce.style.display = 'inline-block'; ce.style.whiteSpace = 'nowrap'; ce.style.transform = ''; { const bw = $('#coinbox').clientWidth, k = Math.min(1, bw / Math.max(1, ce.offsetWidth)); ce.style.transform = 'scale(' + k + ')'; }
+  ce.style.display = 'inline-block'; ce.style.whiteSpace = 'nowrap'; ce.style.transform = ''; { const bw = $('#coinbox').clientWidth, ow = ce.offsetWidth; if (bw > 0 && ow > 0){ const k = Math.min(1, bw / ow); ce.style.transform = k < 1 ? 'scale(' + k + ')' : ''; } else if (!hudRetry) hudRetry = setTimeout(() => { hudRetry = 0; updateHud(); }, 250); }
   $('#undoN').textContent = save.undo; $('#hintN').textContent = save.hint; $('#tubeN').textContent = save.tubes;
   $('#undoBtn').classList.toggle('off', !history.length || save.undo <= 0);
   $('#hintBtn').classList.toggle('off', save.hint <= 0);
