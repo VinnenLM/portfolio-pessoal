@@ -1853,8 +1853,8 @@ function showClear(){
     '<p>' + (PUG() ? 'Ração vendida' : 'Poção vendida') + ' por <b>+' + lastSale + '</b> moedas' + (saleInfo.lucky ? ' (sorte em dobro!)' : '') + '.<br>Jogadas: <b>' + saleInfo.moves + '</b> &middot; Ideal: <b>' + saleInfo.par + '</b><br><span class="d">Menos jogadas = mais moedas</span></p>' +
     (saleInfo.stars < 3 ? '<p class="d" style="text-align:center;margin:6px 0 0">Tente de novo para pegar as 3 estrelas!</p>' : '') +
     (curLevel >= MAX_LEVEL ? '<p style="text-align:center"><b>Você completou todas as ' + MAX_LEVEL + ' fases!</b></p>' : '') +
-    '<div class="row"><button class="wbtn' + (curLevel >= MAX_LEVEL ? ' gold' : '') + '" data-act="retry">Tentar de novo</button>' + (curLevel < MAX_LEVEL ? '<button class="wbtn gold" data-act="next">Próxima fase</button>' : '') + '</div>' +
-    '<div class="row"><button class="wbtn" data-act="menu">Menu</button><button class="wbtn" data-act="map" data-arg="clear">Fases</button><button class="wbtn" data-act="shop" data-arg="clear">Loja</button></div></div>');
+    '<div class="stack">' + (curLevel < MAX_LEVEL ? '<button class="wbtn gold" data-act="next">Próxima fase</button>' : '') + '<button class="wbtn' + (curLevel >= MAX_LEVEL ? ' gold' : '') + '" data-act="retry">Tentar de novo</button></div>' +
+    '<div class="row"><button class="wbtn" data-act="menu">Menu</button><button class="wbtn" data-act="shop" data-arg="clear">Loja</button></div></div>');
 }
 function levelClear(){
   pugWin = TT;
