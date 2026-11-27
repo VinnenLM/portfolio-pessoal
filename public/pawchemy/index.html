@@ -928,26 +928,35 @@ function drawCauldron(){
     ctx.restore(); ctx.save();
     const hc = '#' + rgb.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join(''), cx = g.mouthX, cy = g.mouthY, rx = g.rx, ry = g.ry, dome = 7 + ripple * 3;
     ctx.fillStyle = shade(hc, -.42); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 7); ctx.fill();
-    const jump = ripple * 2.4 * Math.abs(Math.sin(TT * 18)), dq = Math.round(dome);
-    const pk = hc + dq + '|' + ry.toFixed(2) + '|' + (dpr * sc).toFixed(2);
-    if (!pileC || pileK !== pk){
-      const k = dpr * sc, W2 = rx * 2 + 16, H2 = ry * 2 + dq + 16;
-      if (!pileC) pileC = document.createElement('canvas');
-      pileC.width = Math.ceil(W2 * k); pileC.height = Math.ceil(H2 * k);
-      const pc = pileC.getContext('2d'); pc.setTransform(k, 0, 0, k, 0, 0); pc.translate(W2 / 2, ry + dq + 8);
+    const jump = ripple * 2.4 * Math.abs(Math.sin(TT * 18)), dq = 8;
+    const tgtHex = '#' + brewTarget.map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0')).join('');
+    const getPile = col => {
+      const key = col + '|' + ry.toFixed(2) + '|' + (dpr * sc).toFixed(2); let e = pileCache.get(key); if (e) return e;
+      if (pileCache.size > 24) pileCache.clear();
+      const k = dpr * sc, W2 = rx * 2 + 16, H2 = ry * 2 + dq + 16, cvp = document.createElement('canvas');
+      cvp.width = Math.ceil(W2 * k); cvp.height = Math.ceil(H2 * k);
+      const pc = cvp.getContext('2d'); pc.setTransform(k, 0, 0, k, 0, 0); pc.translate(W2 / 2, ry + dq + 8);
       let sd = 7; const kr = 5;
       for (let v = -1.05; v <= 1.0; v += .3){
         const hw = Math.sqrt(Math.max(0, 1 - v * v * .85)), n = Math.max(2, Math.round(hw * rx * 2 / (kr * 1.7)));
         for (let q = 0; q < n; q++){
           sd = (sd * 9301 + 49297) % 233280; const jt = sd / 233280;
           const u = n > 1 ? (q / (n - 1) * 2 - 1) * hw * .96 : 0, d = 1 - (u * u + v * v);
-          kib(pc, u * rx + (jt - .5) * 2.4, v * ry * .95 - Math.max(0, d) * dq + (jt - .5) * 1.5, kr * (.92 + jt * .2), shade(hc, (jt - .5) * .16 - (v < -.5 ? .12 : 0)), Math.floor(jt * 40) % 4, jt * 6);
+          kib(pc, u * rx + (jt - .5) * 2.4, v * ry * .95 - Math.max(0, d) * dq + (jt - .5) * 1.5, kr * (.92 + jt * .2), shade(col, (jt - .5) * .16 - (v < -.5 ? .12 : 0)), Math.floor(jt * 40) % 4, jt * 6);
         }
       }
-      pileK = pk; pileM = {w: W2, h: H2, oy: ry + dq + 8};
+      e = {cv: cvp, w: W2, h: H2, oy: ry + dq + 8}; pileCache.set(key, e); return e;
+    };
+    if (pileTgt !== tgtHex){
+      pileFrom = pileTgt || tgtHex; pileTgt = tgtHex;
+      pileD0 = Math.max(1, Math.hypot(brewCur[0] - brewTarget[0], brewCur[1] - brewTarget[1], brewCur[2] - brewTarget[2]));
     }
+    const dNow = Math.hypot(brewCur[0] - brewTarget[0], brewCur[1] - brewTarget[1], brewCur[2] - brewTarget[2]);
+    const prog = clamp(1 - dNow / pileD0, 0, 1);
     ctx.save(); ctx.beginPath(); ctx.rect(cx - rx - 12, cy - 60, rx * 2 + 24, 60); ctx.ellipse(cx, cy, rx * 1.01, ry * 1.05, 0, 0, Math.PI); ctx.clip();
-    ctx.drawImage(pileC, cx - pileM.w / 2, cy - pileM.oy - jump, pileM.w, pileM.h); ctx.restore();
+    if (prog < .995 && pileFrom !== pileTgt){ const pf = getPile(pileFrom); ctx.drawImage(pf.cv, cx - pf.w / 2, cy - pf.oy - jump, pf.w, pf.h); ctx.globalAlpha = prog; }
+    const pt = getPile(pileTgt); ctx.drawImage(pt.cv, cx - pt.w / 2, cy - pt.oy - jump, pt.w, pt.h);
+    ctx.globalAlpha = 1; ctx.restore();
     const lp = IMG.lip_p; if (spriteReady('v2Tavern') && spriteReady('v2Cauldron')) {
       drawCauldronFrontV2(g);
     } else if (spriteReady('v2Tavern')) {
@@ -972,7 +981,7 @@ function wisp(x0, y0, rgb, len, amp, spd, ph, wd, alpha){
   }
   ctx.restore();
 }
-let smkC = null, smkCol = '', pileC = null, pileK = '', pileM = null, corkC = new Map();
+let smkC = null, smkCol = '', pileCache = new Map(), pileTgt = '', pileFrom = '', pileD0 = 1, corkC = new Map();
 function smokeTint(){
   const rgb = brewCur.map(v => Math.round(clamp(v, 0, 255))), col = 'rgb(' + rgb.join(',') + ')', m = IMG.smk_p;
   if (!m || !m.naturalWidth) return;
