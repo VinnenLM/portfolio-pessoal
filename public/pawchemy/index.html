@@ -1550,7 +1550,7 @@ function showMap(from){
       (lock ? '' : '<span class="lst">' + [0, 1, 2].map(j => '<i class="' + (j < st ? 'on' : '') + '">&#9733;</i>').join('') + '</span>') + '</button>';
   });
   showLayer('<div class="parch mapp"><h2>Mapa de fases</h2><div class="wallet"><span class="mstar">&#9733;</span> ' + totalStars() + ' / ' + (save.level * 3) + ' &nbsp;&middot;&nbsp; Fase ' + save.level + ' / ' + MAX_LEVEL + '</div>' +
-    '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/><path d="' + dd + '" fill="none" stroke="#ffc94a" stroke-width="5" stroke-linecap="round" stroke-dasharray="1 13"/></svg>' + deco + nodes + '</div></div>' +
+    '<div class="mapw" id="mapw"><div class="mapi" style="height:' + hgt + 'px"><svg width="' + W + '" height="' + hgt + '" viewBox="0 0 ' + W + ' ' + hgt + '"><path d="' + d + '" fill="none" stroke="rgba(255,226,170,.25)" stroke-width="10" stroke-linecap="round" stroke-dasharray="2 16"/></svg>' + deco + nodes + '</div></div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
   const mw0 = $('#mapw');
   if (mw0){
