@@ -76,6 +76,9 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .layer{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px}
 .layer.on{display:flex}
 .layer.dim{background:rgba(10,5,2,.72);animation:fade .2s}
+.layer.noanim,.layer.noanim .parch{animation:none}
+.scard.bought{animation:sbuy .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes sbuy{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-10px) scale(1.06)}65%{transform:translateY(0) scale(.97)}100%{transform:none}}
 .stage.inmenu .layer.dim{background:radial-gradient(ellipse at 50% 40%,rgba(48,22,44,.9),rgba(12,4,14,.96) 72%);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
 .layer.menuL{background:linear-gradient(#16061e 0,#16061e calc(128px*var(--f)),rgba(22,6,30,.85) calc(175px*var(--f)),rgba(22,6,30,0) calc(420px*var(--f)),rgba(22,6,30,0) 46%,rgba(22,6,30,.82) 60%,rgba(18,4,24,.97) 78%);align-items:stretch;flex-direction:column;justify-content:space-between;padding:calc(30px*var(--f)) 22px 22px}
 .layer.menuL .logo{margin-top:0}
@@ -1517,7 +1520,7 @@ function showHow(from){
     '<li>Ao terminar, o pug bruxo vende ração a um cliente. Quanto menos jogadas, mais moedas! Gaste na lojinha.</li></ol>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
 }
-function showShop(from){
+function showShop(from, bought){
   const card = it => {
     const lvl = it.consumable ? 0 : save.up[it.id], maxed = !it.consumable && lvl >= it.max, cost = maxed ? 0 : it.cost(lvl), poor = !maxed && save.coins < cost;
     const status = it.consumable ? '<span class="have">x' + it.have() + '</span>' : '<span class="pips">' + Array.from({length: it.max}, (_, k) => '<i class="' + (k < lvl ? 'on' : '') + '"></i>').join('') + '</span>';
@@ -1529,7 +1532,9 @@ function showShop(from){
     '<div class="sec">Melhorias</div><div class="sgrid">' + SHOP.filter(i => !i.consumable).map(card).join('') + '</div>' +
     '<div class="sec">Ajudas</div><div class="sgrid">' + SHOP.filter(i => i.consumable).map(card).join('') + '</div>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>';
+  const sc = bought ? (layer.querySelector('.parch') || {}).scrollTop || 0 : 0;
   showLayer(h);
+  if (bought){ layer.classList.add('noanim'); const p = layer.querySelector('.parch'); if (p) p.scrollTop = sc; const c = layer.querySelector('[data-arg^="' + bought + '|"]'); if (c){ c.classList.add('bought'); const pr = c.querySelector('.price'); } }
 }
 
 function showMap(from){
@@ -1609,7 +1614,7 @@ function act(a, arg){
       const cost = it.cost(lvl);
       if (save.coins < cost){ toast('Moedas insuficientes.'); break; }
       save.coins -= cost; if (it.consumable) it.give(); else save.up[it.id]++;
-      persist(); updateHud(); showShop(parts2[1]); Snd.coin(); break;
+      persist(); updateHud(); showShop(parts2[1], it.id); Snd.coin(); break;
     }
     case 'reset':
       showLayer('<div class="parch"><h2>Apagar tudo?</h2><p>Fase, moedas e melhorias voltam ao começo. Isso não pode ser desfeito.</p>' +
