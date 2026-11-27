@@ -1506,11 +1506,13 @@ function hideLayer(){ stage.classList.remove('sub'); layer.className = 'layer'; 
 const onOff = v => v ? 'Ligado' : 'Desligado';
 
 function showMenu(){
+  const canCont = !cleared && !sale && curLevel !== save.level && (history.length > 0 || moveCount > 0 || sentPotions > 0);
   stage.classList.add('inmenu'); inMenu = true; selected = -1;
   showLayer(
     '<div class="logo"><div class="l1">' + GAME_NAME + '</div><div class="l2">' + GAME_SUB + '</div></div>' +
     '<div><div class="mbtns">' +
-      '<button class="wbtn gold" data-act="play">Jogar &middot; Fase ' + save.level + '</button>' +
+      (canCont ? '<button class="wbtn gold" data-act="cont">Continuar &middot; Fase ' + curLevel + '</button>' : '') +
+      '<button class="wbtn' + (canCont ? '' : ' gold') + '" data-act="play">Jogar &middot; Fase ' + save.level + '</button>' +
       '<button class="wbtn" data-act="map" data-arg="menu">Fases &middot; &#9733; ' + totalStars() + '/' + maxStars() + '</button>' +
       '<button class="wbtn" data-act="shop" data-arg="menu">Lojinha</button>' +
       '<button class="wbtn" data-act="options" data-arg="menu">Opções</button>' +
@@ -1619,6 +1621,7 @@ function act(a, arg){
   const parts2 = (arg || '').split('|');
   switch (a){
     case 'play': wipe(() => { hideLayer(); stage.classList.remove('inmenu'); inMenu = false; if (!sale && (cleared || curLevel !== save.level)) startLevel(save.level); else introT = TT; }); break;
+    case 'cont': wipe(() => { hideLayer(); stage.classList.remove('inmenu'); inMenu = false; introT = TT; }); break;
     case 'retry': wipe(() => { hideLayer(); startLevel(curLevel); }); break;
     case 'map': showMap(arg); break;
     case 'lvl': { const n = +parts2[0]; if (n >= 1 && n <= save.level && !sale) wipe(() => { hideLayer(); stage.classList.remove('inmenu'); inMenu = false; startLevel(n); }); break; }
