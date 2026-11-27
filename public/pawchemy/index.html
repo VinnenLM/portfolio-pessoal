@@ -1476,7 +1476,7 @@ function showMenu(){
     '<div class="logo"><div class="l1">' + GAME_NAME + '</div><div class="l2">' + GAME_SUB + '</div></div>' +
     '<div><div class="mbtns">' +
       '<button class="wbtn gold" data-act="play">Jogar &middot; Fase ' + (cleared ? Math.min(save.level, curLevel + 1) : curLevel) + '</button>' +
-      '<button class="wbtn" data-act="map" data-arg="menu">Fases &middot; &#9733; ' + totalStars() + '</button>' +
+      '<button class="wbtn" data-act="map" data-arg="menu">Fases &middot; &#9733; ' + totalStars() + '/' + (save.level * 3) + '</button>' +
       '<button class="wbtn" data-act="shop" data-arg="menu">Lojinha</button>' +
       '<button class="wbtn" data-act="options" data-arg="menu">Opções</button>' +
       '<button class="wbtn" data-act="how" data-arg="menu">Como jogar</button>' +
