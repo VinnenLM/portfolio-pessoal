@@ -273,7 +273,7 @@
       setTimeout(() => {
         if (G !== g0 || G.done || G.pugs[startPug.r] >= 0) return;
         A.sfx('bonus'); tryPlace(startPug.r, startPug.c, true); pugBurst(startPug.r * G.n + startPug.c);
-      }, 650);
+      }, 325);
     }
     if (!save.tutorialDone) showTutorial(0);
   }
