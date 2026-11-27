@@ -3,7 +3,7 @@
   'use strict';
 
   const SAVE_KEY = 'pugzzle:save:v1';
-  const MAX_LIVES = 5, START_LIVES = 3;
+  const MAX_LIVES = 3, START_LIVES = 3;
   // Uma palavra por combo (acertos seguidos sem erro). Errou: volta para a primeira.
   const COMBO_WORDS = ['Bom', 'Ótimo', 'Muito bem', 'Excelente', 'Incrível', 'Fantástico', 'Sensacional', 'Épico', 'Perfeito', 'Lendário'];
   const BONUS_TYPES = ['life', 'pug', 'hint'];
