@@ -247,8 +247,9 @@ const Snd = {
     try {
       if (!this.ctx){
         const a = this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-        this.sfx = a.createGain(); this.sfx.gain.value = 1; this.sfx.connect(a.destination);
-        this.mus = a.createGain(); this.mus.gain.value = .0001; this.mus.connect(a.destination);
+        const mg = a.createGain(); mg.gain.value = 2.4; const cp = a.createDynamicsCompressor(); cp.threshold.value = -14; cp.knee.value = 12; cp.ratio.value = 6; cp.attack.value = .003; cp.release.value = .2; mg.connect(cp); cp.connect(a.destination);
+        this.sfx = a.createGain(); this.sfx.gain.value = 1; this.sfx.connect(mg);
+        this.mus = a.createGain(); this.mus.gain.value = .0001; this.mus.connect(mg);
         const n = a.sampleRate, b = a.createBuffer(1, n, n), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; this.noiseBuf = b;
       }
       if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -294,7 +295,7 @@ const Snd = {
     on = on && !document.hidden;
     if (on && !this.musOn){
       this.musOn = true; this.nextT = a.currentTime + .1;
-      this.mus.gain.cancelScheduledValues(a.currentTime); this.mus.gain.setTargetAtTime(.55, a.currentTime, .6);
+      this.mus.gain.cancelScheduledValues(a.currentTime); this.mus.gain.setTargetAtTime(.9, a.currentTime, .6);
       if (!this.timer) this.timer = setInterval(() => this.sched(), 120);
     } else if (!on && this.musOn){
       this.musOn = false; this.mus.gain.cancelScheduledValues(a.currentTime); this.mus.gain.setTargetAtTime(.0001, a.currentTime, .15);
