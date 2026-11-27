@@ -1449,11 +1449,11 @@ function findHint(){
 let hintCd = 0, tubeCd = 0, undoCd = 0, usedB = {undo:0, hint:0, tubes:0};
 function useHint(){
   if (uiOpen || busy || cleared) return;
-  const now = performance.now(); if (now < hintCd || (hint && TT - hint.t0 < 5)) return; hintCd = now + 1200;
+  const now = performance.now(); if (now < hintCd) return; hintCd = now + 1200;
   if (save.hint <= 0){ toast('Sem dicas! Veja a lojinha.'); return; }
   const r = findHint();
   if (!r || r.stuck){ toast('Sem saída por aqui! Use Voltar ou um Frasco extra (a dica não foi gasta).'); stuckT = TT; return; }
-  save.hint--; usedB.hint++; persist(); selected = -1; hint = {a: r.mv[0], b: r.mv[1], t0: TT}; updateHud(); Snd.sel();
+  save.hint--; usedB.hint++; persist(); selected = -1; hint = null; lift = lift.map(() => 0); updateHud(); Snd.sel(); if (canPour(r.mv[0], r.mv[1])) startPour(r.mv[0], r.mv[1]);
 }
 function useTube(){
   if (uiOpen || busy || cleared) return;
@@ -1536,7 +1536,7 @@ function showHow(from){
     '<li>Toque em um frasco e depois em outro para despejar a ração.</li>' +
     '<li>Só dá para despejar em frascos vazios ou com a mesma cor por cima.</li>' +
     '<li>Frascos com 4 camadas da mesma cor vão para o caldeirão e rendem moedas.</li>' +
-    '<li>Travou? Use <b>Voltar</b> (desfaz a última jogada), <b>Dica</b> (mostra uma jogada) ou <b>Frasco</b> (um frasco vazio extra).</li>' +
+    '<li>Travou? Use <b>Voltar</b> (desfaz a última jogada), <b>Dica</b> (faz uma jogada por você) ou <b>Frasco</b> (um frasco vazio extra).</li>' +
     '<li>Ao terminar, o pug bruxo vende a ração a um cliente. Quanto menos jogadas, mais moedas! Gaste na lojinha.</li></ol>' +
     '<div class="row"><button class="wbtn" data-act="back" data-arg="' + from + '">Voltar</button></div></div>');
 }
