@@ -82,6 +82,8 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .wipe.on .wpaw{transform:scale(1) rotate(0deg);transition-delay:.12s}
 .wipe .wpaw svg{width:100%;height:100%}
 .layer.noanim,.layer.noanim .parch{animation:none}
+.layer.nofade{animation:none}
+.layer.leave{opacity:0;transition:opacity .16s;pointer-events:none}
 .scard.bought{animation:sbuy .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes sbuy{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-10px) scale(1.06)}65%{transform:translateY(0) scale(.97)}100%{transform:none}}
 .stage.inmenu .layer.dim{background:radial-gradient(ellipse at 50% 40%,rgba(48,22,44,.9),rgba(12,4,14,.96) 72%);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -1491,7 +1493,7 @@ const SHOP = [
 
 /* ======================= TELAS (DOM) ======================= */
 const layer = $('#layer');
-function showLayer(html, cls){ stage.classList.toggle('sub', (cls || 'dim') !== 'menuL'); layer.className = 'layer on ' + (cls || 'dim'); layer.innerHTML = html; uiOpen = true; }
+function showLayer(html, cls){ const was = uiOpen && layer.classList.contains('on') && !layer.classList.contains('leave'); stage.classList.toggle('sub', (cls || 'dim') !== 'menuL'); layer.className = 'layer on ' + (cls || 'dim') + (was ? ' nofade' : ''); layer.innerHTML = html; uiOpen = true; }
 function hideLayer(){ stage.classList.remove('sub'); layer.className = 'layer'; layer.innerHTML = ''; uiOpen = false; }
 const onOff = v => v ? 'Ligado' : 'Desligado';
 
@@ -1602,7 +1604,7 @@ function goBack(from){
 let wiping = false;
 function wipe(fn){
   if (wiping) return; wiping = true; const w = $('#wipe');
-  w.classList.add('on'); try { Snd.sel(); } catch (e) {}
+  w.classList.add('on'); if (layer.classList.contains('on')) layer.classList.add('leave'); try { Snd.sel(); } catch (e) {}
   setTimeout(() => { try { fn(); } catch (e) { console.error(e); } setTimeout(() => { w.classList.remove('on'); setTimeout(() => { wiping = false; }, 340); }, 140); }, 460);
 }
 function act(a, arg){
