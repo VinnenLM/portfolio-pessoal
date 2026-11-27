@@ -57,6 +57,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .tool:active{filter:drop-shadow(0 calc(2px*var(--f)) 0 rgba(18,5,16,.55))}
 .tool.off{filter:drop-shadow(0 calc(6px*var(--f)) 0 rgba(18,5,16,.55)) grayscale(.75) brightness(.72)}
 .stage.inmenu .hud,.stage.inmenu .bar{visibility:hidden}
+.stage.inmenu.sub .hud{visibility:visible}.stage.sub .hud{pointer-events:none}
 
 /* Camadas */
 .layer{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px}
@@ -753,7 +754,7 @@ function drawCauldron(){
   if (PUG()){
     ctx.restore(); ctx.save();
     const hc = '#' + rgb.map(v => Math.max(0, Math.min(255, v)).toString(16).padStart(2, '0')).join(''), cx = g.mouthX, cy = g.mouthY, rx = g.rx, ry = g.ry, dome = 7 + ripple * 3;
-    ctx.fillStyle = shade(hc, -.65); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = shade(hc, -.42); ctx.beginPath(); ctx.ellipse(cx, cy, rx, ry, 0, 0, 7); ctx.fill();
     const jump = ripple * 2.4 * Math.abs(Math.sin(TT * 18)), dq = Math.round(dome);
     const pk = hc + dq + '|' + (dpr * sc).toFixed(2);
     if (!pileC || pileK !== pk){
@@ -772,7 +773,8 @@ function drawCauldron(){
       }
       pileK = pk; pileM = {w: W2, h: H2, oy: ry + dq + 8};
     }
-    ctx.drawImage(pileC, cx - pileM.w / 2, cy - pileM.oy - jump, pileM.w, pileM.h);
+    ctx.save(); ctx.beginPath(); ctx.rect(cx - rx - 12, cy - 60, rx * 2 + 24, 60); ctx.ellipse(cx, cy, rx * 1.01, ry * 1.05, 0, 0, Math.PI); ctx.clip();
+    ctx.drawImage(pileC, cx - pileM.w / 2, cy - pileM.oy - jump, pileM.w, pileM.h); ctx.restore();
     const lp = IMG.lip_p; if (lp && lp.naturalWidth) ctx.drawImage(lp, 450 * IS, 525 * IS, lp.naturalWidth * IS, lp.naturalHeight * IS);
   } else { ctx.globalAlpha = .82; ctx.fillStyle = lg; ctx.fillRect(g.mouthX - g.rx, g.mouthY - g.ry, g.rx * 2, g.ry * 2); ctx.globalAlpha = 1; }
   for (let i = 0; i < (PUG() ? 0 : 7); i++){
@@ -1410,8 +1412,8 @@ const SHOP = [
 
 /* ======================= TELAS (DOM) ======================= */
 const layer = $('#layer');
-function showLayer(html, cls){ layer.className = 'layer on ' + (cls || 'dim'); layer.innerHTML = html; uiOpen = true; }
-function hideLayer(){ layer.className = 'layer'; layer.innerHTML = ''; uiOpen = false; }
+function showLayer(html, cls){ stage.classList.toggle('sub', (cls || 'dim') !== 'menuL'); layer.className = 'layer on ' + (cls || 'dim'); layer.innerHTML = html; uiOpen = true; }
+function hideLayer(){ stage.classList.remove('sub'); layer.className = 'layer'; layer.innerHTML = ''; uiOpen = false; }
 const onOff = v => v ? 'Ligado' : 'Desligado';
 
 function showMenu(){
